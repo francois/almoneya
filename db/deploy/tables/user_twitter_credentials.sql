@@ -25,6 +25,11 @@ BEGIN;
   COMMENT ON TABLE credentials.user_twitter_credentials IS 'A table that allows authentication using Twitter''s Sign In button';
   COMMENT ON COLUMN credentials.user_twitter_credentials.service_id IS 'This is the actual user ID on Twitter''s platform of the user that this row represents';
 
+  CREATE TRIGGER maintain_credentials__user_twitter_credentials_timestamps
+  BEFORE INSERT OR UPDATE OF service_id, screen_name, consumer_key, consumer_secret, access_token, access_token_secret
+  ON credentials.user_twitter_credentials FOR EACH ROW
+  EXECUTE PROCEDURE public.maintain_timestamps();
+
 COMMIT;
 
 -- vim: expandtab shiftwidth=2

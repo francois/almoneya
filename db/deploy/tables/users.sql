@@ -18,6 +18,11 @@ BEGIN;
 
   COMMENT ON TABLE public.users IS 'A place to store people who have the potential to access the system. Inspired by http://tdan.com/a-universal-person-and-organization-data-model/5014';
 
+  CREATE TRIGGER maintain_public__users_timestamps
+  BEFORE INSERT OR UPDATE OF surname, rest_of_name
+  ON public.users FOR EACH ROW
+  EXECUTE PROCEDURE public.maintain_timestamps();
+
 COMMIT;
 
 -- vim: expandtab shiftwidth=2

@@ -24,6 +24,11 @@ BEGIN;
   COMMENT ON COLUMN credentials.user_facebook_credentials.name IS 'The person''s name on the Facebook platform';
   COMMENT ON COLUMN credentials.user_facebook_credentials.expires_at IS 'The moment in time where this access token will expire';
 
+  CREATE TRIGGER maintain_credentials__user_facebook_credentials_timestamps
+  BEFORE INSERT OR UPDATE OF service_id, name, access_token, expires_at
+  ON credentials.user_facebook_credentials FOR EACH ROW
+  EXECUTE PROCEDURE public.maintain_timestamps();
+
 COMMIT;
 
 -- vim: expandtab shiftwidth=2

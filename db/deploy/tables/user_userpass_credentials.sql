@@ -22,6 +22,11 @@ BEGIN;
   COMMENT ON COLUMN credentials.user_userpass_credentials.username IS 'Represents the identity of a person, usually as an email address or as a plain username. If the application requires the use of an email address, this column''s check must be updated.';
   COMMENT ON COLUMN credentials.user_userpass_credentials.password_hash IS 'Should be a BCrypt password hash, but there are no real restrictions on this';
 
+  CREATE TRIGGER maintain_credentials__user_userpass_credentials_timestamps
+  BEFORE INSERT OR UPDATE OF username, password_hash
+  ON credentials.user_userpass_credentials FOR EACH ROW
+  EXECUTE PROCEDURE public.maintain_timestamps();
+
 COMMIT;
 
 -- vim: expandtab shiftwidth=2
