@@ -1,3 +1,4 @@
 %syntax-version=1.0.0
 %project=acctsoft
 
+create_roles 2016-04-27T00:20:04Z François Beausoleil <francois@teksol.info> # Add database roles to own schema objects and use the database
