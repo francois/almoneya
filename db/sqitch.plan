@@ -9,3 +9,4 @@ tables/users [schemas/public create_roles functions/maintain_timestamps] 2016-04
 tables/user_userpass_credentials [tables/users functions/maintain_timestamps] 2016-04-27T02:38:29Z François Beausoleil <francois@teksol.info> # A table to record username and passwords for users
 tables/user_twitter_credentials [tables/users functions/maintain_timestamps] 2016-04-27T02:50:51Z François Beausoleil <francois@teksol.info> # A place to store Twitter OAuth credentials
 tables/user_facebook_credentials [tables/users functions/maintain_timestamps] 2016-04-27T03:00:20Z François Beausoleil <francois@teksol.info> # Record people's Facebook credentials
+tables/sign_ins [schemas/credentials functions/maintain_timestamps] 2016-04-27T03:20:46Z François Beausoleil <francois@teksol.info> # Record sign in attempts to the database, in order to track attacks
