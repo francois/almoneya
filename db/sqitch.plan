@@ -2,3 +2,4 @@
 %project=acctsoft
 
 create_roles 2016-04-27T00:20:04Z François Beausoleil <francois@teksol.info> # Add database roles to own schema objects and use the database
+schemas/credentials [create_roles] 2016-04-27T00:42:12Z François Beausoleil <francois@teksol.info> # Segregate credentials to their own schema for easier security management
