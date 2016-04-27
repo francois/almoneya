@@ -6,3 +6,4 @@ schemas/credentials [create_roles] 2016-04-27T00:42:12Z François Beausoleil <fr
 schemas/public [create_roles] 2016-04-27T00:55:36Z François Beausoleil <francois@teksol.info> # Reset the public schema's permissions
 tables/users [schemas/public create_roles] 2016-04-27T02:30:34Z François Beausoleil <francois@teksol.info> # Need a place to record people's names
 tables/user_userpass_credentials [tables/users] 2016-04-27T02:38:29Z François Beausoleil <francois@teksol.info> # A table to record username and passwords for users
+tables/user_twitter_credentials [tables/users] 2016-04-27T02:50:51Z François Beausoleil <francois@teksol.info> # A place to store Twitter OAuth credentials
