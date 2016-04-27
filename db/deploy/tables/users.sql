@@ -15,6 +15,7 @@ BEGIN;
   );
 
   ALTER TABLE public.users OWNER TO acctsoft;
+  GRANT INSERT, UPDATE, DELETE ON public.users TO webui;
 
   COMMENT ON TABLE public.users IS 'A place to store people who have the potential to access the system. Inspired by http://tdan.com/a-universal-person-and-organization-data-model/5014';
 

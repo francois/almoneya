@@ -18,6 +18,7 @@ BEGIN;
   );
 
   ALTER TABLE credentials.user_facebook_credentials OWNER TO acctsoft;
+  GRANT INSERT, UPDATE, DELETE ON credentials.user_facebook_credentials TO webui;
 
   COMMENT ON TABLE credentials.user_facebook_credentials IS 'Credentials that users can use to authenticate with this platform using Facebook''s "Sign In with Facebook" oauth flow';
   COMMENT ON COLUMN credentials.user_facebook_credentials.service_id IS 'The person''s ID on the Facebook platform';

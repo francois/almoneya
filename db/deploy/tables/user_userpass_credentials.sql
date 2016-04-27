@@ -17,6 +17,7 @@ BEGIN;
   );
 
   ALTER TABLE credentials.user_userpass_credentials OWNER TO acctsoft;
+  GRANT INSERT, UPDATE, DELETE ON credentials.user_userpass_credentials TO webui;
 
   COMMENT ON TABLE credentials.user_userpass_credentials IS 'Records usernames (or emails) and passwords';
   COMMENT ON COLUMN credentials.user_userpass_credentials.username IS 'Represents the identity of a person, usually as an email address or as a plain username. If the application requires the use of an email address, this column''s check must be updated.';

@@ -21,6 +21,7 @@ BEGIN;
   );
 
   ALTER TABLE user_twitter_credentials OWNER TO acctsoft;
+  GRANT INSERT, UPDATE, DELETE ON credentials.user_twitter_credentials TO webui;
 
   COMMENT ON TABLE credentials.user_twitter_credentials IS 'A table that allows authentication using Twitter''s Sign In button';
   COMMENT ON COLUMN credentials.user_twitter_credentials.service_id IS 'This is the actual user ID on Twitter''s platform of the user that this row represents';
