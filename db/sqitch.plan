@@ -13,3 +13,4 @@ tables/sign_ins [schemas/credentials functions/maintain_timestamps] 2016-04-27T0
 tables/userpass_sign_ins [tables/sign_ins tables/user_userpass_credentials] 2016-04-27T12:59:26Z François Beausoleil <francois@teksol.info> # Record successful and failed authentication attempts for each username separately
 tables/tenants [schemas/credentials] 2016-04-28T02:48:22Z François Beausoleil <francois@teksol.info> # Create tenants, to identify groups of people that can access the system together
 migrations/link_users_to_tenants [tables/users tables/tenants] 2016-04-28T02:53:05Z François Beausoleil <francois@teksol.info> # Link people to tenants, in order to create teams of people that work together
+tables/accounts [tables/tenants] 2016-04-28T02:59:15Z François Beausoleil <francois@teksol.info> # Chart of accounts, per tenant
