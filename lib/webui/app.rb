@@ -11,6 +11,7 @@ require "repositories/account_repo"
 require "repositories/sign_in_repo"
 require "repositories/user_repo"
 require "schemas/new_account_schema"
+require "schemas/userpass_sign_in_schema"
 
 module Webui
   class App < Sinatra::Base
@@ -51,16 +52,22 @@ module Webui
     end
 
     post "/sign-in" do
-      logger.info sign_in_op.inspect
-
       begin
-        sign_in = sign_in_op.sign_in_with_username_and_password(
+        result = Schemas::UserpassSignInSchema.call(
           username: params[:sign_in][:username],
-          password: params[:sign_in][:password],
-          source_ip: request.ip,
-          user_agent: request.user_agent)
-        session[:authenticated_user_id] = sign_in.user_id
-        redirect to("/dashboard")
+          password: params[:sign_in][:password])
+        if result.success? then
+          valid_sign_in = result.output
+          sign_in = sign_in_op.sign_in_with_username_and_password(
+            username: valid_sign_in.fetch(:username),
+            password: valid_sign_in.fetch(:password),
+            source_ip: request.ip,
+            user_agent: request.user_agent)
+          session[:authenticated_user_id] = sign_in.user_id
+          redirect to("/dashboard")
+        else
+          redirect to("/sign-in?failed=1")
+        end
       rescue Operations::SignIn::UnknownUsername
         logger.warn "Authentication failure: unknown username"
         redirect to("/sign-in?failed=1")
