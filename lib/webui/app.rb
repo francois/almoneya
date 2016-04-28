@@ -11,20 +11,26 @@ require "repositories/user_repo"
 
 module Webui
   class App < Sinatra::Base
-    disable :sessions
+    enable :sessions
     disable :logging
 
     configure do
       DB = Sequel.connect(ENV["DATABASE_URL"] || "postgresql:///vagrant", logger: Logger.new(STDERR))
-      userpass_dataset = DB[:credentials__user_userpass_credentials]
+
       sign_ins_dataset = DB[:credentials__sign_ins]
+      userpass_dataset = DB[:credentials__user_userpass_credentials]
+      users_dataset    = DB[:public__users]
       userpass_sign_ins_dataset = DB[:credentials__userpass_sign_ins]
 
       sign_in_repo = Repositories::SignInRepo.new(sign_ins_dataset: sign_ins_dataset, userpass_sign_ins_dataset: userpass_sign_ins_dataset)
-      user_repo    = Repositories::UserRepo.new(userpass_dataset: userpass_dataset)
+      user_repo    = Repositories::UserRepo.new(userpass_dataset: userpass_dataset, users_dataset: users_dataset)
 
       set :operations, {
-        sign_in_op: Operations::SignIn.new(sign_in_repo: sign_in_repo, user_repo: user_repo)
+        sign_in_op: Operations::SignIn.new(sign_in_repo: sign_in_repo, user_repo: user_repo),
+      }
+
+      set :repositories, {
+        user_repo: user_repo,
       }
     end
 
@@ -46,6 +52,7 @@ module Webui
           password: params[:sign_in][:password],
           source_ip: request.ip,
           user_agent: request.user_agent)
+        session[:authenticated_user_id] = sign_in.user_id
         redirect to("/dashboard")
       rescue Operations::SignIn::UnknownUsername
         logger.warn "Authentication failure: unknown username"
@@ -57,11 +64,24 @@ module Webui
     end
 
     get "/dashboard" do
+      @user_id = session[:authenticated_user_id]
       erb :dashboard
+    end
+
+    def signed_in?
+      !!session[:authenticated_user_id]
+    end
+
+    def authenticated_user
+      @authenticated_user ||= user_repo.find_by_id(session[:authenticated_user_id])
     end
 
     def logger
       DB.loggers.first
+    end
+
+    def user_repo
+      settings.repositories.fetch(:user_repo)
     end
 
     def sign_in_op

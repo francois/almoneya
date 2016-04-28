@@ -41,6 +41,7 @@ module Operations
         username: username,
         successful: successful)
       if sign_in.successful? then
+        sign_in.user_id = user.id
         return sign_in
       else
         raise
