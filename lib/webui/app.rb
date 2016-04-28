@@ -64,20 +64,25 @@ module Webui
     end
 
     get "/dashboard" do
-      @user_id = session[:authenticated_user_id]
       erb :dashboard
     end
 
-    def signed_in?
-      !!session[:authenticated_user_id]
-    end
+    helpers do
+      def signed_in?
+        !!session[:authenticated_user_id]
+      end
 
-    def authenticated_user
-      @authenticated_user ||= user_repo.find_by_id(session[:authenticated_user_id])
-    end
+      def authenticated_user
+        @authenticated_user ||= user_repo.find_by_id(session[:authenticated_user_id])
+      end
 
-    def logger
-      DB.loggers.first
+      def logger
+        DB.loggers.first
+      end
+
+      def locale
+        I18n.locale
+      end
     end
 
     def user_repo
