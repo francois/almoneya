@@ -28,17 +28,27 @@ GEM
       dry-equalizer (~> 0.2)
       dry-logic (~> 0.2, >= 0.2.2)
       dry-types (~> 0.6, >= 0.6.0)
+    ffi (1.9.10)
     git-version-bump (0.15.1)
     i18n (0.7.0)
     inflecto (0.0.2)
     kleisli (0.2.7)
+    listen (3.1.1)
+      rb-fsevent (>= 0.9.3)
+      rb-inotify (>= 0.9.7)
     pg (0.18.4)
+    puma (3.4.0)
     rack (1.6.4)
     rack-contrib (1.4.0)
       git-version-bump (~> 0.15)
       rack (~> 1.4)
     rack-protection (1.5.3)
       rack
+    rb-fsevent (0.9.7)
+    rb-inotify (0.9.7)
+      ffi (>= 0.5.0)
+    rerun (0.11.0)
+      listen (~> 3.0)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
       rspec-expectations (~> 3.4.0)
@@ -69,7 +79,9 @@ DEPENDENCIES
   bcrypt
   dry-validation
   i18n
+  puma
   rack-contrib
+  rerun
   rspec
   sequel
   sequel_pg

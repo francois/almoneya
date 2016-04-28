@@ -15,7 +15,7 @@ require "schemas/userpass_sign_in_schema"
 
 module Webui
   class App < Sinatra::Base
-    enable :sessions
+    disable :sessions # We use Rack::Cookie::Session directly in config.ru
     disable :logging
 
     configure do
