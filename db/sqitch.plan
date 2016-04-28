@@ -10,3 +10,4 @@ tables/user_userpass_credentials [tables/users functions/maintain_timestamps] 20
 tables/user_twitter_credentials [tables/users functions/maintain_timestamps] 2016-04-27T02:50:51Z François Beausoleil <francois@teksol.info> # A place to store Twitter OAuth credentials
 tables/user_facebook_credentials [tables/users functions/maintain_timestamps] 2016-04-27T03:00:20Z François Beausoleil <francois@teksol.info> # Record people's Facebook credentials
 tables/sign_ins [schemas/credentials functions/maintain_timestamps] 2016-04-27T03:20:46Z François Beausoleil <francois@teksol.info> # Record sign in attempts to the database, in order to track attacks
+tables/userpass_sign_ins [tables/sign_ins tables/user_userpass_credentials] 2016-04-27T12:59:26Z François Beausoleil <francois@teksol.info> # Record successful and failed authentication attempts for each username separately

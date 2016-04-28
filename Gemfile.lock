@@ -1,7 +1,22 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    bcrypt (3.1.11)
+    diff-lcs (1.2.5)
     pg (0.18.4)
+    rspec (3.4.0)
+      rspec-core (~> 3.4.0)
+      rspec-expectations (~> 3.4.0)
+      rspec-mocks (~> 3.4.0)
+    rspec-core (3.4.4)
+      rspec-support (~> 3.4.0)
+    rspec-expectations (3.4.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.4.0)
+    rspec-mocks (3.4.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.4.0)
+    rspec-support (3.4.1)
     sequel (4.33.0)
     sequel_pg (1.6.16)
       pg (>= 0.8.0)
@@ -11,6 +26,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bcrypt
+  rspec
   sequel
   sequel_pg
 

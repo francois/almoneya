@@ -9,8 +9,9 @@ BEGIN;
   CREATE TABLE credentials.sign_ins(
       sign_in_id serial not null primary key
     , source_ip inet not null
-    , user_agent text not null
+    , user_agent text
     , method text not null check(method in ('userpass', 'twitter', 'facebook'))
+    , successful boolean not null
     , created_at timestamp with time zone not null default current_timestamp
     , updated_at timestamp with time zone not null default current_timestamp
   );
@@ -22,6 +23,7 @@ BEGIN;
   COMMENT ON COLUMN credentials.sign_ins.source_ip IS 'From which IP address did the sign in attempt originate; be careful as reverse proxies will influence this IP address';
   COMMENT ON COLUMN credentials.sign_ins.user_agent IS 'The value stored in the User-Agent HTTP header, which may or may not have been provided intially';
   COMMENT ON COLUMN credentials.sign_ins.method IS 'Which authentication method was used to attempt this sign in attempt?';
+  COMMENT ON COLUMN credentials.sign_ins.successful IS 'Indicates whether the authentication attempt was successful or not';
 
   CREATE TRIGGER maintain_credentials__sign_ins_timestamps
   BEFORE INSERT ON credentials.sign_ins FOR EACH ROW
