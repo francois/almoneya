@@ -17,9 +17,16 @@ module Repositories
     # @param user_id The id that corresponds to a user.
     # @raise NotFound When the id does not match any existing user.
     def find_by_id(user_id)
-      row = users_ds[user_id: user_id]
+      row = users_ds.
+        select(:tenant_id, :user_id, :surname, :rest_of_name).
+        filter(user_id: user_id).
+        first
       if row then
-        User.new(row.fetch(:user_id), row.fetch(:surname), row.fetch(:rest_of_name))
+        User.new(
+          row.fetch(:tenant_id),
+          row.fetch(:user_id),
+          row.fetch(:surname),
+          row.fetch(:rest_of_name))
       else
         raise NotFound, "No user with ID #{user_id.inspect} found!"
       end
