@@ -7,13 +7,13 @@ BEGIN;
 
   CREATE TABLE public.accounts(
       tenant_id int not null references credentials.tenants
-    , account_code text not null check(trim(account_code) = account_code AND length(account_code) > 0)
+    , account_code text          check(account_code IS NULL OR (trim(account_code) = account_code AND length(account_code) > 0))
     , account_name text not null check(trim(account_name) = account_name AND length(account_name) > 0)
     , account_kind text not null check(account_kind IN ('asset', 'liability', 'equity', 'revenue', 'expense', 'contra'))
     , account_id serial not null unique
     , created_at timestamp with time zone
     , updated_at timestamp with time zone
-    , primary key(tenant_id, account_code)
+    , primary key(tenant_id, account_name)
   );
 
   ALTER TABLE public.accounts OWNER TO acctsoft;

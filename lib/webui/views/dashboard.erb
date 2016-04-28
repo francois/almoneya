@@ -9,5 +9,47 @@
 <p>User ID: <%= authenticated_user.id %></p>
 <p>Tenant ID: <%= authenticated_user.tenant_id %></p>
 <p>Locale: <%= locale %></p>
+<h3>List of accounts</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Name</th>
+      <th>Kind</th>
+    </tr>
+  </thead>
+  <tbody>
+  <% @accounts.each do |account| %>
+    <tr>
+      <td><%= account.code %></td>
+      <td><%= account.name %></td>
+      <td><%= account.kind %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<form method="post" action="/api/accounts">
+  <div>
+    <label>Code <input type="text" size="6" name="account[code]"/></label>
+  </div>
+  <div>
+    <label>Name <input type="text" size="20" name="account[name]"/></label>
+  </div>
+  <div>
+    <label>
+      Kind
+      <select name="account[kind]">
+        <option value="asset">Asset</option>
+        <option value="liability">Liability</option>
+        <option value="equity">Equity</option>
+        <option value="revenue">Revenue</option>
+        <option value="expense">Expense</option>
+        <option value="contra">Contra</option>
+      </select>
+    </label>
+  </div>
+  <input type="submit"/>
+</form>
 </body>
 </html>
