@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Account Software</title>
+</head>
+<body>
+<h1>Sign In</h1>
+<form action="<%= url("/sign-in") %>" method="post">
+	<% if @failed then %>
+		<div class="notice">
+			<p>Unknown username or password</p>
+		</div>
+	<% end %>
+	<div>
+		<label>Username: <input type="text" name="sign_in[username]"/></label>
+	</div>
+	<div>
+		<label>Password: <input type="password" name="sign_in[password]"/></label>
+	</div>
+	<input type="submit" value="Sign In"/>
+</form>
+</body>
+</html>

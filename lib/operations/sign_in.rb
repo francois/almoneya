@@ -1,3 +1,5 @@
+require "bcrypt"
+
 module Operations
   class SignIn
     def initialize(sign_in_repo:, user_repo:)
