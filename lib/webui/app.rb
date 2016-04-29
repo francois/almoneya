@@ -18,6 +18,11 @@ module Webui
     disable :sessions # We use Rack::Cookie::Session directly in config.ru
     disable :logging
 
+    configure :development do
+      enable :static
+      set :public_folder, File.expand_path("../../../public", __FILE__)
+    end
+
     configure do
       DB = Sequel.connect(ENV["DATABASE_URL"] || "postgresql:///vagrant", logger: Logger.new(STDERR))
 
@@ -42,16 +47,26 @@ module Webui
       }
     end
 
+    before do
+      redirect to("/sign-in") unless signed_in? || %w(/sign-in /contact/support).include?(request.path_info)
+    end
+
+    before { @search = true }
+
     get "/" do
-      redirect to("/sign-in")
+      @accounts = account_repo.find_all_for_tenant(authenticated_user.tenant_id)
+      erb :dashboard, layout: :application
     end
 
     get "/sign-in" do
+      session.clear
       @failed = (params[:failed] == "1")
-      erb :sign_in
+      @search = false
+      erb :sign_in, layout: :application
     end
 
     post "/sign-in" do
+      session.clear
       begin
         result = Schemas::UserpassSignInSchema.call(
           username: params[:sign_in][:username],
@@ -64,7 +79,7 @@ module Webui
             source_ip: request.ip,
             user_agent: request.user_agent)
           session[:authenticated_user_id] = sign_in.user_id
-          redirect to("/dashboard")
+          redirect to("/")
         else
           redirect to("/sign-in?failed=1")
         end
@@ -75,11 +90,6 @@ module Webui
         logger.warn "Authentication failure: invalid credentials"
         redirect to("/sign-in?failed=1")
       end
-    end
-
-    get "/dashboard" do
-      @accounts = account_repo.find_all_for_tenant(authenticated_user.tenant_id)
-      erb :dashboard
     end
 
     post "/api/accounts" do
