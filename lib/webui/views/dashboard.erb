@@ -24,26 +24,42 @@
     </tbody>
   </table>
 
-  <form method="post" action="/api/accounts">
-    <div>
-      <label>Code <input type="text" size="6" name="account[code]"/></label>
+  <div class="row show-for-medium">
+    <div class="large-6 medium-12 columns">
+      <h2>Create Account</h2>
+      <form method="post" action="/api/accounts">
+        <fieldset>
+          <div>
+            <label>Code <input type="text" size="6" name="account[code]"/></label>
+          </div>
+          <div>
+            <label>Name <input type="text" size="20" name="account[name]"/></label>
+          </div>
+          <div>
+            <label>
+              Kind
+              <select name="account[kind]">
+                <option value="asset">Asset</option>
+                <option value="liability">Liability</option>
+                <option value="equity">Equity</option>
+                <option value="revenue">Revenue</option>
+                <option value="expense">Expense</option>
+                <option value="contra">Contra</option>
+              </select>
+            </label>
+          </div>
+          <button type="submit" class="button primary large">Create Account</button>
+        </fieldset>
+      </form>
     </div>
-    <div>
-      <label>Name <input type="text" size="20" name="account[name]"/></label>
+    <div class="show-for-large large-6 columns">
+      <h2>Import Bank Transactions</h2>
+      <form method="post" action="/api/bank-account-transactions/import" enctype="multipart/form-data">
+        <div>
+          <label>CSV file <input type="file" name="file"/></label>
+        </div>
+        <button type="submit" class="button primary large">Import Bank Transactions</button>
+      </form>
     </div>
-    <div>
-      <label>
-        Kind
-        <select name="account[kind]">
-          <option value="asset">Asset</option>
-          <option value="liability">Liability</option>
-          <option value="equity">Equity</option>
-          <option value="revenue">Revenue</option>
-          <option value="expense">Expense</option>
-          <option value="contra">Contra</option>
-        </select>
-      </label>
-    </div>
-    <input type="submit"/>
-  </form>
+  </div>
 </div>

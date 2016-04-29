@@ -1,3 +1,6 @@
+require "bundler"
+Bundler.require :default, (ENV["RACK_ENV"] || "development").to_sym
+
 $LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
 require_relative "lib/webui/app"
 

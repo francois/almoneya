@@ -7,8 +7,10 @@ require "sinatra/base"
 require "tilt/erb"
 
 # This application's possible actions
+require "operations/import_bank_transactions"
 require "operations/sign_in"
 require "repositories/account_repo"
+require "repositories/bank_account_transaction_repo"
 require "repositories/sign_in_repo"
 require "repositories/user_repo"
 require "schemas/new_account_schema"
@@ -25,19 +27,31 @@ module Webui
     end
 
     configure do
+      Encoding.default_external = "UTF-8"
+      Encoding.default_internal = "UTF-8"
+
       DB = Sequel.connect(ENV["DATABASE_URL"] || "postgresql:///vagrant", logger: Logger.new(STDERR))
 
-      accounts_dataset = DB[:public__accounts]
       sign_ins_dataset = DB[:credentials__sign_ins]
       userpass_dataset = DB[:credentials__user_userpass_credentials]
       users_dataset    = DB[:public__users]
       userpass_sign_ins_dataset = DB[:credentials__userpass_sign_ins]
 
+      accounts_dataset = DB[:public__accounts]
+      bank_accounts_dataset = DB[:public__bank_accounts]
+      bank_account_transactions_dataset = DB[:public__bank_account_transactions]
+
       account_repo = Repositories::AccountRepo.new(accounts_dataset: accounts_dataset)
       sign_in_repo = Repositories::SignInRepo.new(sign_ins_dataset: sign_ins_dataset, userpass_sign_ins_dataset: userpass_sign_ins_dataset)
       user_repo    = Repositories::UserRepo.new(userpass_dataset: userpass_dataset, users_dataset: users_dataset)
 
+      bank_account_transaction_repo = Repositories::BankAccountTransactionRepo.new(
+        bank_accounts_dataset: bank_accounts_dataset,
+        bank_account_transactions_dataset: bank_account_transactions_dataset)
+
       set :operations, {
+        import_bank_transactions_op: Operations::ImportBankTransactions.new(
+          bank_account_transaction_repo: bank_account_transaction_repo),
         sign_in_op: Operations::SignIn.new(sign_in_repo: sign_in_repo, user_repo: user_repo),
       }
 
@@ -122,6 +136,31 @@ module Webui
       end
     end
 
+    post "/api/bank-account-transactions/import" do
+      begin
+        DB.transaction do
+          txns = import_bank_transactions_op.call(tenant_id: authenticated_user.tenant_id, file: params[:file][:tempfile])
+          output = {
+            "transactions" => txns.map do |txn|
+              {
+                "bank_account_transaction_id" => txn.bank_account_transaction_id,
+                "account_num"  => txn.account_num,
+                "check_num"    => txn.check_num,
+                "posted_on"    => txn.posted_on,
+                "description1" => txn.description1,
+                "description2" => txn.description2,
+                "amount"       => txn.amount.to_s("F"),
+              }
+            end
+          }
+          json output, code: :created, location: url("/api/bank-account-transactions")
+        end
+      rescue Operations::ImportBankTransactions::InvalidFormat => e
+        output = {"error" => e.message}
+        json output, code: :bad_request
+      end
+    end
+
     helpers do
       CODES = {
         200          => 200,
@@ -169,6 +208,10 @@ module Webui
 
     def sign_in_op
       settings.operations.fetch(:sign_in_op)
+    end
+
+    def import_bank_transactions_op
+      settings.operations.fetch(:import_bank_transactions_op)
     end
   end
 end
