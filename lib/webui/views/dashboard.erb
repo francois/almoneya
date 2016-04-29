@@ -1,9 +1,9 @@
 <div class="large-12 columns">
   <h1>Dashboard</h1>
-  <p>Name: <%= authenticated_user.surname %> <%= authenticated_user.rest_of_name %></p>
-  <p>User ID: <%= authenticated_user.id %></p>
-  <p>Tenant ID: <%= authenticated_user.tenant_id %></p>
-  <p>Locale: <%= locale %></p>
+  <p>Name: <%=h authenticated_user.surname %> <%=h authenticated_user.rest_of_name %></p>
+  <p>User ID: <%=h authenticated_user.id %></p>
+  <p>Tenant ID: <%=h authenticated_user.tenant_id %></p>
+  <p>Locale: <%=h locale %></p>
   <h3>List of accounts</h3>
   <table>
     <thead>
@@ -16,9 +16,9 @@
     <tbody>
     <% @accounts.each do |account| %>
       <tr>
-        <td><%= account.code %></td>
-        <td><%= account.name %></td>
-        <td><%= account.kind %></td>
+        <td><%=h account.code %></td>
+        <td><%=h account.name %></td>
+        <td><%=h account.kind %></td>
       </tr>
     <% end %>
     </tbody>

@@ -1,6 +1,7 @@
 # Foundational requires
 require "json"
 require "logger"
+require "rack"
 require "sequel"
 require "sinatra/base"
 require "tilt/erb"
@@ -149,6 +150,10 @@ module Webui
 
       def locale
         I18n.locale
+      end
+
+      def h(str)
+        Rack::Utils.escape_html(str)
       end
     end
 
