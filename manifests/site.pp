@@ -11,7 +11,6 @@ package{[
   'libpq5',
   'libpq-dev',
   'libreadline-dev',
-  'nodejs',
   'ntp',
   'postgresql-9.4',
   'postgresql-client-9.4',
@@ -24,6 +23,12 @@ package{[
   'zsh',
 ]:
   ensure => latest,
+}
+
+package{[
+  'nodejs',
+]:
+  ensure => absent,
 }
 
 group{'francois':
@@ -86,7 +91,7 @@ exec{'use-zsh':
 
 exec{'/usr/bin/cpan -i -f -T App::Sqitch DBD::Pg TAP::Parser::SourceHandler::pgTAP':
   user    => 'francois',
-  creates => '/home/francois/perl5/bin/sqitch',
+  creates => '/usr/local/bin/sqitch',
   require => [
     Exec['/usr/bin/apt-get update'],
     User['francois'],
