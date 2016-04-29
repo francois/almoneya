@@ -74,11 +74,13 @@ module Webui
           password: params[:sign_in][:password])
         if result.success? then
           valid_sign_in = result.output
-          sign_in = sign_in_op.sign_in_with_username_and_password(
-            username: valid_sign_in.fetch(:username),
-            password: valid_sign_in.fetch(:password),
-            source_ip: request.ip,
-            user_agent: request.user_agent)
+          sign_in = DB.transaction do
+            sign_in_op.sign_in_with_username_and_password(
+              username: valid_sign_in.fetch(:username),
+              password: valid_sign_in.fetch(:password),
+              source_ip: request.ip,
+              user_agent: request.user_agent)
+          end
           session[:authenticated_user_id] = sign_in.user_id
           redirect to("/")
         else
@@ -105,7 +107,7 @@ module Webui
           valid_account.fetch(:code),
           valid_account.fetch(:name),
           valid_account.fetch(:kind))
-        account = account_repo.create(tenant_id: authenticated_user.tenant_id, account: account)
+        account = DB.transaction { account_repo.create(tenant_id: authenticated_user.tenant_id, account: account) }
         output = {
           "account" => {
             "account_id" => account.account_id,

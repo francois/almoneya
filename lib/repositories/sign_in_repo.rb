@@ -22,7 +22,6 @@ module Repositories
     #
     # @return A SignIn instance.
     def create_username_password_authentication_attempt(username:, source_ip:, user_agent:, successful:)
-      # TODO: find a way to build a transaction around these two calls to the database
       sign_in = sign_ins_ds.
         returning(:sign_in_id, :source_ip, :user_agent, :method, :successful, :created_at).
         insert(source_ip: source_ip, user_agent: user_agent, method: "userpass", successful: successful).
