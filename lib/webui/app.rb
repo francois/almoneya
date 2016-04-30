@@ -9,6 +9,8 @@ require "tilt/erb"
 # This application's possible actions
 require "operations/import_bank_transactions"
 require "operations/sign_in"
+require "parsers/desjardins"
+require "parsers/rbc"
 require "repositories/account_repo"
 require "repositories/bank_account_transaction_repo"
 require "repositories/sign_in_repo"
@@ -45,13 +47,18 @@ module Webui
       sign_in_repo = Repositories::SignInRepo.new(sign_ins_dataset: sign_ins_dataset, userpass_sign_ins_dataset: userpass_sign_ins_dataset)
       user_repo    = Repositories::UserRepo.new(userpass_dataset: userpass_dataset, users_dataset: users_dataset)
 
+      rbc_parser = Parsers::RBC.new
+      desjardins_parser = Parsers::Desjardins.new
+
       bank_account_transaction_repo = Repositories::BankAccountTransactionRepo.new(
         bank_accounts_dataset: bank_accounts_dataset,
         bank_account_transactions_dataset: bank_account_transactions_dataset)
 
       set :operations, {
         import_bank_transactions_op: Operations::ImportBankTransactions.new(
-          bank_account_transaction_repo: bank_account_transaction_repo),
+          bank_account_transaction_repo: bank_account_transaction_repo,
+          desjardins_parser: desjardins_parser,
+          rbc_parser: rbc_parser),
         sign_in_op: Operations::SignIn.new(sign_in_repo: sign_in_repo, user_repo: user_repo),
       }
 
