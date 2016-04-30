@@ -146,7 +146,7 @@ module Webui
     post "/api/bank-account-transactions/import" do
       begin
         DB.transaction do
-          txns = import_bank_transactions_op.call(tenant_id: authenticated_user.tenant_id, file: params[:file][:tempfile])
+          txns = DB.transaction { import_bank_transactions_op.call(tenant_id: authenticated_user.tenant_id, file: params[:file][:tempfile]) }
           output = {
             "transactions" => txns.map do |txn|
               {
