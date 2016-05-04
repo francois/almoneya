@@ -1,4 +1,4 @@
--- Revert acctsoft:tables/users from pg
+-- Revert almoneya:tables/users from pg
 
 SET client_min_messages TO 'warning';
 

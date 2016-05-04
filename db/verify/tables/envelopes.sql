@@ -1,4 +1,4 @@
--- Verify acctsoft:tables/envelopes on pg
+-- Verify almoneya:tables/envelopes on pg
 
 SET client_min_messages TO 'warning';
 

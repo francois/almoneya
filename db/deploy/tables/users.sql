@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/users to pg
+-- Deploy almoneya:tables/users to pg
 -- requires: schemas/public
 -- requires: create_roles
 
@@ -14,7 +14,7 @@ BEGIN;
     , updated_at timestamp with time zone not null default current_timestamp
   );
 
-  ALTER TABLE public.users OWNER TO acctsoft;
+  ALTER TABLE public.users OWNER TO almoneya;
   GRANT INSERT, UPDATE, DELETE ON public.users TO webui;
 
   COMMENT ON TABLE public.users IS 'A place to store people who have the potential to access the system. Inspired by http://tdan.com/a-universal-person-and-organization-data-model/5014';

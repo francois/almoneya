@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/user_userpass_credentials to pg
+-- Deploy almoneya:tables/user_userpass_credentials to pg
 -- requires: tables/users
 
 SET client_min_messages TO 'warning';
@@ -16,7 +16,7 @@ BEGIN;
     , unique(username)
   );
 
-  ALTER TABLE credentials.user_userpass_credentials OWNER TO acctsoft;
+  ALTER TABLE credentials.user_userpass_credentials OWNER TO almoneya;
   GRANT INSERT, UPDATE, DELETE ON credentials.user_userpass_credentials TO webui;
 
   COMMENT ON TABLE credentials.user_userpass_credentials IS 'Records usernames (or emails) and passwords';

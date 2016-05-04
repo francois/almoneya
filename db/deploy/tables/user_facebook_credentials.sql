@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/user_facebook_credentials to pg
+-- Deploy almoneya:tables/user_facebook_credentials to pg
 -- requires: tables/users
 
 SET client_min_messages TO 'warning';
@@ -17,7 +17,7 @@ BEGIN;
     , foreign key(user_id) references public.users on update cascade on delete cascade
   );
 
-  ALTER TABLE credentials.user_facebook_credentials OWNER TO acctsoft;
+  ALTER TABLE credentials.user_facebook_credentials OWNER TO almoneya;
   GRANT INSERT, UPDATE, DELETE ON credentials.user_facebook_credentials TO webui;
 
   COMMENT ON TABLE credentials.user_facebook_credentials IS 'Credentials that users can use to authenticate with this platform using Facebook''s "Sign In with Facebook" oauth flow';

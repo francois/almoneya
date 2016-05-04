@@ -1,4 +1,4 @@
-# Acctsoft
+# Almoneya
 
 ## A simple double-entry accounting system
 

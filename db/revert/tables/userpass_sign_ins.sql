@@ -1,4 +1,4 @@
--- Revert acctsoft:tables/userpass_sign_ins from pg
+-- Revert almoneya:tables/userpass_sign_ins from pg
 
 SET client_min_messages TO 'warning';
 

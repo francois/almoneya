@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/one_time_obligations to pg
+-- Deploy almoneya:tables/one_time_obligations to pg
 -- requires: tables/obligations
 
 SET client_min_messages TO 'warning';
@@ -17,7 +17,7 @@ BEGIN;
     , foreign key(tenant_id, envelope_name) references public.obligations on update cascade on delete cascade
   );
 
-  ALTER TABLE public.one_time_obligations OWNER TO acctsoft;
+  ALTER TABLE public.one_time_obligations OWNER TO almoneya;
 
   COMMENT ON TABLE public.one_time_obligations IS 'Records a company''s one time obligations: saving up for a new fridge or a new delivery truck, for example';
 

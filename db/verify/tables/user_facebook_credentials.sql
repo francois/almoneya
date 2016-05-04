@@ -1,4 +1,4 @@
--- Verify acctsoft:tables/user_facebook_credentials on pg
+-- Verify almoneya:tables/user_facebook_credentials on pg
 
 SET client_min_messages TO 'warning';
 

@@ -1,4 +1,4 @@
--- Revert acctsoft:tables/user_facebook_credentials from pg
+-- Revert almoneya:tables/user_facebook_credentials from pg
 
 SET client_min_messages TO 'warning';
 

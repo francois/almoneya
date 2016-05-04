@@ -1,4 +1,4 @@
--- Revert acctsoft:migrations/link_users_to_tenants from pg
+-- Revert almoneya:migrations/link_users_to_tenants from pg
 
 SET client_min_messages TO 'warning';
 

@@ -1,4 +1,4 @@
--- Deploy acctsoft:migrations/link_users_to_tenants to pg
+-- Deploy almoneya:migrations/link_users_to_tenants to pg
 -- requires: tables/users
 -- requires: tables/tenants
 

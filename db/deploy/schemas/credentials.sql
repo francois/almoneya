@@ -1,4 +1,4 @@
--- Deploy acctsoft:schemas/credentials to pg
+-- Deploy almoneya:schemas/credentials to pg
 -- requires: create_roles
 
 SET client_min_messages TO 'warning';
@@ -6,7 +6,7 @@ SET client_min_messages TO 'warning';
 BEGIN;
 
   CREATE SCHEMA credentials;
-  ALTER SCHEMA credentials OWNER TO acctsoft;
+  ALTER SCHEMA credentials OWNER TO almoneya;
   GRANT USAGE ON SCHEMA credentials TO webui;
   ALTER DEFAULT PRIVILEGES IN SCHEMA credentials GRANT SELECT ON TABLES TO webui;
   ALTER DEFAULT PRIVILEGES IN SCHEMA credentials GRANT USAGE ON SEQUENCES TO webui;

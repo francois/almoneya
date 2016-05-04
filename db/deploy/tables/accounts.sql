@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/accounts to pg
+-- Deploy almoneya:tables/accounts to pg
 -- requires: tables/tenants
 
 SET client_min_messages TO 'warning';
@@ -16,7 +16,7 @@ BEGIN;
     , primary key(tenant_id, account_name)
   );
 
-  ALTER TABLE public.accounts OWNER TO acctsoft;
+  ALTER TABLE public.accounts OWNER TO almoneya;
 
   COMMENT ON TABLE public.accounts IS 'Holds the chart of accounts for each tenant';
   COMMENT ON COLUMN public.accounts.tenant_id IS 'The tenant which owns this row';

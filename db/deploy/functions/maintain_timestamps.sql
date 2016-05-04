@@ -1,4 +1,4 @@
--- Deploy acctsoft:functions/maintain_timestamps to pg
+-- Deploy almoneya:functions/maintain_timestamps to pg
 
 SET client_min_messages TO 'warning';
 

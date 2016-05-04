@@ -1,4 +1,4 @@
--- Verify acctsoft:schemas/public on pg
+-- Verify almoneya:schemas/public on pg
 
 SET client_min_messages TO 'warning';
 

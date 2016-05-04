@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/bank_accounts to pg
+-- Deploy almoneya:tables/bank_accounts to pg
 -- requires: tables/accounts
 
 SET client_min_messages TO 'warning';
@@ -17,7 +17,7 @@ BEGIN;
     , foreign key(tenant_id, account_name) references public.accounts on update cascade on delete cascade
   );
 
-  ALTER TABLE public.bank_accounts OWNER TO acctsoft;
+  ALTER TABLE public.bank_accounts OWNER TO almoneya;
   GRANT INSERT, SELECT, UPDATE ON public.bank_accounts TO webui;
 
   COMMENT ON TABLE public.bank_accounts IS 'Records which bank accounts map to which accounts. Used during importing to determine where to post transactions.';

@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/recurring_obligations to pg
+-- Deploy almoneya:tables/recurring_obligations to pg
 -- requires: tables/obligations
 
 SET client_min_messages TO 'warning';
@@ -21,7 +21,7 @@ BEGIN;
     , constraint end_on_is_unknown_or_after_start_on check(end_on is null or end_on > start_on)
   );
 
-  ALTER TABLE public.recurring_obligations OWNER TO acctsoft;
+  ALTER TABLE public.recurring_obligations OWNER TO almoneya;
 
   COMMENT ON TABLE public.recurring_obligations IS 'Records a company''s recurring obligations; obligations that are present monthly or weekly, such as the electricity bill, or the delivery truck''s payment or the mortgate';
   COMMENT ON COLUMN public.recurring_obligations.every IS 'Records the frequency of the period: every 2 months, every 3 years, every 1 week.';

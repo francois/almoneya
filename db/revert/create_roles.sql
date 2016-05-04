@@ -1,10 +1,10 @@
--- Revert acctsoft:create_roles from pg
+-- Revert almoneya:create_roles from pg
 
 SET client_min_messages TO 'warning';
 
 BEGIN;
 
-  DROP ROLE IF EXISTS acctsoft;
+  DROP ROLE IF EXISTS almoneya;
   DROP ROLE IF EXISTS webui;
 
 COMMIT;

@@ -1,4 +1,4 @@
--- Revert acctsoft:schemas/credentials from pg
+-- Revert almoneya:schemas/credentials from pg
 
 SET client_min_messages TO 'warning';
 

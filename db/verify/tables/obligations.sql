@@ -1,4 +1,4 @@
--- Verify acctsoft:tables/obligations on pg
+-- Verify almoneya:tables/obligations on pg
 
 SET client_min_messages TO 'warning';
 

@@ -1,4 +1,4 @@
--- Verify acctsoft:migrations/link_users_to_tenants on pg
+-- Verify almoneya:migrations/link_users_to_tenants on pg
 
 SET client_min_messages TO 'warning';
 

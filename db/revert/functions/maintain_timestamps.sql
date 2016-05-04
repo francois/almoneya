@@ -1,4 +1,4 @@
--- Revert acctsoft:functions/maintain_timestamps from pg
+-- Revert almoneya:functions/maintain_timestamps from pg
 
 SET client_min_messages TO 'warning';
 

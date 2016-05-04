@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/userpass_sign_ins to pg
+-- Deploy almoneya:tables/userpass_sign_ins to pg
 -- requires: tables/sign_ins
 -- requires: tables/user_userpass_credentials
 
@@ -15,7 +15,7 @@ BEGIN;
     , foreign key(sign_in_id) references credentials.sign_ins
   );
 
-  ALTER TABLE credentials.userpass_sign_ins OWNER TO acctsoft;
+  ALTER TABLE credentials.userpass_sign_ins OWNER TO almoneya;
   GRANT INSERT ON credentials.userpass_sign_ins TO webui;
 
   COMMENT ON TABLE credentials.userpass_sign_ins IS 'Records each authentication attempt against each username separately, in order to track attacks against specific users';

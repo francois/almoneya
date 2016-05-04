@@ -1,4 +1,4 @@
--- Revert acctsoft:tables/envelopes from pg
+-- Revert almoneya:tables/envelopes from pg
 
 SET client_min_messages TO 'warning';
 

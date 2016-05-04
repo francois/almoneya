@@ -1,4 +1,4 @@
--- Verify acctsoft:tables/user_twitter_credentials on pg
+-- Verify almoneya:tables/user_twitter_credentials on pg
 
 SET client_min_messages TO 'warning';
 

@@ -1,4 +1,4 @@
--- Revert acctsoft:schemas/public from pg
+-- Revert almoneya:schemas/public from pg
 
 SET client_min_messages TO 'warning';
 

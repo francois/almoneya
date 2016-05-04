@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/bank_account_transactions to pg
+-- Deploy almoneya:tables/bank_account_transactions to pg
 -- requires: tables/bank_accounts
 
 SET client_min_messages TO 'warning';
@@ -23,7 +23,7 @@ BEGIN;
   CREATE INDEX index_bank_account_transactions_on_tenant_bank_account_hash ON public.bank_account_transactions(tenant_id, bank_account_hash, posted_on);
   CREATE INDEX index_bank_account_transactions_on_tenant_posted_on ON public.bank_account_transactions(tenant_id, posted_on, bank_account_hash);
 
-  ALTER TABLE public.bank_account_transactions OWNER TO acctsoft;
+  ALTER TABLE public.bank_account_transactions OWNER TO almoneya;
   GRANT INSERT, SELECT, UPDATE ON public.bank_account_transactions TO webui;
 
   COMMENT ON TABLE public.bank_account_transactions IS 'Records bank transactions imported from remote systems into our own system';

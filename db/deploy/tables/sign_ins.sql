@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/sign_ins to pg
+-- Deploy almoneya:tables/sign_ins to pg
 -- requires: schemas/credentials
 -- requires: functions/maintain_timestamps
 
@@ -16,7 +16,7 @@ BEGIN;
     , updated_at timestamp with time zone not null default current_timestamp
   );
 
-  ALTER TABLE credentials.sign_ins OWNER TO acctsoft;
+  ALTER TABLE credentials.sign_ins OWNER TO almoneya;
   GRANT INSERT ON credentials.sign_ins TO webui; -- append only table for webui user
 
   COMMENT ON TABLE credentials.sign_ins IS 'Records sign in attempts, in order to track potential threaths to the application';

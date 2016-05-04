@@ -1,4 +1,4 @@
--- Verify acctsoft:functions/maintain_timestamps on pg
+-- Verify almoneya:functions/maintain_timestamps on pg
 
 SET client_min_messages TO 'warning';
 

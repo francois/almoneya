@@ -1,4 +1,4 @@
--- Revert acctsoft:tables/one_time_obligations from pg
+-- Revert almoneya:tables/one_time_obligations from pg
 
 SET client_min_messages TO 'warning';
 

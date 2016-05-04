@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/tenants to pg
+-- Deploy almoneya:tables/tenants to pg
 -- requires: schemas/credentials
 
 SET client_min_messages TO 'warning';
@@ -11,7 +11,7 @@ BEGIN;
     , updated_at timestamp with time zone not null
   );
 
-  ALTER TABLE credentials.tenants OWNER TO acctsoft;
+  ALTER TABLE credentials.tenants OWNER TO almoneya;
   GRANT SELECT, INSERT ON credentials.tenants TO webui;
 
   COMMENT ON TABLE credentials.tenants IS '';

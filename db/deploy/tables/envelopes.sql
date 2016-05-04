@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/envelopes to pg
+-- Deploy almoneya:tables/envelopes to pg
 -- requires: tables/tenants
 
 SET client_min_messages TO 'warning';
@@ -15,7 +15,7 @@ BEGIN;
     , foreign key(tenant_id) references tenants on update cascade on delete cascade
   );
 
-  ALTER TABLE public.envelopes OWNER TO acctsoft;
+  ALTER TABLE public.envelopes OWNER TO almoneya;
 
   COMMENT ON TABLE public.envelopes IS 'Records the different envelopes the system knows about. Envelopes are used to stash money away in bank accounts, in order to meet obligations or goals.';
 

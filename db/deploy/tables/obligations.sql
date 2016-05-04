@@ -1,4 +1,4 @@
--- Deploy acctsoft:tables/obligations to pg
+-- Deploy almoneya:tables/obligations to pg
 -- requires: tables/accounts
 
 SET client_min_messages TO 'warning';
@@ -16,7 +16,7 @@ BEGIN;
     , foreign key(tenant_id, envelope_name) references public.envelopes on update cascade on delete cascade
   );
 
-  ALTER TABLE public.obligations OWNER TO acctsoft;
+  ALTER TABLE public.obligations OWNER TO almoneya;
 
   COMMENT ON TABLE public.obligations IS 'Records a company''s obligations: money that we''re putting aside now, in order to pay something at a future date';
 
