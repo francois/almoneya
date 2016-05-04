@@ -1,44 +1,54 @@
-<div class="large-12 columns">
-  <h1>Dashboard</h1>
-  <p>Name: <%=h authenticated_user.surname %> <%=h authenticated_user.rest_of_name %></p>
-  <p>User ID: <%=h authenticated_user.id %></p>
-  <p>Tenant ID: <%=h authenticated_user.tenant_id %></p>
-  <p>Locale: <%=h locale %></p>
-  <h3>List of accounts</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Code</th>
-        <th>Name</th>
-        <th>Kind</th>
-      </tr>
-    </thead>
-    <tbody>
-    <% @accounts.each do |account| %>
-      <tr>
-        <td><%=h account.code %></td>
-        <td><%=h account.name %></td>
-        <td><%=h account.kind %></td>
-      </tr>
-    <% end %>
-    </tbody>
-  </table>
+<div class="small-12 columns">
+  <div class="row">
+    <div class="small-12 columns">
+      <h1>Dashboard</h1>
+    </div>
+  <div class="row">
+    <div class="small-12 columns">
+      <h3>List of accounts</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Kind</th>
+          </tr>
+        </thead>
+        <tbody>
+        <% @accounts.each do |account| %>
+          <tr>
+            <td><%=h account.code %></td>
+            <td><%=h account.name %></td>
+            <td><%=h account.kind %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <div class="row show-for-medium">
     <div class="large-6 medium-12 columns">
-      <h2>Create Account</h2>
       <form method="post" action="/api/accounts">
-        <fieldset>
-          <div>
-            <label>Code <input type="text" size="6" name="account[code]"/></label>
+        <div class="row">
+          <div class="small-12 columns">
+            <h2>Create Account</h2>
           </div>
-          <div>
-            <label>Name <input type="text" size="20" name="account[name]"/></label>
+        </div>
+        <div class="row">
+          <div class="small-2 columns">
+            <label>Code <input type="text" maxlength="6" name="account[code]"/></label>
           </div>
-          <div>
+          <div class="small-10 columns">
+            <label>Name <input type="text" name="account[name]" required/></label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-12 columns">
             <label>
               Kind
               <select name="account[kind]">
+                <option>Choose a type of account</option>
                 <option value="asset">Asset</option>
                 <option value="liability">Liability</option>
                 <option value="equity">Equity</option>
@@ -48,17 +58,115 @@
               </select>
             </label>
           </div>
-          <button type="submit" class="button primary large">Create Account</button>
-        </fieldset>
+        </div>
+        <div class="row">
+          <div class="small-12 columns">
+            <button type="submit" class="button primary large">Create Account</button>
+          </div>
+        </div>
       </form>
     </div>
     <div class="show-for-large large-6 columns">
-      <h2>Import Bank Transactions</h2>
       <form method="post" action="/api/bank-account-transactions/import" enctype="multipart/form-data">
-        <div>
-          <label>CSV file <input type="file" name="file"/></label>
+        <div class="row">
+          <div class="small-12 columns">
+            <h2>Import Bank Transactions</h2>
+            <p>Your bank offers you the ability to download records of transactions that occurred against your accounts. It will be easier if you import the files rather than manually entering the transactions yourself. With transactions in the system, we can help you identify where you spend your money and how to save up for future goals.</p>
+          </div>
         </div>
-        <button type="submit" class="button primary large">Import Bank Transactions</button>
+        <div class="row">
+          <div class="small-12 columns">
+            <label>CSV file <input type="file" name="file" aria-describedby="file_help"/></label>
+            <p id="file_help"><small>A CSV file as provided by your bank. We support RBC Royal Bank and Desjardins' formats.</small></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-12 columns">
+            <button type="submit" class="button primary large">Import Bank Transactions</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="row show-for-medium">
+    <div class="large-6 medium-12 columns">
+      <form method="post" action="/api/obligations/recurring">
+        <div class="row">
+          <div class="small-12 columns">
+            <h2>Create Recurring Obligation</h2>
+            <p>Recurring obligations are payments which are regularly due: cell phone service, groceries, gas, mortgage or rent payments, etc. Whenever you enter revenue in the system, the system will set money aside in order for you to reach your goals. Obligations which are due sooner will receive a proportionally larger amount, and larger amounts also receive a larger share of revenues. Any money not set aside is saved to your <q>Rainy Day</q> envelope.</p>
+            <p>Creating an obligation also creates a corresponding envelope. Envelopes are where money is set aside. All of your bank accounts participate in storing money for your envelopes. For example, you may have a savings account with 100$ for your Hawaii trip, and your checking account may have a further 250$. The Hawaii trip envelope would contain a total of 350$.</p>
+            <p>Whenever you make a payment, you will use money from your envelopes to pay for it. For example, after your cell phone provider charged your credit card, you would reimburse the credit card using money that was set aside in your checking account.</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-12 columns">
+            <label>Description <input type="text" name="obligation[description]" placeholder="Cell phone service" required/></label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-4 columns">
+            <label>Next due on <input type="date" name="obligation[start_on]" value="<%= @today.strftime("%Y-%m-%d") %>" required aria-describedby="obligation_start_on_help"/></label>
+            <p id="obligation_start_on_help"><small>The next date the payment is due</small></p>
+          </div>
+          <div class="small-4 columns">
+            <label>End on <input type="date" name="obligation[end_on]" aria-describedby="obligation_end_on_help"/></label>
+            <p id="obligation_end_on_help"><small>Optional</small></p>
+          </div>
+          <div class="small-4 columns">
+            <label>Amount <input type="text" name="obligation[amount]" placeholder="65" required aria-describedby="recurring_obligation_amount_help"/></label>
+            <p id="recurring_obligation_amount_help"><small>How much money is required on each payment?</small></p>
+          </div>
+        </div>
+        <fieldset class="fieldset">
+          <legend>Repeat</legend>
+          <div class="small-2 columns">
+            <label class="text-left middle" for="obligation_every">Every</label>
+          </div>
+          <div class="small-2 columns">
+            <input id="obligation_every" class="small" type="number" name="obligation[every]" value="1" min="1" required/>
+          </div>
+          <div class="small-8 columns">
+            <select id="obligation_period" name="obligation[period]">
+              <option value="day">days</option>
+              <option value="week">weeks</option>
+              <option value="month">months</option>
+              <option value="year">years</option>
+            </select>
+          </div>
+        </fieldset>
+        <button type="submit" class="button primary large">Create Recurring Obligation</button>
+      </form>
+    </div>
+
+    <div class="large-6 medium-12 columns">
+      <form method="post" action="/api/obligations/onetime">
+        <div class="row">
+          <div class="small-12 columns">
+            <h2>Create One time Obligation</h2>
+            <p>One time obligations are identical to recurring obligations, except they only have a due date. You may set aside money to save for a trip, buy a new delivery truck, repair a broken fridge, anything.</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-12 columns">
+            <label>Description <input type="text" name="obligation[description]" placeholder="Downpayment for new delivery truck" required/></label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-6 columns">
+            <label>Due on <input type="date" name="obligation[due_on]" required aria-describedby="obligation_due_on_help"/></label>
+            <p id="obligation_due_on_help"><small>When will the money need to be available?</small></p>
+          </div>
+          <div class="small-6 columns">
+            <label>Amount <input name="obligation[amount]" type="text" placeholder="2000" required aria-describedby="one_time_obligation_amount_help"/></label>
+            <p id="one_time_obligation_amount_help"><small>How much money needs to be set aside?</small></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-12 columns">
+            <button type="submit" class="button primary large">Create One time Obligation</button>
+          </div>
+        </div>
       </form>
     </div>
   </div>

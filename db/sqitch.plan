@@ -16,3 +16,7 @@ migrations/link_users_to_tenants [tables/users tables/tenants] 2016-04-28T02:53:
 tables/accounts [tables/tenants] 2016-04-28T02:59:15Z François Beausoleil <francois@teksol.info> # Chart of accounts, per tenant
 tables/bank_accounts [tables/accounts] 2016-04-29T02:34:50Z François Beausoleil <francois@teksol.info> # Add a way to remember which bank accounts map to which accounts
 tables/bank_account_transactions [tables/bank_accounts] 2016-04-29T02:43:22Z François Beausoleil <francois@teksol.info> # Record actual bank transactions in the system, for later reconciliation
+tables/envelopes [tables/tenants] 2016-05-04T02:57:56Z François Beausoleil <francois@teksol.info> # Record the names of the different envelopes we need to meet our obligations
+tables/obligations [tables/envelopes] 2016-04-30T02:09:48Z François Beausoleil <francois@teksol.info> # Record a business' obligations
+tables/one_time_obligations [tables/obligations] 2016-04-30T02:15:00Z François Beausoleil <francois@teksol.info> # Record a company's one time obligations: saving for a new delivery truck or a new fridge
+tables/recurring_obligations [tables/obligations] 2016-04-30T02:19:58Z François Beausoleil <francois@teksol.info> # Records obligations that occur periodically (monthly, weekly, etc)

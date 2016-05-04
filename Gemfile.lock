@@ -4,6 +4,7 @@ GEM
     bcrypt (3.1.11)
     byebug (8.2.5)
     concurrent-ruby (1.0.1)
+    daemons (1.2.3)
     diff-lcs (1.2.5)
     dry-configurable (0.1.4)
       concurrent-ruby (~> 1.0)
@@ -29,6 +30,7 @@ GEM
       dry-equalizer (~> 0.2)
       dry-logic (~> 0.2, >= 0.2.2)
       dry-types (~> 0.6, >= 0.6.0)
+    eventmachine (1.2.0.1)
     ffi (1.9.10)
     git-version-bump (0.15.1)
     i18n (0.7.0)
@@ -38,7 +40,6 @@ GEM
       rb-fsevent (>= 0.9.3)
       rb-inotify (>= 0.9.7)
     pg (0.18.4)
-    puma (3.4.0)
     rack (1.6.4)
     rack-contrib (1.4.0)
       git-version-bump (~> 0.15)
@@ -71,6 +72,10 @@ GEM
       rack (~> 1.5)
       rack-protection (~> 1.4)
       tilt (>= 1.3, < 3)
+    thin (1.6.4)
+      daemons (~> 1.0, >= 1.0.9)
+      eventmachine (~> 1.0, >= 1.0.4)
+      rack (~> 1.0)
     tilt (2.0.2)
 
 PLATFORMS
@@ -81,13 +86,13 @@ DEPENDENCIES
   byebug
   dry-validation
   i18n
-  puma
   rack-contrib
   rerun
   rspec
   sequel
   sequel_pg
   sinatra
+  thin
 
 BUNDLED WITH
    1.11.2

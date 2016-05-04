@@ -8,5 +8,8 @@ Dir.glob("lib/**/*.rb").map{|path| path.sub("lib/", "")}.map{|path| path.sub(".r
 require "logger"
 DB = Sequel.connect(ENV["DATABASE_URL"] || "postgresql:///#{ENV["USER"]}", logger: Logger.new(STDERR))
 
+require "json"
+require "pp"
+require "yaml"
 require "irb"
 IRB.start(__FILE__)

@@ -7,15 +7,24 @@ require "sinatra/base"
 require "tilt/erb"
 
 # This application's possible actions
+require "operations/create_one_time_obligation"
+require "operations/create_recurring_obligation"
 require "operations/import_bank_transactions"
 require "operations/sign_in"
 require "parsers/desjardins"
 require "parsers/rbc"
 require "repositories/account_repo"
 require "repositories/bank_account_transaction_repo"
+require "repositories/envelope"
+require "repositories/envelope_repo"
+require "repositories/obligation_repo"
+require "repositories/one_time_obligation"
+require "repositories/recurring_obligation"
 require "repositories/sign_in_repo"
 require "repositories/user_repo"
 require "schemas/new_account_schema"
+require "schemas/one_time_obligation_schema"
+require "schemas/recurring_obligation_schema"
 require "schemas/userpass_sign_in_schema"
 
 module Webui
@@ -39,13 +48,19 @@ module Webui
       users_dataset    = DB[:public__users]
       userpass_sign_ins_dataset = DB[:credentials__userpass_sign_ins]
 
-      accounts_dataset = DB[:public__accounts]
-      bank_accounts_dataset = DB[:public__bank_accounts]
+      accounts_dataset                  = DB[:public__accounts]
+      bank_accounts_dataset             = DB[:public__bank_accounts]
       bank_account_transactions_dataset = DB[:public__bank_account_transactions]
+      envelopes_dataset                 = DB[:public__envelopes]
+      obligations_dataset               = DB[:public__obligations]
+      one_time_obligations_dataset      = DB[:public__one_time_obligations]
+      recurring_obligations_dataset     = DB[:public__recurring_obligations]
 
-      account_repo = Repositories::AccountRepo.new(accounts_dataset: accounts_dataset)
-      sign_in_repo = Repositories::SignInRepo.new(sign_ins_dataset: sign_ins_dataset, userpass_sign_ins_dataset: userpass_sign_ins_dataset)
-      user_repo    = Repositories::UserRepo.new(userpass_dataset: userpass_dataset, users_dataset: users_dataset)
+      account_repo    = Repositories::AccountRepo.new(accounts_dataset: accounts_dataset)
+      envelope_repo   = Repositories::EnvelopeRepo.new(envelopes_dataset: envelopes_dataset)
+      obligation_repo = Repositories::ObligationRepo.new(obligations_dataset: obligations_dataset, one_time_obligations_dataset: one_time_obligations_dataset, recurring_obligations_dataset: recurring_obligations_dataset)
+      sign_in_repo    = Repositories::SignInRepo.new(sign_ins_dataset: sign_ins_dataset, userpass_sign_ins_dataset: userpass_sign_ins_dataset)
+      user_repo       = Repositories::UserRepo.new(userpass_dataset: userpass_dataset, users_dataset: users_dataset)
 
       rbc_parser = Parsers::RBC.new
       desjardins_parser = Parsers::Desjardins.new
@@ -55,6 +70,12 @@ module Webui
         bank_account_transactions_dataset: bank_account_transactions_dataset)
 
       set :operations, {
+        create_recurring_obligation_op: Operations::CreateRecurringObligation.new(
+          obligation_repo: obligation_repo,
+          envelope_repo: envelope_repo),
+        create_one_time_obligation_op: Operations::CreateOneTimeObligation.new(
+          obligation_repo: obligation_repo,
+          envelope_repo: envelope_repo),
         import_bank_transactions_op: Operations::ImportBankTransactions.new(
           bank_account_transaction_repo: bank_account_transaction_repo,
           desjardins_parser: desjardins_parser,
@@ -77,6 +98,7 @@ module Webui
 
     get "/" do
       @accounts = account_repo.find_all_for_tenant(authenticated_user.tenant_id)
+      @today = Date.today
       erb :dashboard, layout: :application
     end
 
@@ -168,6 +190,88 @@ module Webui
       end
     end
 
+    post "/api/obligations/onetime" do
+      result = Schemas::OneTimeObligationSchema.call(
+        description: params[:obligation][:description],
+        due_on: params[:obligation][:due_on],
+        amount: params[:obligation][:amount])
+      if result.success? then
+        valid_obligation = result.output
+        obligation = DB.transaction do
+          create_one_time_obligation_op.call(
+            authenticated_user.tenant_id,
+            Repositories::OneTimeObligation.new(
+              nil, 
+              Repositories::Envelope.new(nil, valid_obligation.fetch(:description)),
+              valid_obligation.fetch(:description),
+              valid_obligation.fetch(:due_on),
+              valid_obligation.fetch(:amount)))
+        end
+        output = {
+          "obligation" => {
+            "id"          => obligation.id,
+            "envelope"    => obligation.envelope.name,
+            "description" => obligation.description,
+            "due_on"      => obligation.due_on,
+            "amount"      => obligation.amount.to_s("F"),
+            "created_at"  => obligation.created_at,
+            "updated_at"  => obligation.updated_at,
+          }
+        }
+        json output, code: :created, location: url("/api/obligation/onetime/#{obligation.id}")
+      else
+        output = {"error" => result.messages}
+        json output, code: :bad_request
+      end
+    end
+
+    post "/api/obligations/recurring" do
+      result = Schemas::RecurringObligationSchema.call(
+        description: params[:obligation][:description],
+        every: params[:obligation][:every],
+        period: params[:obligation][:period],
+        start_on: params[:obligation][:start_on],
+        end_on: params[:obligation][:end_on],
+        amount: params[:obligation][:amount])
+      if result.success? then
+        valid_obligation = result.output
+        obligation = DB.transaction do
+          create_recurring_obligation_op.call(
+            authenticated_user.tenant_id,
+            Repositories::RecurringObligation.new(
+              nil,
+              Repositories::Envelope.new(nil, valid_obligation.fetch(:description)),
+              valid_obligation.fetch(:description),
+              valid_obligation.fetch(:every),
+              valid_obligation.fetch(:period),
+              valid_obligation.fetch(:start_on),
+              valid_obligation.fetch(:end_on),
+              valid_obligation.fetch(:amount)))
+        end
+        output = {
+          "obligation" => {
+            "id"          => obligation.recurring_obligation_id,
+            "envelope"    => obligation.envelope.name,
+            "description" => obligation.description,
+            "start_on"    => obligation.start_on,
+            "end_on"      => obligation.end_on,
+            "amount"      => obligation.amount.to_s("F"),
+            "created_at"  => obligation.created_at,
+            "updated_at"  => obligation.updated_at,
+          }
+        }
+
+        json output, code: :created, location: url("/api/obligations/recurring/#{obligation.recurring_obligation_id}")
+      else
+        output = {"error" => result.messages}
+        json output, code: :bad_request
+      end
+    end
+
+    post "/api/obligations/recurring" do
+      raise "TODO"
+    end
+
     helpers do
       CODES = {
         200          => 200,
@@ -219,6 +323,14 @@ module Webui
 
     def import_bank_transactions_op
       settings.operations.fetch(:import_bank_transactions_op)
+    end
+
+    def create_one_time_obligation_op
+      settings.operations.fetch(:create_one_time_obligation_op)
+    end
+
+    def create_recurring_obligation_op
+      settings.operations.fetch(:create_recurring_obligation_op)
     end
   end
 end

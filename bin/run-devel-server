@@ -1,2 +1,2 @@
 #!/bin/bash
-env RACK_ENV="development" SESSION_SECRET="a22cf398d139787ca3ab8f130ecc15cf16ef070dd74aa5dc0e0dbc58b5e8a8e67aa1c4004045053209dad33079354a85f7e99a12579d17a54073184da88e9026" rerun --ignore '**/*.erb' --ignore 'public/**/*' --no-notify 'bundle exec puma --bind tcp://0.0.0.0:4321/ --include lib'
+env RACK_ENV="development" SESSION_SECRET="a22cf398d139787ca3ab8f130ecc15cf16ef070dd74aa5dc0e0dbc58b5e8a8e67aa1c4004045053209dad33079354a85f7e99a12579d17a54073184da88e9026" RUBYOPT="-Ilib" rerun --ignore '**/*.erb' --ignore 'public/**/*' --no-notify 'bundle exec thin --address 0.0.0.0 --port 4321 --rackup config.ru start'
