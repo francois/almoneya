@@ -8,9 +8,10 @@ object AlmoneyaWebapp {
     def main(args: Array[String]): Unit = {
         Class.forName("org.postgresql.Driver")
         val connection = DriverManager.getConnection("jdbc:postgresql://10.9.1.21:5432/vagrant", "vagrant", null)
-        val connectionPool: QueryExecutor = new SqlQueryExecutor(connection)
-        val usersRepo = new UsersRepository(connectionPool)
-        val signInsRepo = new SignInsRepository(connectionPool)
+        val executor: QueryExecutor = new SqlQueryExecutor(connection)
+        val usersRepo = new UsersRepository(executor)
+        val signInsRepo = new SignInsRepository(executor)
+        val bankAccountTransactionsRepo=new BankAccountTransactionsRepository(executor)
         usersRepo.findCredentialsByUsername(Username(args.head)).map(maybeCredentials => maybeCredentials.map(_.authenticatesWith(Password(args.last)))) match {
             case Success(Some(true)) =>
                 signInsRepo.create(SignIn(username = Username(args.head), sourceIp = IpAddress("127.0.0.1"), userAgent = UserAgent("Chrome"), method = UserpassSignIn, successful = true)) match {

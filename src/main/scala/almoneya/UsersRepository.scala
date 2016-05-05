@@ -7,14 +7,14 @@ import scala.util.Try
 /**
   * Repository and mapper for User objects.
   *
-  * @param connectionPool The object responsible for actually running queries.
+  * @param executor The object responsible for actually running queries.
   */
-class UsersRepository(connectionPool: QueryExecutor) {
+class UsersRepository(executor: QueryExecutor) {
 
     import UsersRepository.{findByIdSql, findCredentialsByUsernameQuery}
 
     def findById(id: UserId): Try[Option[User]] = {
-        connectionPool.findOne(findByIdSql, id)(rs =>
+        executor.findOne(findByIdSql, id)(rs =>
             User(Some(UserId(rs.getInt("user_id"))),
                 TenantId(rs.getInt("tenant_id")),
                 Surname(rs.getString("surname")),
@@ -24,7 +24,7 @@ class UsersRepository(connectionPool: QueryExecutor) {
     }
 
     def findCredentialsByUsername(username: Username): Try[Option[UserPassCredentials]] = {
-        connectionPool.findOne(findCredentialsByUsernameQuery, username)(rs =>
+        executor.findOne(findCredentialsByUsernameQuery, username)(rs =>
             UserPassCredentials(userId = Some(UserId(rs.getInt("user_id"))),
                 tenantId = TenantId(rs.getInt("tenant_id")),
                 username = Username(rs.getString("username")),
