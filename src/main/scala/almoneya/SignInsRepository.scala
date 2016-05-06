@@ -11,8 +11,10 @@ import scala.util.Try
   */
 class SignInsRepository(executor: QueryExecutor) {
 
-    def create(signIn: SignIn): Try[SignIn] =
-        executor.insertOne(Query("INSERT INTO credentials.sign_ins(source_ip, user_agent, method, successful) VALUES (?::inet, ?, ?, ?) RETURNING sign_in_id, source_ip, user_agent, method, successful, created_at, updated_at"), signIn.sourceIp, signIn.userAgent, signIn.method, signIn.successful) { rs =>
+    import SignInsRepository.{insertSignInSql, insertUserPassSignInSql}
+
+    def create(signIn: SignIn): Try[SignIn] = {
+        executor.insertOne(insertSignInSql, signIn.sourceIp, signIn.userAgent, signIn.method, signIn.successful) { rs =>
             signIn.copy(id = Some(SignInId(rs.getInt("sign_in_id"))),
                 sourceIp = IpAddress(rs.getString("source_ip")),
                 userAgent = UserAgent(rs.getString("user_agent")),
@@ -21,8 +23,15 @@ class SignInsRepository(executor: QueryExecutor) {
                 createdAt = new DateTime(rs.getTimestamp("created_at")),
                 updatedAt = new DateTime(rs.getTimestamp("updated_at")))
         }.map(_.head).flatMap { basicSignIn =>
-            executor.insertOne(Query("INSERT INTO credentials.userpass_sign_ins(sign_in_id, username) VALUES (?, ?) RETURNING username"), basicSignIn.id.get, signIn.username) { rs =>
+            executor.insertOne(insertUserPassSignInSql, basicSignIn.id.get, signIn.username) { rs =>
                 basicSignIn.copy(username = Username(rs.getString("username")))
             }.map(_.head)
         }
+    }
+}
+
+object SignInsRepository {
+    val insertSignInSql = Query("INSERT INTO credentials.sign_ins(source_ip, user_agent, method, successful) VALUES (?::inet, ?, ?, ?)",
+        Seq(Column("sign_in_id"), Column("source_ip"), Column("user_agent"), Column("method"), Column("successful"), Column("created_at"), Column("updated_at")))
+    val insertUserPassSignInSql = Query("INSERT INTO credentials.userpass_sign_ins(sign_in_id, username) VALUES (?, ?)", Seq(Column("username")))
 }
