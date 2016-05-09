@@ -147,3 +147,28 @@ exec{'/usr/bin/wget --quiet -O - https://toolbelt.heroku.com/apt/release.key | /
 }
 
 File['/etc/apt/sources.list.d/heroku.list'] -> Exec['/usr/bin/wget --quiet -O - https://toolbelt.heroku.com/apt/release.key | /usr/bin/apt-key add -'] -> Exec['/usr/bin/apt-get update']
+
+$node_version = "4.4.3"
+exec{"download nodejs ${node_version}":
+  command => "/usr/bin/wget https://nodejs.org/dist/v${node_version}/node-v${node_version}-linux-x64.tar.xz",
+  creates => "/usr/local/src/node-v${node_version}-linux-x64.tar.xz",
+  cwd     => '/usr/local/src',
+  require => Package['wget'],
+} -> exec{"install nodejs ${node_version}":
+  command => "/bin/tar -xf /usr/local/src/node-v${node_version}-linux-x64.tar.xz",
+  cwd     => '/usr/local',
+  creates => "/usr/local/node-v${node_version}/bin/node"
+} -> file{'/usr/local/bin/node':
+  ensure => link,
+  target => "/usr/local/node-v${node_version}-linux-x64/bin/node"
+} -> file{'/usr/local/bin/npm':
+  ensure => link,
+  target => "/usr/local/node-v${node_version}-linux-x64/bin/npm"
+} -> exec{'install webpack':
+  command => '/usr/local/bin/npm install -g webpack',
+  creates => "/usr/local/node-${node_version}-linux-x64/bin/webpack",
+  cwd     => '/usr/local'
+} -> file{'/usr/local/bin/webpack':
+  ensure => link,
+  target => "/usr/local/node-v${node_version}-linux-x64/bin/webpack",
+}

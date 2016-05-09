@@ -102,6 +102,18 @@ module Webui
       erb :dashboard, layout: :application
     end
 
+    get "/accounts" do
+      @accounts = account_repo.find_all_for_tenant(authenticated_user.tenant_id).map do |account|
+        {account_id: account.id,
+         code: account.code,
+         name: account.name,
+         kind: account.kind,
+         created_at: account.created_at,
+         updated_at: account.updated_at}
+      end
+      erb :accounts_index, layout: :react_app
+    end
+
     get "/sign-in" do
       session.clear
       @failed = (params[:failed] == "1")
