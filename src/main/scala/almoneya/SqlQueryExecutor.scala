@@ -32,8 +32,8 @@ class SqlQueryExecutor(override val connection: Connection) extends QueryExecuto
         }
     }
 
-    override def insertOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Try[Seq[A]] =
-        findAll(query, params: _*)(mapper)
+    override def insertOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Try[A] =
+        findAll(query, params: _*)(mapper).map(_.head)
 
     override def insertMany[A](query: Query, params: Seq[Seq[SqlValue]])(mapper: (ResultSet) => A): Try[Seq[A]] =
         if (params.isEmpty) {
@@ -41,7 +41,7 @@ class SqlQueryExecutor(override val connection: Connection) extends QueryExecuto
         } else {
             val oneRow = "(" + params.head.indices.map(_ => "?").mkString(", ") + ")"
             val sqlValues = params.indices.map(_ => oneRow).mkString(", ")
-            findAll(query.append(sqlValues), params.flatten: _*)(mapper)
+            findAll(query.replaceOrAppend(sqlValues), params.flatten: _*)(mapper)
         }
 }
 

@@ -31,8 +31,8 @@ class BankAccountTransactionsRepository(executor: QueryExecutor) {
                     bankAccount = accounts(AccountHash(rs.getString("bank_account_hash"))),
                     checkNum = Option(rs.getString("check_number")).map(CheckNum.apply),
                     postedOn = new LocalDate(rs.getDate("posted_on")),
-                    description1 = Option(rs.getString("description1")).map(TransactionDescription.apply),
-                    description2 = Option(rs.getString("description2")).map(TransactionDescription.apply),
+                    description1 = Option(rs.getString("description1")).map(Description.apply),
+                    description2 = Option(rs.getString("description2")).map(Description.apply),
                     amount = Amount(rs.getBigDecimal("amount")),
                     createdAt = new DateTime(rs.getTimestamp("created_at")),
                     updatedAt = new DateTime(rs.getTimestamp("updated_at")))

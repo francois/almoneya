@@ -11,7 +11,7 @@ trait QueryExecutor {
 
     def findAll[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Try[Seq[A]]
 
-    def insertOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Try[Seq[A]]
+    def insertOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Try[A]
 
     def insertMany[A](query: Query, params: Seq[Seq[SqlValue]])(mapper: (ResultSet) => A): Try[Seq[A]]
 }

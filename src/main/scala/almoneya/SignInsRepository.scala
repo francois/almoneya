@@ -22,10 +22,10 @@ class SignInsRepository(executor: QueryExecutor) {
                 successful = rs.getBoolean("successful"),
                 createdAt = new DateTime(rs.getTimestamp("created_at")),
                 updatedAt = new DateTime(rs.getTimestamp("updated_at")))
-        }.map(_.head).flatMap { basicSignIn =>
+        }.flatMap { basicSignIn =>
             executor.insertOne(insertUserPassSignInSql, basicSignIn.id.get, signIn.username) { rs =>
                 basicSignIn.copy(username = Username(rs.getString("username")))
-            }.map(_.head)
+            }
         }
     }
 }
