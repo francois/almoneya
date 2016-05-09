@@ -14,6 +14,7 @@ BEGIN;
     , created_at timestamp with time zone not null
     , updated_at timestamp with time zone not null
     , primary key(tenant_id, bank_account_hash)
+    , foreign key(tenant_id) references credentials.tenants on update cascade on delete cascade
     , foreign key(tenant_id, account_name) references public.accounts on update cascade on delete cascade
   );
 
