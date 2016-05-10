@@ -8,7 +8,7 @@ class BankAccountTransactionsRepository(executor: QueryExecutor) {
 
     import BankAccountTransactionsRepository.importBankTransactionSql
 
-    def importBankTransactionsTransactions(tenantId: TenantId, bankAccounts: Set[BankAccount], transactions: Set[BankAccountTransaction]): Try[Set[BankAccountTransaction]] = {
+    def importBankTransactionsTransactions(tenantId: TenantId, bankAccounts: Set[BankAccount], transactions: Seq[BankAccountTransaction]): Try[Seq[BankAccountTransaction]] = {
         executor.findAll(Query("SELECT bank_account_hash FROM bank_accounts")) { rs =>
             AccountHash(rs.getString("bank_account_hash"))
         }.map(_.toSet).map { existingAccountNums =>
@@ -37,7 +37,7 @@ class BankAccountTransactionsRepository(executor: QueryExecutor) {
                     createdAt = new DateTime(rs.getTimestamp("created_at")),
                     updatedAt = new DateTime(rs.getTimestamp("updated_at")))
             }
-        }.map(_.toSet)
+        }
     }
 }
 

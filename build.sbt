@@ -19,8 +19,9 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
     "ch.qos.logback"       %  "logback-classic"  % "[1.1.2,)",
     "joda-time"            %  "joda-time"        % "[2.1,3.0[",
+    "org.apache.commons"   %  "commons-csv"      % "1.2",
     "org.joda"             %  "joda-convert"     % "[1.3,2.0[",
-    "org.mindrot"          % "jbcrypt"           % "0.3m",
+    "org.mindrot"          %  "jbcrypt"          % "0.3m",
     "org.postgresql"       %  "postgresql"       % "9.4.1208.jre7",
     "org.postgresql"       %  "postgresql"       % "9.4.1208.jre7",
 

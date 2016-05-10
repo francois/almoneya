@@ -1,22 +1,26 @@
 package almoneya
 
+import java.io.{BufferedReader, FileInputStream, InputStreamReader}
+import java.nio.charset.{StandardCharsets, Charset}
 import java.sql.DriverManager
 
-import org.joda.time.LocalDate
+import org.apache.commons.csv.CSVFormat
 import org.slf4j.LoggerFactory
 
+import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
 
 object AlmoneyaWebapp {
     def main(args: Array[String]): Unit = {
         Class.forName("org.postgresql.Driver")
+        log.info("Connecting to database server")
         val connection = DriverManager.getConnection("jdbc:postgresql://10.9.1.21:5432/vagrant", "vagrant", null)
         val executor: QueryExecutor = new SqlQueryExecutor(connection)
         val usersRepo = new UsersRepository(executor)
         val signInsRepo = new SignInsRepository(executor)
         val bankAccountTransactionsRepo = new BankAccountTransactionsRepository(executor)
         val transactionsRepo = new TransactionsRepository(executor)
-        usersRepo.findCredentialsByUsername(Username(args.head)).map(maybeCredentials => maybeCredentials.map(_.authenticatesWith(Password(args.last)))) match {
+        usersRepo.findCredentialsByUsername(Username(args(0))).map(maybeCredentials => maybeCredentials.map(_.authenticatesWith(Password(args(1))))) match {
             case Success(Some(true)) =>
                 signInsRepo.create(SignIn(username = Username(args.head), sourceIp = IpAddress("127.0.0.1"), userAgent = UserAgent("Chrome"), method = UserpassSignIn, successful = true)) match {
                     case Failure(ex) => log.warn("Failed to insert sign_in row", ex)
@@ -24,6 +28,15 @@ object AlmoneyaWebapp {
                 }
                 log.info("Authenticated!")
 
+                val parsed = args.slice(2, Int.MaxValue).map(fn => new BufferedReader(new InputStreamReader(new FileInputStream(fn), StandardCharsets.ISO_8859_1)))
+                        .map(in => CSVFormat.EXCEL.parse(in))
+                        .map(_.getRecords)
+                        .map(rows => rows.map(row => (0 until row.size()).map(idx => row.get(idx))))
+                        .map(new RbcParser().parse)
+                        .foreach(txns => bankAccountTransactionsRepo.importBankTransactionsTransactions(TenantId(1), txns.map(_.bankAccount).toSet, txns))
+                log.info("{}", parsed)
+
+            /*
                 val checkingAccount = BankAccount(accountNum = AccountHash("aa00"), last4 = AccountLast4("8888"))
                 val bankAccounts = Set(checkingAccount)
                 val transactions = Set(BankAccountTransaction(
@@ -44,6 +57,7 @@ object AlmoneyaWebapp {
                     case Success(newTransaction) => log.warn("Hmmm, added transaction but ID wasn't assigned... {}", newTransaction)
                     case Failure(ex) => log.warn("Failed to insert transaction", ex);
                 }
+            */
 
             case Success(Some(false)) =>
                 signInsRepo.create(SignIn(username = Username(args.head), sourceIp = IpAddress("127.0.0.1"), userAgent = UserAgent("Chrome"), method = UserpassSignIn, successful = false)) match {
