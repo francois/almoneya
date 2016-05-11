@@ -3,24 +3,19 @@ package almoneya
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.LocalDate
 
 class RbcParser {
 
     import RbcParser.digester
 
     def parse(records: Seq[Seq[String]]): Seq[BankAccountTransaction] = {
-        val now = new DateTime()
         records.filterNot(_ (0) == "Type de compte").map { row =>
             val accountHash = rowToAccountHash(row)
-            val accountNum = if (row(1).isEmpty) {
-                // VISA
-                row(0)
-            } else {
-                row(1)
-            }
+            val isLiability = row(1).isEmpty
+            val accountNum = if (isLiability) row(0) else row(1)
             val last4 = accountNum.substring(row(1).length - 4, row(1).length)
-            val bankAccount = BankAccount(accountNum = AccountHash(accountHash), last4 = AccountLast4(last4), createdAt = now, updatedAt = now)
+            val bankAccount = BankAccount(accountNum = AccountHash(accountHash), last4 = AccountLast4(last4))
             val postedOnComponents = row(2).split("\\D").map(_.toInt)
             BankAccountTransaction(
                 bankAccount = bankAccount,
@@ -34,7 +29,7 @@ class RbcParser {
     }
 
     private[this] def rowToAccountHash(row: Seq[String]): String =
-        digester.digest(row.slice(0, 1).filterNot(_.isEmpty).mkString(" ").getBytes(StandardCharsets.UTF_8)) // Calculate the account's hash
+        digester.digest(row.slice(0, 1).filterNot(_.isEmpty).map(_.trim()).mkString(" ").getBytes(StandardCharsets.UTF_8)) // Calculate the account's hash
                 .map("%02x".format(_)) // Convert to hex bytes
                 .mkString("") // Join everything together
 }

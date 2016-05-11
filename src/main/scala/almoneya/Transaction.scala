@@ -7,6 +7,4 @@ case class Transaction(transactionId: Option[TransactionId] = None,
                        description: Option[Description] = None,
                        postedOn: LocalDate,
                        bookedAt: DateTime = new DateTime,
-                       entries: Set[TransactionEntry] = Set.empty[TransactionEntry],
-                       updatedAt: DateTime = new DateTime,
-                       createdAt: DateTime = new DateTime)
+                       entries: Set[TransactionEntry] = Set.empty[TransactionEntry])

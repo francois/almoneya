@@ -16,9 +16,7 @@ class TransactionsRepository(executor: QueryExecutor) {
                     payee = Payee(rs.getString("payee")),
                     description = Option(rs.getString("description")).map(Description.apply),
                     postedOn = new LocalDate(rs.getDate("posted_on")),
-                    bookedAt = new DateTime(rs.getTimestamp("booked_at")),
-                    createdAt = new DateTime(rs.getTimestamp("created_at")),
-                    updatedAt = new DateTime(rs.getTimestamp("updated_at")))
+                    bookedAt = new DateTime(rs.getTimestamp("booked_at")))
             }
         }
 
@@ -28,9 +26,7 @@ class TransactionsRepository(executor: QueryExecutor) {
                 TransactionEntry(
                     transactionEntryId = Some(TransactionEntryId(rs.getInt("transaction_entry_id"))),
                     account = Account(name = AccountName(rs.getString("account_name")), kind = Asset),
-                    amount = Amount(rs.getBigDecimal("amount")),
-                    createdAt = new DateTime(rs.getTimestamp("created_at")),
-                    updatedAt = new DateTime(rs.getTimestamp("updated_at")))
+                    amount = Amount(rs.getBigDecimal("amount")))
             }
         }
 
@@ -42,14 +38,14 @@ class TransactionsRepository(executor: QueryExecutor) {
 
 object TransactionsRepository {
     val insertTransactionSql = Query("INSERT INTO transactions(tenant_id, posted_on, payee, description) VALUES(?, ?, ?, ?)",
-        Seq(Column("transaction_id"), Column("posted_on"), Column("payee"), Column("description"), Column("booked_at"), Column("created_at"), Column("updated_at")))
+        Seq(Column("transaction_id"), Column("posted_on"), Column("payee"), Column("description"), Column("booked_at")))
 
     val insertTransactionEntriesSql = Query("" +
             "WITH new_rows AS (" +
             "    INSERT INTO transaction_entries(tenant_id, transaction_id, account_name, amount) " +
             "    VALUES ... " +
-            "    RETURNING transaction_entry_id, account_name, amount, created_at, updated_at) " +
-            "SELECT transaction_entry_id, account_name, account_kind, amount, new_rows.created_at, new_rows.updated_at " +
+            "    RETURNING transaction_entry_id, account_name, amount) " +
+            "SELECT transaction_entry_id, account_name, account_kind, amount " +
             "FROM new_rows " +
             "JOIN accounts USING (account_name)")
 }

@@ -2,13 +2,9 @@ package almoneya
 
 import java.sql.PreparedStatement
 
-import org.joda.time.DateTime
-
 case class Account(id: Option[AccountId] = None,
                    name: AccountName,
-                   kind: AccountKind,
-                   createdAt: DateTime = new DateTime(),
-                   updatedAt: DateTime = new DateTime())
+                   kind: AccountKind)
 
 sealed trait AccountKind extends SqlValue {
     override def setParam(statement: PreparedStatement, index: Int): Unit = statement.setString(1 + index, kindName)

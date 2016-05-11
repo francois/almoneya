@@ -1,6 +1,6 @@
 package almoneya
 
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.LocalDate
 
 case class BankAccountTransaction(id: Option[BankAccountTransactionId] = None,
                                   bankAccount: BankAccount,
@@ -8,6 +8,4 @@ case class BankAccountTransaction(id: Option[BankAccountTransactionId] = None,
                                   postedOn: LocalDate,
                                   description1: Option[Description] = None,
                                   description2: Option[Description] = None,
-                                  amount: Amount,
-                                  createdAt: DateTime = new DateTime(),
-                                  updatedAt: DateTime = new DateTime())
+                                  amount: Amount)

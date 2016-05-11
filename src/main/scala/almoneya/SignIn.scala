@@ -2,8 +2,6 @@ package almoneya
 
 import java.sql.PreparedStatement
 
-import org.joda.time.DateTime
-
 sealed trait SignInMethod extends SqlValue
 
 object SignInMethod {
@@ -32,6 +30,4 @@ case class SignIn(id: Option[SignInId] = None,
                   sourceIp: IpAddress,
                   userAgent: UserAgent,
                   method: SignInMethod,
-                  successful: Boolean,
-                  createdAt: DateTime = new DateTime(),
-                  updatedAt: DateTime = new DateTime())
+                  successful: Boolean)

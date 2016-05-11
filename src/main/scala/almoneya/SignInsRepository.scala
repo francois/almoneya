@@ -1,7 +1,5 @@
 package almoneya
 
-import org.joda.time.DateTime
-
 import scala.util.Try
 
 /**
@@ -19,9 +17,7 @@ class SignInsRepository(executor: QueryExecutor) {
                 sourceIp = IpAddress(rs.getString("source_ip")),
                 userAgent = UserAgent(rs.getString("user_agent")),
                 method = SignInMethod.fromString(rs.getString("method")).get, // the database constraints guarantee that the value is correct
-                successful = rs.getBoolean("successful"),
-                createdAt = new DateTime(rs.getTimestamp("created_at")),
-                updatedAt = new DateTime(rs.getTimestamp("updated_at")))
+                successful = rs.getBoolean("successful"))
         }.flatMap { basicSignIn =>
             executor.insertOne(insertUserPassSignInSql, basicSignIn.id.get, signIn.username) { rs =>
                 basicSignIn.copy(username = Username(rs.getString("username")))
@@ -32,6 +28,6 @@ class SignInsRepository(executor: QueryExecutor) {
 
 object SignInsRepository {
     val insertSignInSql = Query("INSERT INTO credentials.sign_ins(source_ip, user_agent, method, successful) VALUES (?::inet, ?, ?, ?)",
-        Seq(Column("sign_in_id"), Column("source_ip"), Column("user_agent"), Column("method"), Column("successful"), Column("created_at"), Column("updated_at")))
+        Seq(Column("sign_in_id"), Column("source_ip"), Column("user_agent"), Column("method"), Column("successful")))
     val insertUserPassSignInSql = Query("INSERT INTO credentials.userpass_sign_ins(sign_in_id, username) VALUES (?, ?)", Seq(Column("username")))
 }
