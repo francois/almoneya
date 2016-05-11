@@ -1,7 +1,7 @@
 package almoneya
 
 import java.io.{BufferedReader, FileInputStream, InputStreamReader}
-import java.nio.charset.{StandardCharsets, Charset}
+import java.nio.charset.StandardCharsets
 import java.sql.DriverManager
 
 import org.apache.commons.csv.CSVFormat
@@ -11,6 +11,18 @@ import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
 
 object AlmoneyaWebapp {
+
+    private[this] def chooseParser(rows: Seq[Seq[String]]): Either[Exception, Seq[BankAccountTransaction]] = {
+        val sizes = rows.map(_.size).toSet
+        if (sizes.contains(14)) {
+            Right(new DesjardinsParser().parse(rows))
+        } else if (sizes.contains(8) || sizes.contains(9)) {
+            Right(new RbcParser().parse(rows))
+        } else {
+            Left(new IllegalArgumentException("Unknown parser class to use for files with " + sizes + " columns"))
+        }
+    }
+
     def main(args: Array[String]): Unit = {
         Class.forName("org.postgresql.Driver")
         log.info("Connecting to database server")
@@ -28,27 +40,18 @@ object AlmoneyaWebapp {
                 }
                 log.info("Authenticated!")
 
-                val parsed = args.slice(2, Int.MaxValue).map(fn => new BufferedReader(new InputStreamReader(new FileInputStream(fn), StandardCharsets.ISO_8859_1)))
+                val maybeParsed = args.slice(2, Int.MaxValue).map(fn => new BufferedReader(new InputStreamReader(new FileInputStream(fn), StandardCharsets.ISO_8859_1)))
                         .map(in => CSVFormat.EXCEL.parse(in))
                         .map(_.getRecords)
                         .map(rows => rows.map(row => (0 until row.size()).map(idx => row.get(idx))))
-                        .map(new RbcParser().parse)
-                        .foreach(txns => bankAccountTransactionsRepo.importBankTransactionsTransactions(TenantId(1), txns.map(_.bankAccount).toSet, txns))
+                        .map(chooseParser)
+                maybeParsed.zip(args.slice(2, Int.MaxValue)).filter(_._1.isLeft).foreach(pair => log.warn("Could not parse {}: {}", pair._2, pair._1.left.get.getMessage, ""))
+                val parsed = maybeParsed.filter(_.isRight).map(_.right.get).map { txns =>
+                    bankAccountTransactionsRepo.importBankTransactionsTransactions(TenantId(1), txns.map(_.bankAccount).toSet, txns)
+                }
                 log.info("{}", parsed)
 
             /*
-                val checkingAccount = BankAccount(accountNum = AccountHash("aa00"), last4 = AccountLast4("8888"))
-                val bankAccounts = Set(checkingAccount)
-                val transactions = Set(BankAccountTransaction(
-                    bankAccount = checkingAccount,
-                    postedOn = new LocalDate("2016-05-05"),
-                    description1 = Some(Description("VIR INTER")),
-                    amount = Amount(BigDecimal("13.29"))))
-                bankAccountTransactionsRepo.importBankTransactionsTransactions(TenantId(1), bankAccounts, transactions) match {
-                    case Success(txns) => log.info("Successfully imported {} transactions", txns.size)
-                    case Failure(ex) => log.error("Failed to import transactions", ex)
-                }
-
                 val txn = Transaction(payee = Payee("VISA Desjardins"), postedOn = new LocalDate(),
                     entries = Set(TransactionEntry(account = Account(name = AccountName("VISA Desjardins"), kind = Liability), amount = Amount(BigDecimal("99.39"))),
                         TransactionEntry(account = Account(name = AccountName("Desjardins Compte Maison"), kind = Asset), amount = Amount(BigDecimal("-99.39")))))
