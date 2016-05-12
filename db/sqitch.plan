@@ -17,9 +17,8 @@ tables/accounts [tables/tenants] 2016-04-28T02:59:15Z François Beausoleil <fran
 tables/bank_accounts [tables/accounts] 2016-04-29T02:34:50Z François Beausoleil <francois@teksol.info> # Add a way to remember which bank accounts map to which accounts
 tables/bank_account_transactions [tables/bank_accounts] 2016-04-29T02:43:22Z François Beausoleil <francois@teksol.info> # Record actual bank transactions in the system, for later reconciliation
 tables/envelopes [tables/tenants] 2016-05-04T02:57:56Z François Beausoleil <francois@teksol.info> # Record the names of the different envelopes we need to meet our obligations
-tables/obligations [tables/envelopes] 2016-04-30T02:09:48Z François Beausoleil <francois@teksol.info> # Record a business' obligations
-tables/one_time_obligations [tables/obligations] 2016-04-30T02:15:00Z François Beausoleil <francois@teksol.info> # Record a company's one time obligations: saving for a new delivery truck or a new fridge
-tables/recurring_obligations [tables/obligations] 2016-04-30T02:19:58Z François Beausoleil <francois@teksol.info> # Records obligations that occur periodically (monthly, weekly, etc)
+tables/goals [tables/envelopes] 2016-04-30T02:15:00Z François Beausoleil <francois@teksol.info> # Record a company's goals: saving for a new delivery truck or a new fridge
+tables/obligations [tables/envelopes] 2016-04-30T02:19:58Z François Beausoleil <francois@teksol.info> # Records obligations that occur periodically (monthly, weekly, etc)
 tables/transactions [tables/tenants] 2016-05-09T03:29:22Z François Beausoleil <francois@teksol.info> # The general ledger: where all transactions are described
 tables/transaction_entries [tables/transactions tables/accounts] 2016-05-09T03:38:07Z François Beausoleil <francois@teksol.info> # Records which accounts were touched by each transaction
 constraints/all_transactions_balance [tables/transaction_entries] 2016-05-09T03:45:37Z François Beausoleil <francois@teksol.info> # A constraint to ensure all transactions always balance out
