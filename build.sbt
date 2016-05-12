@@ -4,6 +4,8 @@ version := "00001"
 
 scalaVersion := "2.11.8"
 
+scalacOptions ++= Seq("-feature")
+
 // Enables use of System.exit in user code when running using sbt
 // http://www.scala-sbt.org/0.13/docs/Forking.html
 fork in run := true

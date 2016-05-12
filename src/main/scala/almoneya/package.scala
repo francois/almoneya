@@ -1,5 +1,7 @@
 import org.joda.time.LocalDate
 
+import scala.language.implicitConversions
+
 package object almoneya {
     implicit def bool2SqlValue(bool: Boolean): SqlValue = BoolSqlValue(bool)
 
