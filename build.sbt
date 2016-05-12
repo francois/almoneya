@@ -19,13 +19,16 @@ resolvers ++= Seq(
 // DEPENDENCIES
 
 libraryDependencies ++= Seq(
-    "ch.qos.logback"       %  "logback-classic"  % "[1.1.2,)",
-    "joda-time"            %  "joda-time"        % "[2.1,3.0[",
-    "org.apache.commons"   %  "commons-csv"      % "1.2",
-    "org.joda"             %  "joda-convert"     % "[1.3,2.0[",
-    "org.mindrot"          %  "jbcrypt"          % "0.3m",
-    "org.postgresql"       %  "postgresql"       % "9.4.1208.jre7",
-    "org.postgresql"       %  "postgresql"       % "9.4.1208.jre7",
+    "ch.qos.logback"       %  "logback-classic"   % "[1.1.2,)",
+    "joda-time"            %  "joda-time"         % "[2.1,3.0[",
+    "org.apache.commons"   %  "commons-csv"       % "1.2",
+    "org.eclipse.jetty"    %  "jetty-server"      % "9.3.8.v20160314",
+    "org.eclipse.jetty"    %  "jetty-plus"        % "9.3.8.v20160314",
+    "org.eclipse.jetty"    %  "jetty-annotations" % "9.3.8.v20160314",
+    "org.joda"             %  "joda-convert"      % "[1.3,2.0[",
+    "org.mindrot"          %  "jbcrypt"           % "0.3m",
+    "org.postgresql"       %  "postgresql"        % "9.4.1208.jre7",
+    "org.postgresql"       %  "postgresql"        % "9.4.1208.jre7",
 
     "org.scalacheck" %% "scalacheck"      % "[1.11.4,2.0[" % "test",
     "org.scalatest"  %% "scalatest"       % "[2.1.6,3.0["  % "test",
