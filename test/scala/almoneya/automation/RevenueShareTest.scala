@@ -15,6 +15,16 @@ class RevenueShareTest extends FunSuite {
         assert(payments.forall(_.fulfilled), payments)
     }
 
+    test("with two recurring obligations of 100 and a revenue of 200") {
+        val obligations = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)), newWeeklyObligation("alimony",100,new LocalDate(2016, 5, 23)))
+        val goals = Set.empty[FixedDateObligation]
+        val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
+        val sharer = RevenueShare(obligations, goals, revenues)
+        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
+        assert(payments.size == obligations.size, "N obligations == N payments")
+        assert(payments.forall(_.fulfilled), payments)
+    }
+
     def newWeeklyRevenue(name: String, dueOn: LocalDate): Revenue = {
         Revenue(RevenueName(name), dueOn, Weekly, Frequency(1))
     }
