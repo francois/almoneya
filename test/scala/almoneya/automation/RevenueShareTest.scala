@@ -16,13 +16,26 @@ class RevenueShareTest extends FunSuite {
     }
 
     test("with two recurring obligations of 100 and a revenue of 200") {
-        val obligations = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)), newWeeklyObligation("alimony",100,new LocalDate(2016, 5, 23)))
+        val obligations = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)), newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23)))
         val goals = Set.empty[FixedDateObligation]
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val sharer = RevenueShare(obligations, goals, revenues)
         val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
         assert(payments.size == obligations.size, "N obligations == N payments")
         assert(payments.forall(_.fulfilled), payments)
+    }
+
+    test("with two recurring obligations of 100 but a revenue of 150") {
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
+        val alimony = newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23))
+        val obligations = Set(groceries, alimony)
+        val goals = Set.empty[FixedDateObligation]
+        val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
+        val sharer = RevenueShare(obligations, goals, revenues)
+        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(150)))
+
+        assert(payments.find(_.goal == groceries).exists(_.fulfilled), "groceries must be fulfilled")
+        assert(!payments.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
     }
 
     def newWeeklyRevenue(name: String, dueOn: LocalDate): Revenue = {
