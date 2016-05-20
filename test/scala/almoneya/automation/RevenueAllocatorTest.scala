@@ -4,13 +4,13 @@ import almoneya.{Amount, ObligationName}
 import org.joda.time.LocalDate
 import org.scalatest.FunSuite
 
-class RevenueShareTest extends FunSuite {
+class RevenueAllocatorTest extends FunSuite {
     test("with a single recurring obligation of 100$ and a revenue of 200$, the payment is fulfilled") {
         val obligations = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)))
         val goals = Set.empty[FixedDateObligation]
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueShare(obligations, goals, revenues)
-        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
+        val sharer = RevenueAllocator(obligations, goals, revenues)
+        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
         assert(payments.size == 1, "one obligation == one payment")
         assert(payments.forall(_.fulfilled), payments)
     }
@@ -19,8 +19,8 @@ class RevenueShareTest extends FunSuite {
         val obligations = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)), newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23)))
         val goals = Set.empty[FixedDateObligation]
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueShare(obligations, goals, revenues)
-        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
+        val sharer = RevenueAllocator(obligations, goals, revenues)
+        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
         assert(payments.size == obligations.size, "N obligations == N payments")
         assert(payments.forall(_.fulfilled), payments)
     }
@@ -31,8 +31,8 @@ class RevenueShareTest extends FunSuite {
         val obligations = Set(groceries, alimony)
         val goals = Set.empty[FixedDateObligation]
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueShare(obligations, goals, revenues)
-        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(150)))
+        val sharer = RevenueAllocator(obligations, goals, revenues)
+        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(150)))
 
         assert(payments.find(_.goal == groceries).exists(_.fulfilled), "groceries must be fulfilled")
         assert(!payments.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
@@ -46,8 +46,8 @@ class RevenueShareTest extends FunSuite {
         val goals = Set.empty[FixedDateObligation]
         val obligations = Set(alimony, groceries)
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueShare(obligations, goals, revenues)
-        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(50)))
+        val sharer = RevenueAllocator(obligations, goals, revenues)
+        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(50)))
 
         assert(payments.contains(Payment(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(50)))), "groceries received 100% of the money allocation")
         assert(!payments.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
