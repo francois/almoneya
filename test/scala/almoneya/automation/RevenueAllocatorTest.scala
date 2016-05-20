@@ -8,30 +8,30 @@ class RevenueAllocatorTest extends FunSuite {
     test("with a single recurring obligation of 100$ and a revenue of 200$, the payment is fulfilled") {
         val goals: Set[FundingGoal] = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)))
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueAllocator(goals, revenues)
-        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
-        assert(payments.size == 1, "one obligation == one allocation")
-        assert(payments.forall(_.fulfilled), payments)
+        val allocator = RevenueAllocator(goals, revenues)
+        val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
+        assert(allocations.size == 1, "one obligation == one allocation")
+        assert(allocations.forall(_.fulfilled), allocations)
     }
 
     test("with two recurring obligations of 100 and a revenue of 200") {
         val goals: Set[FundingGoal] = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)), newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23)))
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueAllocator(goals, revenues)
-        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
-        assert(payments.size == goals.size, "N goals == N allocations")
-        assert(payments.forall(_.fulfilled), payments)
+        val allocator = RevenueAllocator(goals, revenues)
+        val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
+        assert(allocations.size == goals.size, "N goals == N allocations")
+        assert(allocations.forall(_.fulfilled), allocations)
     }
 
     test("with two recurring obligations of 100 but a revenue of 150") {
         val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 23))
         val alimony = newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23))
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueAllocator(Set(groceries, alimony), revenues)
-        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(150)))
+        val allocator = RevenueAllocator(Set(groceries, alimony), revenues)
+        val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(150)))
 
-        assert(payments.find(_.goal == groceries).exists(_.fulfilled), "groceries must be fulfilled")
-        assert(!payments.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
+        assert(allocations.find(_.goal == groceries).exists(_.fulfilled), "groceries must be fulfilled")
+        assert(!allocations.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
     }
 
     test("prioritizes obligations that will be due sooner rather than later") {
@@ -41,11 +41,11 @@ class RevenueAllocatorTest extends FunSuite {
         // At the moment, this is the only way I have of checking the prioritisation of goals
         val goals: Set[FundingGoal] = Set(alimony, groceries)
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueAllocator(goals, revenues)
-        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(50)))
+        val allocator = RevenueAllocator(goals, revenues)
+        val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(50)))
 
-        assert(payments.contains(Allocation(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(50)))), "groceries received 100% of the money allocation")
-        assert(!payments.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
+        assert(allocations.contains(Allocation(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(50)))), "groceries received 100% of the money allocation")
+        assert(!allocations.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
     }
 
     test("prioritizes obligations with lower priority") {
@@ -53,11 +53,11 @@ class RevenueAllocatorTest extends FunSuite {
         val alimony = newWeeklyObligation("alimony", 200, new LocalDate(2016, 5, 22), priority = 1)
         val goals: Set[FundingGoal] = Set(groceries, alimony)
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val sharer = RevenueAllocator(goals, revenues)
-        val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(201)))
+        val allocator = RevenueAllocator(goals, revenues)
+        val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(201)))
 
-        assert(payments.contains(Allocation(alimony, planToTake = Amount(BigDecimal(200)), realTake = Amount(BigDecimal(200)))), "alimony received 99% of the allocation")
-        assert(payments.contains(Allocation(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(1)))), "groceries received 1% of the allocation")
+        assert(allocations.contains(Allocation(alimony, planToTake = Amount(BigDecimal(200)), realTake = Amount(BigDecimal(200)))), "alimony received 99% of the allocation")
+        assert(allocations.contains(Allocation(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(1)))), "groceries received 1% of the allocation")
     }
 
     test("plans to take only 1/3 of the missing amount if 3 revenue events are due before the payment") {
