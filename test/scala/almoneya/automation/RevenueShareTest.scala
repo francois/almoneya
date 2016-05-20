@@ -26,7 +26,7 @@ class RevenueShareTest extends FunSuite {
     }
 
     test("with two recurring obligations of 100 but a revenue of 150") {
-        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 23))
         val alimony = newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23))
         val obligations = Set(groceries, alimony)
         val goals = Set.empty[FixedDateObligation]
@@ -35,6 +35,21 @@ class RevenueShareTest extends FunSuite {
         val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(150)))
 
         assert(payments.find(_.goal == groceries).exists(_.fulfilled), "groceries must be fulfilled")
+        assert(!payments.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
+    }
+
+    test("prioritizes obligations that will be due sooner rather than later") {
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
+        val alimony = newWeeklyObligation("alimony", 200, new LocalDate(2016, 5, 25))
+        // this is a BAD test: reversing the order of obligations in the Set declaration fails the test
+        // At the moment, this is the only way I have of checking the prioritisation of obligations
+        val goals = Set.empty[FixedDateObligation]
+        val obligations = Set(alimony, groceries)
+        val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
+        val sharer = RevenueShare(obligations, goals, revenues)
+        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(50)))
+
+        assert(payments.contains(Payment(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(50)))), "groceries received 100% of the money allocation")
         assert(!payments.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
     }
 
