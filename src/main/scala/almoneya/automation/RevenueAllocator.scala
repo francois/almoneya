@@ -3,7 +3,7 @@ package almoneya.automation
 import almoneya.Amount
 import org.joda.time.LocalDate
 
-case class RevenueAllocator(obligations: Set[RecurringObligation], goals: Set[FixedDateObligation], revenues: Set[Revenue], autoFulfillThreshold: Amount = Amount(BigDecimal(100))) {
+case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue], autoFulfillThreshold: Amount = Amount(BigDecimal(100))) {
     def generatePlan(paidOn: LocalDate, amountReceived: Amount): Seq[Payment] = {
         val plan = obligations.toSeq.filterNot(_.fulfilled).map {
             case fundingGoal if numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn) <= 1 => Payment(fundingGoal, planToTake = fundingGoal.amountMissing)
