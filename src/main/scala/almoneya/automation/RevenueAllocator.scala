@@ -11,6 +11,8 @@ case class RevenueAllocator(obligations: Set[RecurringObligation], goals: Set[Fi
         }.sortWith((a, b) => a.goal.dueOn.compareTo(b.goal.dueOn) < 0 || a.goal.priority.compareTo(b.goal.priority) < 0)
         val runningBalances = amountReceived +: plan.indices.tail.map(idx => amountReceived - plan.slice(0, idx).map(_.planToTake).reduce(_ add _))
         plan.zip(runningBalances).map {
+            case (payment, balance) if balance.isPositive && balance >= payment.planToTake && payment.goal.amountMissing <= autoFulfillThreshold =>
+                payment.copy(planToTake = payment.goal.amountMissing, realTake = payment.goal.amountMissing)
             case (payment, balance) if balance.isPositive && balance >= payment.planToTake => payment.copy(realTake = payment.planToTake)
             case (payment, balance) if balance.isPositive => payment.copy(realTake = balance)
             case (payment, _) => payment

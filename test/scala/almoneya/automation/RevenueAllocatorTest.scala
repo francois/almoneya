@@ -74,6 +74,14 @@ class RevenueAllocatorTest extends FunSuite {
         assert(plan.contains(Payment(carPayment, planToTake = Amount(BigDecimal(101)), realTake = Amount(BigDecimal(101)))))
     }
 
+    test("takes 100% of the missing amount if the missing amount is <= autoFulfillThreshold") {
+        val carPayment = newMonthlyObligation("car payment", 302, new LocalDate(2016, 6, 10))
+        val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
+        val allocator = RevenueAllocator(Set(carPayment), Set.empty, Set(salary), autoFulfillThreshold = Amount(BigDecimal(500)))
+        val plan = allocator.generatePlan(new LocalDate(2016, 5, 19), Amount(BigDecimal(300)))
+        assert(plan.contains(Payment(carPayment, planToTake = Amount(BigDecimal(302)), realTake = Amount(BigDecimal(302)))))
+    }
+
     def newWeeklyRevenue(name: String, dueOn: LocalDate): Revenue = {
         Revenue(RevenueName(name), dueOn, Weekly, Frequency(1))
     }
