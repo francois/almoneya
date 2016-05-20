@@ -82,6 +82,14 @@ class RevenueAllocatorTest extends FunSuite {
         assert(plan.contains(Payment(carPayment, planToTake = Amount(BigDecimal(302)), realTake = Amount(BigDecimal(302)))))
     }
 
+    test("ignores obligations that are already fulfilled") {
+        val carPayment = newMonthlyObligation("car payment", 302, new LocalDate(2016, 6, 10), balance = 305)
+        val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
+        val allocator = RevenueAllocator(Set(carPayment), Set.empty, Set(salary), autoFulfillThreshold = Amount(BigDecimal(500)))
+        val plan = allocator.generatePlan(new LocalDate(2016, 5, 19), Amount(BigDecimal(300)))
+        assert(plan.isEmpty)
+    }
+
     def newWeeklyRevenue(name: String, dueOn: LocalDate): Revenue = {
         Revenue(RevenueName(name), dueOn, Weekly, Frequency(1))
     }
@@ -94,7 +102,7 @@ class RevenueAllocatorTest extends FunSuite {
         RecurringObligation(priority = Priority(priority), name = ObligationName(name), target = Amount(BigDecimal(targetAmount)), balance = Amount(BigDecimal(0)), dueOn = dueOn, period = Weekly, frequency = Frequency(1))
     }
 
-    def newMonthlyObligation(name: String, targetAmount: Int, dueOn: LocalDate): RecurringObligation = {
-        RecurringObligation(priority = Priority(1), name = ObligationName(name), target = Amount(BigDecimal(targetAmount)), balance = Amount(BigDecimal(0)), dueOn = dueOn, period = Monthly, frequency = Frequency(1))
+    def newMonthlyObligation(name: String, targetAmount: Int, dueOn: LocalDate, balance: Int = 0): RecurringObligation = {
+        RecurringObligation(priority = Priority(1), name = ObligationName(name), target = Amount(BigDecimal(targetAmount)), balance = Amount(BigDecimal(balance)), dueOn = dueOn, period = Monthly, frequency = Frequency(1))
     }
 }
