@@ -66,6 +66,14 @@ class RevenueAllocatorTest extends FunSuite {
         assert(payments.contains(Payment(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(1)))), "groceries received 1% of the allocation")
     }
 
+    test("plans to take only 1/3 of the missing amount if 3 revenue events are due before the payment") {
+        val carPayment = newMonthlyObligation("car payment", 302, new LocalDate(2016, 6, 10))
+        val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
+        val allocator = RevenueAllocator(Set(carPayment), Set.empty, Set(salary))
+        val plan = allocator.generatePlan(new LocalDate(2016, 5, 19), Amount(BigDecimal(300)))
+        assert(plan.contains(Payment(carPayment, planToTake = Amount(BigDecimal(101)), realTake = Amount(BigDecimal(101)))))
+    }
+
     def newWeeklyRevenue(name: String, dueOn: LocalDate): Revenue = {
         Revenue(RevenueName(name), dueOn, Weekly, Frequency(1))
     }

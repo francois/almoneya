@@ -1,11 +1,23 @@
 package almoneya.automation
 
-sealed trait Period
+import org.joda.time.PeriodType
 
-case object Daily extends Period
+sealed trait Period {
+    def periodType: PeriodType
+}
 
-case object Weekly extends Period
+case object Daily extends Period {
+    override def periodType: PeriodType = PeriodType.days()
+}
 
-case object Monthly extends Period
+case object Weekly extends Period {
+    override def periodType: PeriodType = PeriodType.weeks()
+}
 
-case object Yearly extends Period
+case object Monthly extends Period {
+    override def periodType: PeriodType = PeriodType.months()
+}
+
+case object Yearly extends Period {
+    override def periodType: PeriodType = PeriodType.years()
+}
