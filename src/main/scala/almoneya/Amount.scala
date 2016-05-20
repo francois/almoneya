@@ -5,7 +5,7 @@ import java.sql.PreparedStatement
 case class Amount(value: BigDecimal) extends SqlValue {
     def isPositive = value > 0
 
-    def compare(amount: Amount) = value.compare(amount.value)
+    def compareTo(amount: Amount) = value.compare(amount.value)
 
     // Unfortunately, I can't use the + method, since it's bound to StringLike...
     def add(amount: Amount): Amount = Amount(value + amount.value)

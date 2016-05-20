@@ -48,6 +48,20 @@ class RevenueAllocatorTest extends FunSuite {
         assert(!allocations.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
     }
 
+    test("prioritizes goals which have a smaller missing amount") {
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 25))
+        val alimony = newWeeklyObligation("alimony", 200, new LocalDate(2016, 5, 25))
+        val cell = newWeeklyObligation("cell phone service", 30, new LocalDate(2016, 5, 25))
+        val goals: Set[FundingGoal] = Set(alimony, groceries, cell)
+        val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
+        val allocator = RevenueAllocator(goals, revenues)
+        val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(50)))
+
+        assert(allocations.contains(Allocation(cell, planToTake = Amount(BigDecimal(30)), realTake = Amount(BigDecimal(30)))))
+        assert(allocations.contains(Allocation(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(20)))))
+        assert(allocations.contains(Allocation(alimony, planToTake = Amount(BigDecimal(200)), realTake = Amount(BigDecimal(0)))))
+    }
+
     test("prioritizes obligations with lower priority") {
         val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
         val alimony = newWeeklyObligation("alimony", 200, new LocalDate(2016, 5, 22), priority = 1)

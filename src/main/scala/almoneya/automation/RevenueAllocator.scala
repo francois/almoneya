@@ -8,7 +8,7 @@ case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue
         val plan = obligations.toSeq.filterNot(_.fulfilled).map {
             case fundingGoal if numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn) <= 1 => Allocation(fundingGoal, planToTake = fundingGoal.amountMissing)
             case fundingGoal => Allocation(fundingGoal, planToTake = fundingGoal.amountMissing / numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn))
-        }.sortWith((a, b) => a.goal.dueOn.compareTo(b.goal.dueOn) < 0 || a.goal.priority.compareTo(b.goal.priority) < 0)
+        }.sortWith((a, b) => a.goal.dueOn.compareTo(b.goal.dueOn) < 0 || a.goal.priority.compareTo(b.goal.priority) < 0 || a.goal.amountMissing.compareTo(b.goal.amountMissing) < 0)
 
         if (plan.isEmpty) {
             Seq.empty[Allocation]
