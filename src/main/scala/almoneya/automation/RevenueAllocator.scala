@@ -4,14 +4,14 @@ import almoneya.Amount
 import org.joda.time.LocalDate
 
 case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue], autoFulfillThreshold: Amount = Amount(BigDecimal(100))) {
-    def generatePlan(paidOn: LocalDate, amountReceived: Amount): Seq[Payment] = {
+    def generatePlan(paidOn: LocalDate, amountReceived: Amount): Seq[Allocation] = {
         val plan = obligations.toSeq.filterNot(_.fulfilled).map {
-            case fundingGoal if numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn) <= 1 => Payment(fundingGoal, planToTake = fundingGoal.amountMissing)
-            case fundingGoal => Payment(fundingGoal, planToTake = fundingGoal.amountMissing / numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn))
+            case fundingGoal if numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn) <= 1 => Allocation(fundingGoal, planToTake = fundingGoal.amountMissing)
+            case fundingGoal => Allocation(fundingGoal, planToTake = fundingGoal.amountMissing / numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn))
         }.sortWith((a, b) => a.goal.dueOn.compareTo(b.goal.dueOn) < 0 || a.goal.priority.compareTo(b.goal.priority) < 0)
 
         if (plan.isEmpty) {
-            Seq.empty[Payment]
+            Seq.empty[Allocation]
         } else {
             val runningBalances = amountReceived +: plan.indices.tail.map(idx => amountReceived - plan.slice(0, idx).map(_.planToTake).reduce(_ add _))
             plan.zip(runningBalances).map {

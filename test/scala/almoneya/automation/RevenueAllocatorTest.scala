@@ -10,7 +10,7 @@ class RevenueAllocatorTest extends FunSuite {
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val sharer = RevenueAllocator(goals, revenues)
         val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
-        assert(payments.size == 1, "one obligation == one payment")
+        assert(payments.size == 1, "one obligation == one allocation")
         assert(payments.forall(_.fulfilled), payments)
     }
 
@@ -19,7 +19,7 @@ class RevenueAllocatorTest extends FunSuite {
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val sharer = RevenueAllocator(goals, revenues)
         val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
-        assert(payments.size == goals.size, "N goals == N payments")
+        assert(payments.size == goals.size, "N goals == N allocations")
         assert(payments.forall(_.fulfilled), payments)
     }
 
@@ -44,7 +44,7 @@ class RevenueAllocatorTest extends FunSuite {
         val sharer = RevenueAllocator(goals, revenues)
         val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(50)))
 
-        assert(payments.contains(Payment(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(50)))), "groceries received 100% of the money allocation")
+        assert(payments.contains(Allocation(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(50)))), "groceries received 100% of the money allocation")
         assert(!payments.find(_.goal == alimony).forall(_.fulfilled), "alimoney must be unfulfilled")
     }
 
@@ -56,8 +56,8 @@ class RevenueAllocatorTest extends FunSuite {
         val sharer = RevenueAllocator(goals, revenues)
         val payments = sharer.generatePlan(new LocalDate(2016, 5, 20), Amount(BigDecimal(201)))
 
-        assert(payments.contains(Payment(alimony, planToTake = Amount(BigDecimal(200)), realTake = Amount(BigDecimal(200)))), "alimony received 99% of the allocation")
-        assert(payments.contains(Payment(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(1)))), "groceries received 1% of the allocation")
+        assert(payments.contains(Allocation(alimony, planToTake = Amount(BigDecimal(200)), realTake = Amount(BigDecimal(200)))), "alimony received 99% of the allocation")
+        assert(payments.contains(Allocation(groceries, planToTake = Amount(BigDecimal(100)), realTake = Amount(BigDecimal(1)))), "groceries received 1% of the allocation")
     }
 
     test("plans to take only 1/3 of the missing amount if 3 revenue events are due before the payment") {
@@ -65,7 +65,7 @@ class RevenueAllocatorTest extends FunSuite {
         val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
         val allocator = RevenueAllocator(Set(carPayment), Set(salary))
         val plan = allocator.generatePlan(new LocalDate(2016, 5, 19), Amount(BigDecimal(300)))
-        assert(plan.contains(Payment(carPayment, planToTake = Amount(BigDecimal((302.0 / 3).ceil)), realTake = Amount(BigDecimal(101)))))
+        assert(plan.contains(Allocation(carPayment, planToTake = Amount(BigDecimal((302.0 / 3).ceil)), realTake = Amount(BigDecimal(101)))))
     }
 
     test("takes 100% of the missing amount if the missing amount is <= autoFulfillThreshold") {
@@ -73,7 +73,7 @@ class RevenueAllocatorTest extends FunSuite {
         val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
         val allocator = RevenueAllocator(Set(carPayment), Set(salary), autoFulfillThreshold = Amount(BigDecimal(500)))
         val plan = allocator.generatePlan(new LocalDate(2016, 5, 19), Amount(BigDecimal(300)))
-        assert(plan.contains(Payment(carPayment, planToTake = Amount(BigDecimal(302)), realTake = Amount(BigDecimal(302)))))
+        assert(plan.contains(Allocation(carPayment, planToTake = Amount(BigDecimal(302)), realTake = Amount(BigDecimal(302)))))
     }
 
     test("ignores goals that are already fulfilled") {
