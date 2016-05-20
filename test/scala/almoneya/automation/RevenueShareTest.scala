@@ -5,12 +5,13 @@ import org.joda.time.LocalDate
 import org.scalatest.FunSuite
 
 class RevenueShareTest extends FunSuite {
-    test("when enough revenue, all payments are fulfilled") {
-        val obligations = Set(newMonthlyObligation("rent", 300, new LocalDate(2016, 6, 1)), newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)))
-        val goals = Set(newGoal("save for car", 5000, new LocalDate(2018, 5, 29)))
+    test("with a single recurring obligation of 100$ and a revenue of 200$, the payment is fulfilled") {
+        val obligations = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)))
+        val goals = Set.empty[FixedDateObligation]
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val sharer = RevenueShare(obligations, goals, revenues)
-        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(700)))
+        val payments = sharer.generatePayments(new LocalDate(2016, 5, 20), Amount(BigDecimal(200)))
+        assert(payments.size == 1, "one obligation == one payment")
         assert(payments.forall(_.fulfilled), payments)
     }
 
