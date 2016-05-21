@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
 
-object AlmoneyaWebapp {
+object AlmoneyaCli {
 
     private[this] def chooseParser(rows: Seq[Seq[String]]): Either[Exception, Seq[BankAccountTransaction]] = {
         val sizes = rows.map(_.size).toSet
@@ -26,20 +26,6 @@ object AlmoneyaWebapp {
     }
 
     def main(args: Array[String]): Unit = {
-        log.info("Booting")
-        val server = new Server(8080)
-        val context = new ServletContextHandler(ServletContextHandler.SESSIONS)
-        context.setContextPath("/")
-        context.setResourceBase(System.getProperty("java.io.tmpdir"))
-        server.setHandler(context)
-
-        context.setHandler(new WebApiHandler)
-
-        server.start()
-        server.join()
-    }
-
-    def oldmain(args: Array[String]): Unit = {
         Class.forName("org.postgresql.Driver")
         log.info("Connecting to database server")
         val connection = DriverManager.getConnection("jdbc:postgresql://10.9.1.21:5432/vagrant", "vagrant", null)
