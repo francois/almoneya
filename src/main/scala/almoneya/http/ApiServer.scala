@@ -81,12 +81,27 @@ class HelloHandler(private[this] val text: String) extends AbstractHandler {
     }
 }
 
-class RepoLoginService(usersRepository: UsersRepository) extends MappedLoginService {
+class RepoLoginService(usersRepository: UsersRepository, signInsRepository: SignInsRepository) extends MappedLoginService {
+    override def login(username: String, credentials: scala.Any, request: ServletRequest): UserIdentity = {
+        val result = Option(super.login(username, credentials, request))
+        request match {
+            case httpServletRequest: HttpServletRequest =>
+                signInsRepository.create(
+                    SignIn(username = Username(username),
+                        sourceIp = IpAddress(request.getRemoteAddr),
+                        userAgent = UserAgent(Option(httpServletRequest.getHeader("User-Agent")).getOrElse("Unknown")),
+                        method = UserpassSignIn,
+                        successful = result.isDefined))
+        }
+
+        result.orNull
+    }
+
     override def loadUserInfo(userIdentifier: String): KnownUser = {
         val username = Username(userIdentifier)
         usersRepository.findCredentialsByUsername(username) match {
             case Success(Some(userPassCredentials)) =>
-                new KnownUser(userIdentifier,BasicCredentials(userPassCredentials))
+                new KnownUser(userIdentifier, BasicCredentials(userPassCredentials))
 
             case Success(None) => null // no user with this usernmae
 
