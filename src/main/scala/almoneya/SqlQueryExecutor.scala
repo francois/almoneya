@@ -1,6 +1,7 @@
 package almoneya
 
 import java.sql.{Connection, ResultSet}
+import java.util.concurrent.TimeUnit
 
 import org.slf4j.LoggerFactory
 
@@ -20,15 +21,22 @@ class SqlQueryExecutor(override val connection: Connection) extends QueryExecuto
 
     override def findAll[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Try[Seq[A]] = Try {
         val statement = connection.prepareStatement(query.sql)
-        logger.info("{}", query.sql)
-        params.zipWithIndex.foreach { case (value, index) => value.setParam(statement, index) }
-        if (statement.execute()) {
-            val resultSet = statement.getResultSet
-            var results = Vector.empty[A]
-            while (resultSet.next()) results = results :+ mapper(resultSet)
-            results.toSeq
-        } else {
-            Seq.empty
+        val startedAt = System.nanoTime()
+        try {
+            params.zipWithIndex.foreach { case (value, index) => value.setParam(statement, index) }
+            if (statement.execute()) {
+                val resultSet = statement.getResultSet
+                var results = Vector.empty[A]
+                while (resultSet.next()) results = results :+ mapper(resultSet)
+                results.toSeq
+            } else {
+                Seq.empty
+            }
+        } finally {
+            val finishedAt = System.nanoTime()
+            if (logger.isInfoEnabled) {
+                logger.info("[%7.3f ms] %s".format((finishedAt - startedAt).toDouble / TimeUnit.MILLISECONDS.toNanos(1), query.sql))
+            }
         }
     }
 
