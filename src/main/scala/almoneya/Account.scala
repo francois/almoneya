@@ -3,6 +3,7 @@ package almoneya
 import java.sql.PreparedStatement
 
 case class Account(id: Option[AccountId] = None,
+                   code: Option[AccountCode] = None,
                    name: AccountName,
                    kind: AccountKind)
 
