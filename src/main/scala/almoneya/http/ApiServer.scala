@@ -82,4 +82,6 @@ object ApiServer {
     }
 
     val log = LoggerFactory.getLogger("almoneya.http.ApiServer")
+
+    val TenantIdAttribute = "almoneya.TenantId"
 }
