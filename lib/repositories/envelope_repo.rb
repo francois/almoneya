@@ -19,5 +19,17 @@ module Repositories
                    row.fetch(:created_at),
                    row.fetch(:updated_at))
     end
+
+    def find_all_for_tenant(tenant_id)
+      rows = envelopes_ds.
+        filter(tenant_id: tenant_id).
+        order{ lower(envelope_name) }.
+        select(:envelope_id, :envelope_name, :created_at, :updated_at).
+        all
+
+      rows.map do |row|
+        Envelope.new(row.fetch(:envelope_id), row.fetch(:envelope_name), row.fetch(:created_at), row.fetch(:updated_at))
+      end
+    end
   end
 end

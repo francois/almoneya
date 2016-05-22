@@ -168,6 +168,21 @@
           </div>
         </div>
       </form>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Envelope</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @envelopes.each do |envelope| %>
+            <tr>
+              <td><%= envelope.name %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

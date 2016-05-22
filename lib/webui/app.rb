@@ -84,6 +84,7 @@ module Webui
 
       set :repositories, {
         account_repo: account_repo,
+        envelope_repo: envelope_repo,
         sign_in_repo: sign_in_repo,
         user_repo: user_repo,
       }
@@ -96,7 +97,8 @@ module Webui
     before { @search = true }
 
     get "/" do
-      @accounts = account_repo.find_all_for_tenant(authenticated_user.tenant_id)
+      @accounts  = account_repo.find_all_for_tenant(authenticated_user.tenant_id)
+      @envelopes = envelope_repo.find_all_for_tenant(authenticated_user.tenant_id)
       @today = Date.today
       erb :dashboard, layout: :application
     end
@@ -326,6 +328,10 @@ module Webui
 
     def account_repo
       settings.repositories.fetch(:account_repo)
+    end
+
+    def envelope_repo
+      settings.repositories.fetch(:envelope_repo)
     end
 
     def sign_in_op
