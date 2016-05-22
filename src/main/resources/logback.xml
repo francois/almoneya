@@ -3,7 +3,7 @@
     <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.err</target>
         <encoder>
-            <pattern>%9relative [%-20.20thread] %-5level %-46.60replace(%logger{2}){'\$$',''} - %msg%n</pattern>
+            <pattern>%9relative [%-20.20thread] %-5level %-46.60replace(%logger{2}){'\$$',''} - %msg [R:%mdc{almoneya.RequestId} T:%mdc{almoneya.TenantId} U:%mdc{almoneya.UserId}]%n</pattern>
         </encoder>
     </appender>
 

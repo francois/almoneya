@@ -1,5 +1,6 @@
 package almoneya.http
 
+import java.util.UUID
 import javax.security.auth.Subject
 import javax.servlet.ServletRequest
 import javax.servlet.http.HttpServletRequest
@@ -9,13 +10,17 @@ import org.eclipse.jetty.security.MappedLoginService.KnownUser
 import org.eclipse.jetty.security.{DefaultUserIdentity, MappedLoginService}
 import org.eclipse.jetty.server.UserIdentity
 import org.eclipse.jetty.util.security.Credential
-import org.slf4j.LoggerFactory
+import org.slf4j.{LoggerFactory, MDC}
 
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success}
 
 class RepoLoginService(usersRepository: UsersRepository, signInsRepository: SignInsRepository) extends MappedLoginService {
     override def login(username: String, credentials: scala.Any, request: ServletRequest): UserIdentity = {
+        // Unrelated to the task of logging in... but useful in order to match all calls to
+        // the database with the specific request that generated it
+        MDC.put(ApiServer.RequestIdAttribute, UUID.randomUUID().toString)
+
         val result = Option(super.login(username, credentials, request))
         request match {
             case httpServletRequest: HttpServletRequest =>
@@ -32,6 +37,8 @@ class RepoLoginService(usersRepository: UsersRepository, signInsRepository: Sign
             case Some(identity: DefaultUserIdentity) =>
                 identity.getUserPrincipal match {
                     case user: AlmoneyaKnownUser =>
+                        MDC.put(ApiServer.TenantIdAttribute, user.tenantId.value.toString)
+                        MDC.put(ApiServer.UserIdAttribute, user.name.toString)
                         request.setAttribute(ApiServer.TenantIdAttribute, user.tenantId)
                     case _ => ()
                 }
@@ -84,6 +91,8 @@ class RepoLoginService(usersRepository: UsersRepository, signInsRepository: Sign
 
 case class BasicCredentials(userPassCredentials: UserPassCredentials) extends Credential {
     override def check(credentials: scala.Any): Boolean = userPassCredentials.authenticatesWith(Password(credentials.toString))
+
+    def userId: UserId = userPassCredentials.userId.get
 
     def tenantId: TenantId = userPassCredentials.tenantId
 }
