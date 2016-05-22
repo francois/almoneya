@@ -2,6 +2,7 @@ package almoneya.http
 
 import java.io.IOException
 import java.sql.SQLException
+import javax.servlet.MultipartConfigElement
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import almoneya.TenantId
@@ -56,7 +57,8 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
 
     def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[A]
 
-    val log = LoggerFactory.getLogger(classOf[JsonApiController[_]])
+    private[this] val multiPartConfig = new MultipartConfigElement(System.getProperty("java.io.tmpdir"))
+    private[this] val log = LoggerFactory.getLogger(classOf[JsonApiController[_]])
 }
 
 case class Results[A](data: A)

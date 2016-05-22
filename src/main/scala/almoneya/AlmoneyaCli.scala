@@ -49,7 +49,7 @@ object AlmoneyaCli {
                         .map(chooseParser)
                 maybeParsed.zip(args.slice(2, Int.MaxValue)).filter(_._1.isLeft).foreach(pair => log.warn("Could not parse {}: {}", pair._2, pair._1.left.get.getMessage, ""))
                 val parsed = maybeParsed.filter(_.isRight).map(_.right.get).map { txns =>
-                    bankAccountTransactionsRepo.importBankTransactionsTransactions(TenantId(1), txns.map(_.bankAccount).toSet, txns)
+                    bankAccountTransactionsRepo.importBankTransactionsTransactions(TenantId(1), txns)
                 }
                 log.info("{}", parsed)
 

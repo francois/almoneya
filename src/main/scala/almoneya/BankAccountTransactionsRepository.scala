@@ -8,7 +8,8 @@ class BankAccountTransactionsRepository(executor: QueryExecutor) {
 
     import BankAccountTransactionsRepository.importBankTransactionSql
 
-    def importBankTransactionsTransactions(tenantId: TenantId, bankAccounts: Set[BankAccount], transactions: Seq[BankAccountTransaction]): Try[Seq[BankAccountTransaction]] = {
+    def importBankTransactionsTransactions(tenantId: TenantId, transactions: Seq[BankAccountTransaction]): Try[Seq[BankAccountTransaction]] = {
+        val bankAccounts = transactions.map(_.bankAccount).toSet
         executor.findAll(Query("SELECT bank_account_hash FROM bank_accounts")) { rs =>
             AccountHash(rs.getString("bank_account_hash"))
         }.map(_.toSet).map { existingAccountNums =>

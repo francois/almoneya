@@ -58,8 +58,11 @@ object ApiServer {
         val listAccountsController = new ContextHandler("/api/accounts")
         listAccountsController.setHandler(new ListAccountsController(mapper, accountsRepository))
 
+        val importBankAccountsController = new ContextHandler("/api/bank-account-transactions/import")
+        importBankAccountsController.setHandler(new ImportBankAccountTransactionsController(mapper, bankAccountTransactionsRepo))
+
         val contexts = new ContextHandlerCollection()
-        contexts.setHandlers(Array(listAccountsController))
+        contexts.setHandlers(Array(listAccountsController, importBankAccountsController))
 
         security.setHandler(contexts)
 
