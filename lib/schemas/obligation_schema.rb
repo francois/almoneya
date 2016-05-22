@@ -1,7 +1,7 @@
 require "dry-validation"
 
 module Schemas
-  RecurringObligationSchema = Dry::Validation.Form do
+  ObligationSchema = Dry::Validation.Form do
     key(:description) { filled? }
     key(:every)       { filled? & int? & gteq?(1) }
     key(:period)      { filled? & inclusion?(%w(day week month year)) }

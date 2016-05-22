@@ -1,8 +1,5 @@
-require "repositories/envelope"
-require "repositories/one_time_obligation"
-
 module Operations
-  class CreateOneTimeObligation
+  class CreateGoal
     def initialize(obligation_repo:, envelope_repo:)
       @obligation_repo = obligation_repo
       @envelope_repo   = envelope_repo
@@ -15,7 +12,7 @@ module Operations
       envelope = envelope_repo.create(tenant_id, obligation.envelope)
       new_obligation = obligation.dup
       new_obligation.envelope = envelope
-      obligation_repo.create_one_time_obligation(tenant_id, new_obligation)
+      obligation_repo.create_goal(tenant_id, new_obligation)
     end
   end
 end

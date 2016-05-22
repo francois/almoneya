@@ -7,8 +7,8 @@ require "sinatra/base"
 require "tilt/erb"
 
 # This application's possible actions
-require "operations/create_one_time_obligation"
-require "operations/create_recurring_obligation"
+require "operations/create_goal"
+require "operations/create_obligation"
 require "operations/import_bank_transactions"
 require "operations/sign_in"
 require "parsers/desjardins"
@@ -18,13 +18,13 @@ require "repositories/bank_account_transaction_repo"
 require "repositories/envelope"
 require "repositories/envelope_repo"
 require "repositories/obligation_repo"
-require "repositories/one_time_obligation"
-require "repositories/recurring_obligation"
+require "repositories/goal"
+require "repositories/obligation"
 require "repositories/sign_in_repo"
 require "repositories/user_repo"
 require "schemas/new_account_schema"
-require "schemas/one_time_obligation_schema"
-require "schemas/recurring_obligation_schema"
+require "schemas/goal_schema"
+require "schemas/obligation_schema"
 require "schemas/userpass_sign_in_schema"
 
 module Webui
@@ -52,13 +52,12 @@ module Webui
       bank_accounts_dataset             = DB[:public__bank_accounts]
       bank_account_transactions_dataset = DB[:public__bank_account_transactions]
       envelopes_dataset                 = DB[:public__envelopes]
+      goals_dataset                     = DB[:public__goals]
       obligations_dataset               = DB[:public__obligations]
-      one_time_obligations_dataset      = DB[:public__one_time_obligations]
-      recurring_obligations_dataset     = DB[:public__recurring_obligations]
 
       account_repo    = Repositories::AccountRepo.new(accounts_dataset: accounts_dataset)
       envelope_repo   = Repositories::EnvelopeRepo.new(envelopes_dataset: envelopes_dataset)
-      obligation_repo = Repositories::ObligationRepo.new(obligations_dataset: obligations_dataset, one_time_obligations_dataset: one_time_obligations_dataset, recurring_obligations_dataset: recurring_obligations_dataset)
+      obligation_repo = Repositories::ObligationRepo.new(goals_dataset: goals_dataset, obligations_dataset: obligations_dataset)
       sign_in_repo    = Repositories::SignInRepo.new(sign_ins_dataset: sign_ins_dataset, userpass_sign_ins_dataset: userpass_sign_ins_dataset)
       user_repo       = Repositories::UserRepo.new(userpass_dataset: userpass_dataset, users_dataset: users_dataset)
 
@@ -70,10 +69,10 @@ module Webui
         bank_account_transactions_dataset: bank_account_transactions_dataset)
 
       set :operations, {
-        create_recurring_obligation_op: Operations::CreateRecurringObligation.new(
+        create_obligation_op: Operations::CreateObligation.new(
           obligation_repo: obligation_repo,
           envelope_repo: envelope_repo),
-        create_one_time_obligation_op: Operations::CreateOneTimeObligation.new(
+        create_goal_op: Operations::CreateGoal.new(
           obligation_repo: obligation_repo,
           envelope_repo: envelope_repo),
         import_bank_transactions_op: Operations::ImportBankTransactions.new(
@@ -202,17 +201,17 @@ module Webui
       end
     end
 
-    post "/api/obligations/onetime" do
-      result = Schemas::OneTimeObligationSchema.call(
-        description: params[:obligation][:description],
-        due_on: params[:obligation][:due_on],
-        amount: params[:obligation][:amount])
+    post "/api/obligations/goal" do
+      result = Schemas::GoalSchema.call(
+        description: params[:goal][:description],
+        due_on: params[:goal][:due_on],
+        amount: params[:goal][:amount])
       if result.success? then
         valid_obligation = result.output
         obligation = DB.transaction do
-          create_one_time_obligation_op.call(
+          create_goal_op.call(
             authenticated_user.tenant_id,
-            Repositories::OneTimeObligation.new(
+            Repositories::Goal.new(
               nil, 
               Repositories::Envelope.new(nil, valid_obligation.fetch(:description)),
               valid_obligation.fetch(:description),
@@ -237,8 +236,8 @@ module Webui
       end
     end
 
-    post "/api/obligations/recurring" do
-      result = Schemas::RecurringObligationSchema.call(
+    post "/api/obligations/obligation" do
+      result = Schemas::ObligationSchema.call(
         description: params[:obligation][:description],
         every: params[:obligation][:every],
         period: params[:obligation][:period],
@@ -248,9 +247,9 @@ module Webui
       if result.success? then
         valid_obligation = result.output
         obligation = DB.transaction do
-          create_recurring_obligation_op.call(
+          create_obligation_op.call(
             authenticated_user.tenant_id,
-            Repositories::RecurringObligation.new(
+            Repositories::Obligation.new(
               nil,
               Repositories::Envelope.new(nil, valid_obligation.fetch(:description)),
               valid_obligation.fetch(:description),
@@ -262,7 +261,7 @@ module Webui
         end
         output = {
           "obligation" => {
-            "id"          => obligation.recurring_obligation_id,
+            "id"          => obligation.obligation_id,
             "envelope"    => obligation.envelope.name,
             "description" => obligation.description,
             "start_on"    => obligation.start_on,
@@ -273,7 +272,7 @@ module Webui
           }
         }
 
-        json output, code: :created, location: url("/api/obligations/recurring/#{obligation.recurring_obligation_id}")
+        json output, code: :created, location: url("/api/obligations/recurring/#{obligation.obligation_id}")
       else
         output = {"error" => result.messages}
         json output, code: :bad_request
@@ -337,12 +336,12 @@ module Webui
       settings.operations.fetch(:import_bank_transactions_op)
     end
 
-    def create_one_time_obligation_op
-      settings.operations.fetch(:create_one_time_obligation_op)
+    def create_goal_op
+      settings.operations.fetch(:create_goal_op)
     end
 
-    def create_recurring_obligation_op
-      settings.operations.fetch(:create_recurring_obligation_op)
+    def create_obligation_op
+      settings.operations.fetch(:create_obligation_op)
     end
   end
 end

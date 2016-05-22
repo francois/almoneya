@@ -1,7 +1,5 @@
-require "repositories/recurring_obligation"
-
 module Operations
-  class CreateRecurringObligation
+  class CreateObligation
     def initialize(envelope_repo:, obligation_repo:)
       @envelope_repo = envelope_repo
       @obligation_repo = obligation_repo
@@ -14,7 +12,7 @@ module Operations
       envelope = envelope_repo.create(tenant_id, obligation.envelope)
       new_obligation = obligation.dup
       new_obligation.envelope = envelope
-      obligation_repo.create_recurring_obligation(tenant_id, obligation)
+      obligation_repo.create_obligation(tenant_id, new_obligation)
     end
   end
 end

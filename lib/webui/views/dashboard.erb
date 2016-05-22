@@ -90,11 +90,11 @@
   </div>
   <div class="row show-for-medium">
     <div class="large-6 medium-12 columns">
-      <form method="post" action="/api/obligations/recurring">
+      <form method="post" action="/api/obligations/obligation">
         <div class="row">
           <div class="small-12 columns">
-            <h2>Create Recurring Obligation</h2>
-            <p>Recurring obligations are payments which are regularly due: cell phone service, groceries, gas, mortgage or rent payments, etc. Whenever you enter revenue in the system, the system will set money aside in order for you to reach your goals. Obligations which are due sooner will receive a proportionally larger amount, and larger amounts also receive a larger share of revenues. Any money not set aside is saved to your <q>Rainy Day</q> envelope.</p>
+            <h2>Create Obligation</h2>
+            <p>Obligations are payments which are regularly due: cell phone service, groceries, gas, mortgage or rent payments, etc. Whenever you enter revenue in the system, the system will set money aside in order for you to reach your goals. Obligations which are due sooner will receive a proportionally larger amount, and larger amounts also receive a larger share of revenues. Any money not set aside is saved to your <q>Rainy Day</q> envelope.</p>
             <p>Creating an obligation also creates a corresponding envelope. Envelopes are where money is set aside. All of your bank accounts participate in storing money for your envelopes. For example, you may have a savings account with 100$ for your Hawaii trip, and your checking account may have a further 250$. The Hawaii trip envelope would contain a total of 350$.</p>
             <p>Whenever you make a payment, you will use money from your envelopes to pay for it. For example, after your cell phone provider charged your credit card, you would reimburse the credit card using money that was set aside in your checking account.</p>
           </div>
@@ -114,8 +114,8 @@
             <p id="obligation_end_on_help"><small>Optional; the last date at which the payment is due</small></p>
           </div>
           <div class="small-4 columns">
-            <label>Amount <input type="text" name="obligation[amount]" placeholder="65" required aria-describedby="recurring_obligation_amount_help"/></label>
-            <p id="recurring_obligation_amount_help"><small>How much money is required on each payment?</small></p>
+            <label>Amount <input type="text" name="obligation[amount]" placeholder="65" required aria-describedby="obligation_amount_help"/></label>
+            <p id="obligation_amount_help"><small>How much money is required on each payment?</small></p>
           </div>
         </div>
         <fieldset class="fieldset">
@@ -135,36 +135,36 @@
             </select>
           </div>
         </fieldset>
-        <button type="submit" class="button primary large">Create Recurring Obligation</button>
+        <button type="submit" class="button primary large">Create Obligation</button>
       </form>
     </div>
 
     <div class="large-6 medium-12 columns">
-      <form method="post" action="/api/obligations/onetime">
+      <form method="post" action="/api/obligations/goal">
         <div class="row">
           <div class="small-12 columns">
-            <h2>Create One time Obligation</h2>
-            <p>One time obligations are identical to recurring obligations, except they only have a due date. You may set aside money to save for a trip, buy a new delivery truck, repair a broken fridge, anything.</p>
+            <h2>Create Goal</h2>
+            <p>Goals are identical to obligations, except they only have a due date. You may set aside money to save for a trip, buy a new delivery truck, repair a broken fridge, anything.</p>
           </div>
         </div>
         <div class="row">
           <div class="small-12 columns">
-            <label>Description <input type="text" name="obligation[description]" placeholder="Downpayment for new delivery truck" required/></label>
+            <label>Description <input type="text" name="goal[description]" placeholder="Downpayment for new delivery truck" required/></label>
           </div>
         </div>
         <div class="row">
           <div class="small-6 columns">
-            <label>Due on <input type="date" name="obligation[due_on]" required aria-describedby="obligation_due_on_help"/></label>
-            <p id="obligation_due_on_help"><small>When will the money need to be available?</small></p>
+            <label>Due on <input type="date" name="goal[due_on]" required aria-describedby="goal_due_on_help"/></label>
+            <p id="goal_due_on_help"><small>When will the money need to be available?</small></p>
           </div>
           <div class="small-6 columns">
-            <label>Amount <input name="obligation[amount]" type="text" placeholder="2000" required aria-describedby="one_time_obligation_amount_help"/></label>
-            <p id="one_time_obligation_amount_help"><small>How much money needs to be set aside?</small></p>
+            <label>Amount <input name="goal[amount]" type="text" placeholder="2000" required aria-describedby="goal_amount_help"/></label>
+            <p id="goal_amount_help"><small>How much money needs to be set aside?</small></p>
           </div>
         </div>
         <div class="row">
           <div class="small-12 columns">
-            <button type="submit" class="button primary large">Create One time Obligation</button>
+            <button type="submit" class="button primary large">Create Goal</button>
           </div>
         </div>
       </form>
