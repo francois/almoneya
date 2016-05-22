@@ -53,21 +53,7 @@ object ApiServer {
         security.setAuthenticator(new BasicAuthenticator())
         security.setLoginService(loginService)
 
-
-
-        val jsonFactory = new JsonFactory()
-        jsonFactory.enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
-        jsonFactory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)
-
-        val mapper = new ObjectMapper()
-        mapper.registerModule(DefaultScalaModule)
-        mapper.enable(SerializationFeature.INDENT_OUTPUT)
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-
-        val serializerModule = new SimpleModule()
-        serializerModule.addSerializer(classOf[Account], new AccountSerializer())
-        serializerModule.addSerializer(classOf[Results[_]], new ResultsSerializer())
-        mapper.registerModule(serializerModule)
+        val mapper = prepareJacksonObjectMapper
 
         val listAccountsController = new ContextHandler("/api/accounts")
         listAccountsController.setHandler(new ListAccountsController(mapper, accountsRepository))
@@ -79,6 +65,23 @@ object ApiServer {
 
         server.start()
         server.join()
+    }
+
+    private[this] def prepareJacksonObjectMapper: ObjectMapper = {
+        val jsonFactory = new JsonFactory()
+        jsonFactory.enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
+        jsonFactory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)
+
+        val mapper = new ObjectMapper(jsonFactory)
+        mapper.registerModule(DefaultScalaModule)
+        mapper.enable(SerializationFeature.INDENT_OUTPUT)
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+
+        val serializerModule = new SimpleModule()
+        serializerModule.addSerializer(classOf[Account], new AccountSerializer())
+        serializerModule.addSerializer(classOf[Results[_]], new ResultsSerializer())
+        mapper.registerModule(serializerModule)
+        mapper
     }
 
     val log = LoggerFactory.getLogger("almoneya.http.ApiServer")
