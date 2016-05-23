@@ -13,5 +13,5 @@ case class ObligationName(value: String) extends SqlValue {
 }
 
 object ObligationName {
-    def fromEnvelopeName(name: EnvelopeName): ObligationName = ObligationName(name.value)
+    def fromAccountName(name: AccountName): ObligationName = ObligationName(name.value)
 }

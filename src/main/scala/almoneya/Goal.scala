@@ -3,7 +3,7 @@ package almoneya
 import org.joda.time.LocalDate
 
 case class Goal(id: Option[GoalId] = None,
-                envelope: Envelope,
+                account: Account,
                 description: Option[Description],
                 dueOn: LocalDate,
                 amount: Amount)

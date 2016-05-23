@@ -32,7 +32,6 @@ object ApiServer {
         val accountsRepository = new AccountsRepository(executor)
         val bankAccountTransactionsRepository = new BankAccountTransactionsRepository(executor)
         val transactionsRepository = new TransactionsRepository(executor)
-        val envelopesRepository = new EnvelopesRepository(executor)
         val goalsRepository = new GoalsRepository(executor)
         val obligationsRepository = new ObligationsRepository(executor)
         val revenuesRepository = new RevenuesRepository(executor)
@@ -67,7 +66,7 @@ object ApiServer {
         importBankAccountsController.setHandler(new ImportBankAccountTransactionsController(mapper, bankAccountTransactionsRepository))
 
         val allocatorController = new ContextHandler("/api/allocator/run")
-        allocatorController.setHandler(new AllocatorController(mapper, envelopesRepository, goalsRepository, obligationsRepository, revenuesRepository))
+        allocatorController.setHandler(new AllocatorController(mapper, accountsRepository, goalsRepository, obligationsRepository, revenuesRepository))
 
         val contexts = new ContextHandlerCollection()
         contexts.setHandlers(Array(listAccountsController, importBankAccountsController, allocatorController))
@@ -90,7 +89,6 @@ object ApiServer {
 
         val serializerModule = new SimpleModule()
         serializerModule.addSerializer(classOf[Account], new AccountSerializer())
-        serializerModule.addSerializer(classOf[Envelope], new EnvelopeSerializer())
         serializerModule.addSerializer(classOf[Goal], new GoalSerializer())
         serializerModule.addSerializer(classOf[Obligation], new ObligationSerializer())
         serializerModule.addSerializer(classOf[Allocation], new AllocationSerializer())

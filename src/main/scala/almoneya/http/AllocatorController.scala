@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import scala.util.{Failure, Try}
 
 class AllocatorController(private[this] val mapper: ObjectMapper,
-                          private[this] val envelopesRepository: EnvelopesRepository,
+                          private[this] val accountsRepository: AccountsRepository,
                           private[this] val goalsRepository: GoalsRepository,
                           private[this] val obligationsRepository: ObligationsRepository,
                           private[this] val revenuesRepository: RevenuesRepository) extends JsonApiController[Seq[Allocation]](mapper) {
@@ -24,7 +24,7 @@ class AllocatorController(private[this] val mapper: ObjectMapper,
         val results = for (paidOn <- maybePaidOn; amountReceived <- maybeRevenueAmount) yield {
             val maybeGoals = goalsRepository.findAll(tenantId)
             val maybeObligations = obligationsRepository.findAll(tenantId)
-            val maybeEnvelopes = envelopesRepository.findAllWithBalance(tenantId)
+            val maybeEnvelopes = accountsRepository.findAllWithBalance(tenantId)
             val maybeRevenues = revenuesRepository.findAll(tenantId)
             for (goals <- maybeGoals; obligations <- maybeObligations; envelopes <- maybeEnvelopes; revenues <- maybeRevenues) yield {
                 val fixedDateGoals = goals.map(goalToFundingGoal)
@@ -50,7 +50,7 @@ class AllocatorController(private[this] val mapper: ObjectMapper,
     private[this] def obligationToFundingGoal(paidOn: LocalDate)(obligation: Obligation): Option[RecurringObligation] = {
         obligation.dueOnAfter(paidOn).map(nextDueOn =>
             RecurringObligation(priority = Priority(50),
-                name = ObligationName.fromEnvelopeName(obligation.envelope.name),
+                name = ObligationName.fromAccountName(obligation.account.name),
                 target = obligation.amount,
                 balance = Amount(0),
                 dueOn = nextDueOn,
@@ -61,7 +61,7 @@ class AllocatorController(private[this] val mapper: ObjectMapper,
 
     private[this] def goalToFundingGoal(goal: Goal): FundingGoal = {
         FixedDateObligation(priority = Priority(100),
-            name = ObligationName.fromEnvelopeName(goal.envelope.name),
+            name = ObligationName.fromAccountName(goal.account.name),
             target = goal.amount,
             balance = Amount(0),
             dueOn = goal.dueOn)

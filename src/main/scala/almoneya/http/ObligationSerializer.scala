@@ -9,7 +9,7 @@ class ObligationSerializer extends JsonSerializer[Obligation] {
         gen.writeStartObject()
 
         if (obligation.id.isDefined) gen.writeNumberField("id", obligation.id.get.value)
-        gen.writeObjectField("envelope", obligation.envelope)
+        gen.writeObjectField("account", obligation.account)
         if (obligation.description.isDefined) gen.writeStringField("description", obligation.description.get.value)
         gen.writeStringField("start_on", obligation.startOn.toString("yyyy-MM-dd"))
         if (obligation.endOn.isDefined) gen.writeStringField("end_on", obligation.endOn.get.toString("yyyy-MM-dd"))
