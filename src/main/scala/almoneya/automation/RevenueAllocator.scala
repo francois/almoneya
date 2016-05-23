@@ -1,15 +1,20 @@
 package almoneya.automation
 
-import almoneya.{Amount, ObligationName}
+import almoneya.Amount
 import org.joda.time.LocalDate
 
 case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue], autoFulfillThreshold: Amount = Amount(BigDecimal(100))) {
     def generatePlan(paidOn: LocalDate, amountReceived: Amount): Seq[Allocation] = {
+        val a = revenues.flatMap(_.dueOnAfter(paidOn)).toSeq.sortWith(_.compareTo(_) < 0)
+        val nextRevenueOn = a.headOption
         val plan = obligations.toSeq.filterNot(_.fulfilled).map {
-            case fundingGoal if numberOfRevenueEventsBetween(fundingGoal.name, paidOn, fundingGoal.dueOn) <= 1 =>
-                Allocation(fundingGoal, planToTake = fundingGoal.amountMissing)
+            case fundingGoal if numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn) <= 1 =>
+                nextRevenueOn.map(fundingGoal.numberOfPayoutsBefore) match {
+                    case None => Allocation(fundingGoal, planToTake = fundingGoal.amountMissing)
+                    case Some(n) => Allocation(fundingGoal, planToTake = fundingGoal.amountMissing * n)
+                }
             case fundingGoal =>
-                Allocation(fundingGoal, planToTake = fundingGoal.amountMissing / numberOfRevenueEventsBetween(fundingGoal.name, paidOn, fundingGoal.dueOn))
+                Allocation(fundingGoal, planToTake = fundingGoal.amountMissing / numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn))
         }.sortWith((a, b) => a.dueOn.compareTo(b.dueOn) < 0 || a.priority.compareTo(b.priority) < 0 || a.amountMissing.compareTo(b.amountMissing) < 0 || a.name.compareTo(b.name) < 0)
 
         if (plan.isEmpty) {
@@ -32,7 +37,7 @@ case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue
         }
     }
 
-    private[this] def numberOfRevenueEventsBetween(goalName: ObligationName, paidOn: LocalDate, cutoffOn: LocalDate): Int = {
+    private[this] def numberOfRevenueEventsBetween(paidOn: LocalDate, cutoffOn: LocalDate): Int = {
         assert(paidOn.isBefore(cutoffOn))
         val nextDatesByRevenue = for (revenue <- revenues) yield {
             val x1 = revenue.revenueEventsStream.takeWhile(_.isBefore(cutoffOn))

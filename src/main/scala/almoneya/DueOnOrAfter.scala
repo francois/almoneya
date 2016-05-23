@@ -31,7 +31,7 @@ trait DueOnOrAfter {
         date.isBefore(cutoffOn) || date == cutoffOn
     }
 
-    private[this] def payoutEventsStream: Stream[LocalDate] = Stream.from(1).map(n => nextDateAfter(n))
+    protected def payoutEventsStream: Stream[LocalDate] = Stream.from(0).map(n => nextDateAfter(n))
 
     private[this] def nextDateAfter(scalar: Int): LocalDate = startOn.withPeriodAdded(every.toPeriod(period), scalar)
 }

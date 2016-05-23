@@ -4,6 +4,8 @@ import almoneya.{Amount, ObligationName}
 import org.joda.time.LocalDate
 
 trait FundingGoal {
+    def numberOfPayoutsBefore(date: LocalDate): Int
+
     def name: ObligationName
 
     def priority: Priority

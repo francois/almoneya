@@ -122,9 +122,21 @@ class RevenueAllocatorTest extends FunSuite {
         assert(plan.contains(Allocation(newTires, planToTake = amountPerEvent, realTake = amountPerEvent)))
     }
 
+    test("takes enough money to cover many payouts when no other revenue events are planned before the next payouts") {
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate("2016-05-21"))
+        val salary1 = newMonthlyRevenue("salary1", new LocalDate("2016-06-01"))
+        val salary15 = newMonthlyRevenue("salary15", new LocalDate("2016-06-15"))
+        val allocator = RevenueAllocator(Set(groceries), Set(salary1, salary15), autoFulfillThreshold = amount(10))
+        val plan = allocator.generatePlan(new LocalDate("2016-05-15"), amount(1000))
+        assert(plan.contains(Allocation(groceries, planToTake = amount(2 * 100), realTake = amount(2 * 100))))
+    }
+
     def amount(dollars: Double): Amount = amount(dollars.toInt)
 
     def amount(dollars: Int): Amount = Amount(BigDecimal(dollars))
+
+    def newMonthlyRevenue(name: String, dueOn: LocalDate): automation.Revenue =
+        automation.Revenue(name = RevenueName(name), dueOn = dueOn, every = Every(1), period = Monthly)
 
     def newWeeklyRevenue(name: String, dueOn: LocalDate): automation.Revenue = {
         automation.Revenue(name = RevenueName(name), dueOn = dueOn, every = Every(1), period = Weekly)
