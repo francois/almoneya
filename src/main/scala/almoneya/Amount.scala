@@ -3,6 +3,8 @@ package almoneya
 import java.sql.PreparedStatement
 
 case class Amount(value: BigDecimal) extends SqlValue {
+    def toNumeric = value
+
     def isPositive = value > 0
 
     def compareTo(amount: Amount) = value.compare(amount.value)

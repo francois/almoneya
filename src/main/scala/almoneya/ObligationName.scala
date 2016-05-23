@@ -11,3 +11,7 @@ case class ObligationName(value: String) extends SqlValue {
 
     def toLowerCase: ObligationName = ObligationName(value.toLowerCase)
 }
+
+object ObligationName {
+    def fromEnvelopeName(name: EnvelopeName): ObligationName = ObligationName(name.value)
+}

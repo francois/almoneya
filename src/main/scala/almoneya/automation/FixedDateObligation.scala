@@ -7,5 +7,4 @@ case class FixedDateObligation(priority: Priority,
                                name: ObligationName,
                                target: Amount,
                                balance: Amount,
-                               dueOn: LocalDate) extends FundingGoal {
-}
+                               dueOn: LocalDate) extends FundingGoal

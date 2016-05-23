@@ -1,6 +1,6 @@
 package almoneya.automation
 
-import almoneya.{Amount, ObligationName}
+import almoneya._
 import org.joda.time.LocalDate
 import org.scalatest.FunSuite
 
@@ -92,7 +92,7 @@ class RevenueAllocatorTest extends FunSuite {
         val carPayment = newMonthlyGoal("car payment", 302, new LocalDate(2016, 6, 10))
         val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
         val allocator = RevenueAllocator(Set(carPayment), Set(salary))
-        val plan = allocator.generatePlan(new LocalDate(2016, 5, 19), amount(300))
+        val plan = allocator.generatePlan(new LocalDate(2016, 5, 20), amount(300))
         assert(plan.contains(Allocation(carPayment, planToTake = amount((302.0 / 3).ceil), realTake = amount(101))))
     }
 
@@ -112,19 +112,33 @@ class RevenueAllocatorTest extends FunSuite {
         assert(plan.isEmpty)
     }
 
+    test("long-term goals are not fulfilled immediately if the missing amount is greater than the autoFulfillThreshold") {
+        val newTires = newGoal("winter tires", 1200, new LocalDate("2017-09-01"))
+        val carPayment = newMonthlyGoal("car", 100, new LocalDate("2016-06-18"))
+        val salary = newWeeklyRevenue("salary", new LocalDate("2016-05-26"))
+        val allocator = RevenueAllocator(Set(carPayment, newTires), Set(salary), autoFulfillThreshold = amount(200))
+        val plan = allocator.generatePlan(new LocalDate("2016-05-27"), amount(300))
+        val amountPerEvent = amount((1200.0 / 66 /* weeks */).ceil)
+        assert(plan.contains(Allocation(newTires, planToTake = amountPerEvent, realTake = amountPerEvent)))
+    }
+
     def amount(dollars: Double): Amount = amount(dollars.toInt)
 
     def amount(dollars: Int): Amount = Amount(BigDecimal(dollars))
 
     def newWeeklyRevenue(name: String, dueOn: LocalDate): Revenue = {
-        Revenue(RevenueName(name), dueOn, Weekly, Frequency(1))
+        Revenue(RevenueName(name), dueOn, Weekly, Every(1))
+    }
+
+    def newGoal(name: String, targetAmount: Int, dueOn: LocalDate, priority: Int = 200): FundingGoal = {
+        FixedDateObligation(priority = Priority(priority), name = ObligationName(name), target = amount(targetAmount), balance = amount(0), dueOn = dueOn)
     }
 
     def newWeeklyGoal(name: String, targetAmount: Int, dueOn: LocalDate, priority: Int = 100): FundingGoal = {
-        RecurringObligation(priority = Priority(priority), name = ObligationName(name), target = amount(targetAmount), balance = amount(0), dueOn = dueOn, period = Weekly, frequency = Frequency(1))
+        RecurringObligation(priority = Priority(priority), name = ObligationName(name), target = amount(targetAmount), balance = amount(0), dueOn = dueOn, period = Weekly, every = Every(1))
     }
 
     def newMonthlyGoal(name: String, targetAmount: Int, dueOn: LocalDate, balance: Int = 0): FundingGoal = {
-        RecurringObligation(priority = Priority(1), name = ObligationName(name), target = amount(targetAmount), balance = amount(balance), dueOn = dueOn, period = Monthly, frequency = Frequency(1))
+        RecurringObligation(priority = Priority(1), name = ObligationName(name), target = amount(targetAmount), balance = amount(balance), dueOn = dueOn, period = Monthly, every = Every(1))
     }
 }

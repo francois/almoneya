@@ -18,7 +18,7 @@ object AccountKind {
         case "asset" => Asset
         case "liability" => Liability
         case "equity" => Equity
-        case "revenue" => Revenue
+        case "revenue" => Income
         case "expense" => Expense
         case "contra" => Contra
     }
@@ -40,7 +40,7 @@ case object Expense extends AccountKind {
     override def kindName: String = "expense"
 }
 
-case object Revenue extends AccountKind {
+case object Income extends AccountKind {
     override def kindName: String = "revenue"
 }
 

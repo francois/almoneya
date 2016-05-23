@@ -1,4 +1,4 @@
-package almoneya.automation
+package almoneya
 
 import org.joda.time.PeriodType
 

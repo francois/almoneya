@@ -17,7 +17,7 @@ class AccountsRepository(executor: QueryExecutor) {
         case "liability" => Liability
         case "equity" => Equity
         case "expense" => Expense
-        case "revenue" => Revenue
+        case "revenue" => Income
         case "contra" => Contra
     }
 }

@@ -1,6 +1,6 @@
-package almoneya.automation
+package almoneya
 
-case class Frequency(value: Int) {
+case class Every(value: Int) {
     assert(value > 0)
 
     def toPeriod(period: Period): org.joda.time.Period = period match {

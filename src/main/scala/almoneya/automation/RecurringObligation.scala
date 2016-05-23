@@ -1,6 +1,6 @@
 package almoneya.automation
 
-import almoneya.{Amount, ObligationName}
+import almoneya.{Period, Every, Amount, ObligationName}
 import org.joda.time.LocalDate
 
 case class RecurringObligation(priority: Priority,
@@ -9,6 +9,5 @@ case class RecurringObligation(priority: Priority,
                                balance: Amount,
                                dueOn: LocalDate,
                                period: Period,
-                               frequency: Frequency,
-                               endOn: Option[LocalDate] = None) extends FundingGoal {
-}
+                               every: Every,
+                               endOn: Option[LocalDate] = None) extends FundingGoal

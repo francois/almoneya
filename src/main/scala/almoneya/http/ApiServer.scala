@@ -4,6 +4,7 @@ import java.sql.DriverManager
 import java.util.Collections
 
 import almoneya._
+import almoneya.automation.{Allocation, FundingGoal}
 import com.fasterxml.jackson.core.{JsonFactory, JsonGenerator}
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
@@ -29,8 +30,12 @@ object ApiServer {
         val usersRepository = new UsersRepository(executor)
         val signInsRepo = new SignInsRepository(executor)
         val accountsRepository = new AccountsRepository(executor)
-        val bankAccountTransactionsRepo = new BankAccountTransactionsRepository(executor)
-        val transactionsRepo = new TransactionsRepository(executor)
+        val bankAccountTransactionsRepository = new BankAccountTransactionsRepository(executor)
+        val transactionsRepository = new TransactionsRepository(executor)
+        val envelopesRepository = new EnvelopesRepository(executor)
+        val goalsRepository = new GoalsRepository(executor)
+        val obligationsRepository = new ObligationsRepository(executor)
+        val revenuesRepository = new RevenuesRepository(executor)
 
         val loginService = new RepoLoginService(usersRepository, signInsRepo)
 
@@ -59,10 +64,13 @@ object ApiServer {
         listAccountsController.setHandler(new ListAccountsController(mapper, accountsRepository))
 
         val importBankAccountsController = new ContextHandler("/api/bank-account-transactions/import")
-        importBankAccountsController.setHandler(new ImportBankAccountTransactionsController(mapper, bankAccountTransactionsRepo))
+        importBankAccountsController.setHandler(new ImportBankAccountTransactionsController(mapper, bankAccountTransactionsRepository))
+
+        val allocatorController = new ContextHandler("/api/allocator/run")
+        allocatorController.setHandler(new AllocatorController(mapper, envelopesRepository, goalsRepository, obligationsRepository, revenuesRepository))
 
         val contexts = new ContextHandlerCollection()
-        contexts.setHandlers(Array(listAccountsController, importBankAccountsController))
+        contexts.setHandlers(Array(listAccountsController, importBankAccountsController, allocatorController))
 
         security.setHandler(contexts)
 
@@ -82,6 +90,11 @@ object ApiServer {
 
         val serializerModule = new SimpleModule()
         serializerModule.addSerializer(classOf[Account], new AccountSerializer())
+        serializerModule.addSerializer(classOf[Envelope], new EnvelopeSerializer())
+        serializerModule.addSerializer(classOf[Goal], new GoalSerializer())
+        serializerModule.addSerializer(classOf[Obligation], new ObligationSerializer())
+        serializerModule.addSerializer(classOf[Allocation], new AllocationSerializer())
+        serializerModule.addSerializer(classOf[FundingGoal], new FundingGoalSerializer())
         serializerModule.addSerializer(classOf[Results[_]], new ResultsSerializer())
         mapper.registerModule(serializerModule)
         mapper
