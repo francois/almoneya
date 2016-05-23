@@ -131,6 +131,14 @@ class RevenueAllocatorTest extends FunSuite {
         assert(plan.contains(Allocation(groceries, planToTake = amount(2 * 100), realTake = amount(2 * 100))))
     }
 
+    test("respects balance in calculations") {
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate("2016-05-21"), balance = amount(90))
+        val salary1 = newMonthlyRevenue("salary1", new LocalDate("2016-06-01"))
+        val allocator = RevenueAllocator(Set(groceries), Set(salary1))
+        val plan = allocator.generatePlan(new LocalDate("2016-05-15"), amount(1000))
+        assert(plan.contains(Allocation(groceries, planToTake = amount(10), realTake = amount(10))))
+    }
+
     def amount(dollars: Double): Amount = amount(dollars.toInt)
 
     def amount(dollars: Int): Amount = Amount(BigDecimal(dollars))
@@ -146,8 +154,8 @@ class RevenueAllocatorTest extends FunSuite {
         FixedDateObligation(priority = Priority(priority), name = ObligationName(name), target = amount(targetAmount), balance = amount(0), dueOn = dueOn)
     }
 
-    def newWeeklyObligation(name: String, targetAmount: Int, dueOn: LocalDate, priority: Int = 100): FundingGoal = {
-        RecurringObligation(priority = Priority(priority), name = ObligationName(name), target = amount(targetAmount), balance = amount(0), dueOn = dueOn, period = Weekly, every = Every(1))
+    def newWeeklyObligation(name: String, targetAmount: Int, dueOn: LocalDate, priority: Int = 100, balance: Amount = amount(0)): FundingGoal = {
+        RecurringObligation(priority = Priority(priority), name = ObligationName(name), target = amount(targetAmount), balance = balance, dueOn = dueOn, period = Weekly, every = Every(1))
     }
 
     def newMonthlyObligation(name: String, targetAmount: Int, dueOn: LocalDate, balance: Int = 0): FundingGoal = {
