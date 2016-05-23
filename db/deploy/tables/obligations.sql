@@ -1,5 +1,5 @@
 -- Deploy almoneya:tables/obligations to pg
--- requires: tables/envelopes
+-- requires: tables/accounts
 
 SET client_min_messages TO 'warning';
 
@@ -7,7 +7,7 @@ BEGIN;
 
   CREATE TABLE public.obligations(
       tenant_id int not null
-    , envelope_name text not null
+    , account_name text not null
     , description text check(description is null or trim(description) = description)
     , every int not null check(every >= 1)
     , period text not null check(period in ('day', 'week', 'month', 'quarter', 'semester', 'year'))
@@ -17,8 +17,8 @@ BEGIN;
     , obligation_id serial not null unique
     , created_at timestamp with time zone not null
     , updated_at timestamp with time zone not null
-    , primary key(tenant_id, envelope_name)
-    , foreign key(tenant_id, envelope_name) references public.obligations on update cascade on delete cascade
+    , primary key(tenant_id, account_name)
+    , foreign key(tenant_id, account_name) references public.accounts on update cascade on delete cascade
     , constraint end_on_is_unknown_or_after_start_on check(end_on is null or end_on > start_on)
   );
 
