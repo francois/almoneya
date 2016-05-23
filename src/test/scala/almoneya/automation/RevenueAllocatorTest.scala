@@ -6,7 +6,7 @@ import org.scalatest.FunSuite
 
 class RevenueAllocatorTest extends FunSuite {
     test("with a single recurring goal of 100$ and a revenue of 200$, the payment is fulfilled") {
-        val goals = Set(newWeeklyGoal("groceries", 100, new LocalDate(2016, 5, 22)))
+        val goals = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)))
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val allocator = RevenueAllocator(goals, revenues)
         val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), amount(200))
@@ -15,7 +15,7 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("with two recurring goals of 100 and a revenue of 200") {
-        val goals = Set(newWeeklyGoal("groceries", 100, new LocalDate(2016, 5, 22)), newWeeklyGoal("alimony", 100, new LocalDate(2016, 5, 23)))
+        val goals = Set(newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22)), newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23)))
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val allocator = RevenueAllocator(goals, revenues)
         val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), amount(200))
@@ -24,8 +24,8 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("with two recurring goals of 100 but a revenue of 150, then funds the goal with the smallest name") {
-        val groceries = newWeeklyGoal("groceries", 100, new LocalDate(2016, 5, 23))
-        val alimony = newWeeklyGoal("alimony", 100, new LocalDate(2016, 5, 23))
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 23))
+        val alimony = newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23))
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val allocator = RevenueAllocator(Set(groceries, alimony), revenues)
         val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), amount(150))
@@ -35,8 +35,8 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("prioritizes goals that will be due sooner rather than later") {
-        val groceries = newWeeklyGoal("groceries", 100, new LocalDate(2016, 5, 22))
-        val alimony = newWeeklyGoal("alimony", 200, new LocalDate(2016, 5, 25))
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
+        val alimony = newWeeklyObligation("alimony", 200, new LocalDate(2016, 5, 25))
         // this is a BAD test: reversing the order of goals in the Set declaration fails the test
         // At the moment, this is the only way I have of checking the prioritisation of goals
         val goals = Set(alimony, groceries)
@@ -49,9 +49,9 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("prioritizes goals which have a smaller missing amount") {
-        val groceries = newWeeklyGoal("groceries", 100, new LocalDate(2016, 5, 25))
-        val alimony = newWeeklyGoal("alimony", 200, new LocalDate(2016, 5, 25))
-        val cell = newWeeklyGoal("cell phone service", 30, new LocalDate(2016, 5, 25))
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 25))
+        val alimony = newWeeklyObligation("alimony", 200, new LocalDate(2016, 5, 25))
+        val cell = newWeeklyObligation("cell phone service", 30, new LocalDate(2016, 5, 25))
         val goals = Set(alimony, groceries, cell)
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val allocator = RevenueAllocator(goals, revenues)
@@ -63,8 +63,8 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("prioritizes goals with lower priority") {
-        val groceries = newWeeklyGoal("groceries", 100, new LocalDate(2016, 5, 22))
-        val alimony = newWeeklyGoal("alimony", 200, new LocalDate(2016, 5, 22), priority = 1)
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
+        val alimony = newWeeklyObligation("alimony", 200, new LocalDate(2016, 5, 22), priority = 1)
         val goals = Set(groceries, alimony)
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val allocator = RevenueAllocator(goals, revenues)
@@ -75,9 +75,9 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("prioritizes by goal's name as a last resort") {
-        val groceries = newWeeklyGoal("groceries", 100, new LocalDate(2016, 5, 22))
-        val alimony = newWeeklyGoal("alimony", 100, new LocalDate(2016, 5, 22))
-        val cell = newWeeklyGoal("cell", 100, new LocalDate(2016, 5, 22))
+        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
+        val alimony = newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 22))
+        val cell = newWeeklyObligation("cell", 100, new LocalDate(2016, 5, 22))
         val goals = Set(groceries, alimony, cell)
         val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
         val allocator = RevenueAllocator(goals, revenues)
@@ -89,7 +89,7 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("plans to take only 1/3 of the missing amount if 3 revenue events are due before the payment") {
-        val carPayment = newMonthlyGoal("car payment", 302, new LocalDate(2016, 6, 10))
+        val carPayment = newMonthlyObligation("car payment", 302, new LocalDate(2016, 6, 10))
         val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
         val allocator = RevenueAllocator(Set(carPayment), Set(salary))
         val plan = allocator.generatePlan(new LocalDate(2016, 5, 20), amount(300))
@@ -97,7 +97,7 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("takes 100% of the missing amount if the missing amount is <= autoFulfillThreshold") {
-        val carPayment = newMonthlyGoal("car payment", 302, new LocalDate(2016, 6, 10))
+        val carPayment = newMonthlyObligation("car payment", 302, new LocalDate(2016, 6, 10))
         val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
         val allocator = RevenueAllocator(Set(carPayment), Set(salary), autoFulfillThreshold = amount(500))
         val plan = allocator.generatePlan(new LocalDate(2016, 5, 19), amount(300))
@@ -105,7 +105,7 @@ class RevenueAllocatorTest extends FunSuite {
     }
 
     test("ignores goals that are already fulfilled") {
-        val carPayment = newMonthlyGoal("car payment", 302, new LocalDate(2016, 6, 10), balance = 305)
+        val carPayment = newMonthlyObligation("car payment", 302, new LocalDate(2016, 6, 10), balance = 305)
         val salary = newWeeklyRevenue("salary", new LocalDate(2016, 5, 19))
         val allocator = RevenueAllocator(Set(carPayment), Set(salary), autoFulfillThreshold = amount(500))
         val plan = allocator.generatePlan(new LocalDate(2016, 5, 19), amount(300))
@@ -114,7 +114,7 @@ class RevenueAllocatorTest extends FunSuite {
 
     test("long-term goals are not fulfilled immediately if the missing amount is greater than the autoFulfillThreshold") {
         val newTires = newGoal("winter tires", 1200, new LocalDate("2017-09-01"))
-        val carPayment = newMonthlyGoal("car", 100, new LocalDate("2016-06-18"))
+        val carPayment = newMonthlyObligation("car", 100, new LocalDate("2016-06-18"))
         val salary = newWeeklyRevenue("salary", new LocalDate("2016-05-26"))
         val allocator = RevenueAllocator(Set(carPayment, newTires), Set(salary), autoFulfillThreshold = amount(200))
         val plan = allocator.generatePlan(new LocalDate("2016-05-27"), amount(300))
@@ -126,19 +126,19 @@ class RevenueAllocatorTest extends FunSuite {
 
     def amount(dollars: Int): Amount = Amount(BigDecimal(dollars))
 
-    def newWeeklyRevenue(name: String, dueOn: LocalDate): Revenue = {
-        Revenue(RevenueName(name), dueOn, Weekly, Every(1))
+    def newWeeklyRevenue(name: String, dueOn: LocalDate): automation.Revenue = {
+        automation.Revenue(name = RevenueName(name), dueOn = dueOn, every = Every(1), period = Weekly)
     }
 
     def newGoal(name: String, targetAmount: Int, dueOn: LocalDate, priority: Int = 200): FundingGoal = {
         FixedDateObligation(priority = Priority(priority), name = ObligationName(name), target = amount(targetAmount), balance = amount(0), dueOn = dueOn)
     }
 
-    def newWeeklyGoal(name: String, targetAmount: Int, dueOn: LocalDate, priority: Int = 100): FundingGoal = {
+    def newWeeklyObligation(name: String, targetAmount: Int, dueOn: LocalDate, priority: Int = 100): FundingGoal = {
         RecurringObligation(priority = Priority(priority), name = ObligationName(name), target = amount(targetAmount), balance = amount(0), dueOn = dueOn, period = Weekly, every = Every(1))
     }
 
-    def newMonthlyGoal(name: String, targetAmount: Int, dueOn: LocalDate, balance: Int = 0): FundingGoal = {
+    def newMonthlyObligation(name: String, targetAmount: Int, dueOn: LocalDate, balance: Int = 0): FundingGoal = {
         RecurringObligation(priority = Priority(1), name = ObligationName(name), target = amount(targetAmount), balance = amount(balance), dueOn = dueOn, period = Monthly, every = Every(1))
     }
 }
