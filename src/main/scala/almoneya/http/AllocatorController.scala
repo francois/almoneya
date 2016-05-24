@@ -1,5 +1,6 @@
 package almoneya.http
 
+import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletRequest
 
 import almoneya.automation.{Revenue => ARevenue, _}
@@ -31,8 +32,16 @@ class AllocatorController(private[this] val mapper: ObjectMapper,
                 val recurringGoals = obligations.flatMap(obligationToFundingGoal(paidOn))
                 val fundingGoals = fixedDateGoals ++ recurringGoals
 
-                log.info("Allocating revenue")
-                RevenueAllocator(fundingGoals, revenues = revenues.flatMap(domainRevenueToAutomationRevenue(paidOn)), autoFulfillThreshold = autofulfillThreshold).generatePlan(paidOn, amountReceived)
+                val allocator = RevenueAllocator(fundingGoals, revenues = revenues.flatMap(domainRevenueToAutomationRevenue(paidOn)), autoFulfillThreshold = autofulfillThreshold)
+
+                val startAllocationAt = System.nanoTime()
+                val plan = allocator.generatePlan(paidOn, amountReceived)
+                val endAllocationAt = System.nanoTime()
+                if (log.isInfoEnabled()) {
+                    log.info("Allocated revenue in {} ms", "%.3f".format((endAllocationAt - startAllocationAt).toDouble / TimeUnit.MILLISECONDS.toNanos(1)))
+                }
+
+                plan
             }
         }
 
