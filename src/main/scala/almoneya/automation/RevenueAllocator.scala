@@ -4,6 +4,9 @@ import almoneya.{Amount, _}
 import org.joda.time.LocalDate
 
 case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue], autoFulfillThreshold: Amount = Amount(BigDecimal(100))) {
+    if (obligations.isEmpty) throw new IllegalArgumentException("Expected to have at least one obligation, else the calculations are meaningless")
+    if (revenues.isEmpty) throw new IllegalArgumentException("Expected to have at least one revenue source, else the calculations are incorrect")
+
     def generatePlan(paidOn: LocalDate, amountReceived: Amount): Seq[Allocation] = {
         val nextRevenueOn = revenues.flatMap(_.dueOnAfter(paidOn)).toSeq.sorted.headOption
         val plan = obligations.toSeq.filterNot(_.fulfilled).map {
