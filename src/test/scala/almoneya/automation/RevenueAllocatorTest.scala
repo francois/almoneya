@@ -23,17 +23,6 @@ class RevenueAllocatorTest extends FunSuite {
         assert(allocations.forall(_.fulfilled), allocations)
     }
 
-    test("with two recurring goals of 100 but a revenue of 150, then funds the goal with the smallest name") {
-        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 23))
-        val alimony = newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 23))
-        val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val allocator = RevenueAllocator(Set(groceries, alimony), revenues)
-        val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), amount(150))
-
-        assert(allocations.find(_.goal == alimony).exists(_.fulfilled), "alimony must be fulfilled")
-        assert(!allocations.find(_.goal == groceries).forall(_.fulfilled), "groceries must be unfulfilled")
-    }
-
     test("prioritizes goals that will be due sooner rather than later") {
         val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
         val alimony = newWeeklyObligation("alimony", 200, new LocalDate(2016, 5, 25))
@@ -72,20 +61,6 @@ class RevenueAllocatorTest extends FunSuite {
 
         assert(allocations.contains(Allocation(alimony, planToTake = amount(200), realTake = amount(200))), "alimony received 99% of the allocation")
         assert(allocations.contains(Allocation(groceries, planToTake = amount(100), realTake = amount(1))), "groceries received 1% of the allocation")
-    }
-
-    test("prioritizes by goal's name as a last resort") {
-        val groceries = newWeeklyObligation("groceries", 100, new LocalDate(2016, 5, 22))
-        val alimony = newWeeklyObligation("alimony", 100, new LocalDate(2016, 5, 22))
-        val cell = newWeeklyObligation("cell", 100, new LocalDate(2016, 5, 22))
-        val goals = Set(groceries, alimony, cell)
-        val revenues = Set(newWeeklyRevenue("salary", new LocalDate(2016, 5, 20)))
-        val allocator = RevenueAllocator(goals, revenues)
-        val allocations = allocator.generatePlan(new LocalDate(2016, 5, 20), amount(201))
-
-        assert(allocations.contains(Allocation(alimony, planToTake = amount(100), realTake = amount(100))), "alimony received 49% of the allocation")
-        assert(allocations.contains(Allocation(cell, planToTake = amount(100), realTake = amount(100))), "cell received 49% of the allocation")
-        assert(allocations.contains(Allocation(groceries, planToTake = amount(100), realTake = amount(1))), "groceries received 2% of the allocation")
     }
 
     test("plans to take only 1/3 of the missing amount if 3 revenue events are due before the payment") {

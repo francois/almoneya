@@ -15,4 +15,9 @@ package object almoneya {
         case Some(v) => v
         case None => NullSqlValue
     }
+
+    implicit object LocalDateOrdering extends Ordering[LocalDate] {
+        override def compare(x: LocalDate, y: LocalDate): Int = x.compareTo(y)
+    }
+
 }

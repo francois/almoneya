@@ -1,5 +1,5 @@
 package almoneya.automation
 
-case class Priority(value: Int) extends Ordered[Priority] {
-    override def compare(that: Priority): Int = value.compare(that.value)
+case class Priority(value: Int) extends Comparable[Priority] {
+    def compareTo(that: Priority): Int = value.compareTo(that.value)
 }

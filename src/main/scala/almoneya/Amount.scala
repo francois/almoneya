@@ -2,14 +2,14 @@ package almoneya
 
 import java.sql.PreparedStatement
 
-case class Amount(value: BigDecimal) extends SqlValue {
+case class Amount(value: BigDecimal) extends SqlValue with Comparable[Amount] {
     def *(n: Int) = Amount(value * n)
 
     def toNumeric = value
 
     def isPositive = value > 0
 
-    def compareTo(amount: Amount) = value.compare(amount.value)
+    override def compareTo(amount: Amount) = value.compareTo(amount.value)
 
     // Unfortunately, I can't use the + method, since it's bound to StringLike...
     def add(amount: Amount): Amount = Amount(value + amount.value)

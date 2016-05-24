@@ -53,6 +53,11 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
         response.setContentType("application/json;charset=utf-8")
         mapper.writeValue(response.getOutputStream, Errors(Seq(ex.getMessage)))
         baseRequest.setHandled(true)
+
+        // Immediately tell the client there was an error, then log
+        // This way, clients don't wait for logging to finish before continuing
+        response.flushBuffer()
+        log.error("Failed to process request", ex)
     }
 
     def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[A]

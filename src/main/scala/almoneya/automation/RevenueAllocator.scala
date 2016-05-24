@@ -1,12 +1,11 @@
 package almoneya.automation
 
-import almoneya.Amount
+import almoneya.{Amount, _}
 import org.joda.time.LocalDate
 
 case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue], autoFulfillThreshold: Amount = Amount(BigDecimal(100))) {
     def generatePlan(paidOn: LocalDate, amountReceived: Amount): Seq[Allocation] = {
-        val a = revenues.flatMap(_.dueOnAfter(paidOn)).toSeq.sortWith(_.compareTo(_) < 0)
-        val nextRevenueOn = a.headOption
+        val nextRevenueOn = revenues.flatMap(_.dueOnAfter(paidOn)).toSeq.sorted.headOption
         val plan = obligations.toSeq.filterNot(_.fulfilled).map {
             case fundingGoal if numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn) <= 1 =>
                 nextRevenueOn.map(fundingGoal.numberOfPayoutsBefore) match {
@@ -15,7 +14,7 @@ case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue
                 }
             case fundingGoal =>
                 Allocation(fundingGoal, planToTake = fundingGoal.amountMissing / numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn))
-        }.sortWith((a, b) => a.dueOn.compareTo(b.dueOn) < 0 || a.priority.compareTo(b.priority) < 0 || a.amountMissing.compareTo(b.amountMissing) < 0 || a.name.compareTo(b.name) < 0)
+        }.sortWith((a, b) => a.dueOn.compareTo(b.dueOn) < 0 || a.priority.compareTo(b.priority) < 0 || a.amountMissing.compareTo(b.amountMissing) < 0)
 
         if (plan.isEmpty) {
             Seq.empty[Allocation]
