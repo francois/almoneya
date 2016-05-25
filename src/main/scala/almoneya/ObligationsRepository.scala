@@ -17,6 +17,7 @@ class ObligationsRepository(executor: QueryExecutor) {
                 startOn = new LocalDate(rs.getDate("start_on")),
                 endOn = Option(rs.getDate("end_on")).map(new LocalDate(_)),
                 amount = Amount(rs.getBigDecimal("amount")),
+                priority = Priority(rs.getInt("priority")),
                 every = Every(rs.getInt("every")),
                 period = rs.getString("period") match {
                     case "day" => Daily
@@ -30,5 +31,5 @@ class ObligationsRepository(executor: QueryExecutor) {
 }
 
 object ObligationsRepository {
-    val FIND_ALL_QUERY = Query("SELECT obligation_id, account_name, account_id, account_kind, description, start_on, end_on, amount, every, period FROM obligations JOIN accounts USING (tenant_id, account_name) WHERE tenant_id = ?")
+    val FIND_ALL_QUERY = Query("SELECT obligation_id, account_name, account_id, account_kind, description, start_on, end_on, amount, every, period, priority FROM obligations JOIN accounts USING (tenant_id, account_name) WHERE tenant_id = ?")
 }

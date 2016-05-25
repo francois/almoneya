@@ -9,6 +9,7 @@ case class Obligation(id: Option[ObligationId] = None,
                       endOn: Option[LocalDate] = None,
                       amount: Amount,
                       every: Every,
-                      period: Period) extends DueOnOrAfter {
+                      period: Period,
+                      priority: Priority) extends DueOnOrAfter {
     assert(endOn.isEmpty || endOn.get.isAfter(startOn))
 }

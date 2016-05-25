@@ -30,7 +30,7 @@ class ObligationTest extends FunSuite {
     }
 
     private[this] def newWeeklyObligation(startOn: String, endOn: Option[String] = None) =
-        Obligation(account = account, startOn = new LocalDate(startOn), endOn = endOn.map(new LocalDate(_)), amount = zero, every = Every(1), period = Weekly)
+        Obligation(account = account, startOn = new LocalDate(startOn), endOn = endOn.map(new LocalDate(_)), amount = zero, every = Every(1), period = Weekly, priority = Priority(50))
 
     private[this] val account = Account(name = AccountName("account"), kind = Asset)
     private[this] val zero = Amount(0)

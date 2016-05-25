@@ -58,7 +58,7 @@ class AllocatorController(private[this] val mapper: ObjectMapper,
 
     private[this] def obligationToFundingGoal(paidOn: LocalDate)(obligation: Obligation): Option[RecurringObligation] = {
         obligation.dueOnAfter(paidOn).map(nextDueOn =>
-            RecurringObligation(priority = Priority(50),
+            RecurringObligation(priority = obligation.priority,
                 name = ObligationName.fromAccountName(obligation.account.name),
                 target = obligation.amount,
                 balance = Amount(0),
@@ -69,7 +69,7 @@ class AllocatorController(private[this] val mapper: ObjectMapper,
     }
 
     private[this] def goalToFundingGoal(goal: Goal): FundingGoal = {
-        FixedDateObligation(priority = Priority(100),
+        FixedDateObligation(priority = goal.priority,
             name = ObligationName.fromAccountName(goal.account.name),
             target = goal.amount,
             balance = Amount(0),

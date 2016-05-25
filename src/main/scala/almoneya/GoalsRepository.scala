@@ -15,11 +15,12 @@ class GoalsRepository(executor: QueryExecutor) {
                 account = account,
                 description = Option(rs.getString("description")).map(Description.apply),
                 dueOn = new LocalDate(rs.getDate("due_on")),
-                amount = Amount(rs.getBigDecimal("amount")))
+                amount = Amount(rs.getBigDecimal("amount")),
+                priority = Priority(rs.getInt("priority")))
         }.map(_.toSet)
     }
 }
 
 object GoalsRepository {
-    val FIND_ALL_QUERY = Query("SELECT goal_id, account_name, account_id, account_kind, description, due_on, amount FROM goals JOIN accounts USING (tenant_id, account_name) WHERE tenant_id = ?")
+    val FIND_ALL_QUERY = Query("SELECT goal_id, account_name, account_id, account_kind, description, due_on, amount, priority FROM goals JOIN accounts USING (tenant_id, account_name) WHERE tenant_id = ?")
 }

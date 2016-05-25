@@ -1,6 +1,6 @@
 package almoneya.automation
 
-import almoneya.{Amount, ObligationName}
+import almoneya.{Priority, Amount, ObligationName}
 import org.joda.time.LocalDate
 
 trait FundingGoal {

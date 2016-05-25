@@ -1,6 +1,6 @@
 package almoneya.automation
 
-import almoneya.Amount
+import almoneya.{Priority, Amount}
 import org.joda.time.LocalDate
 
 case class Allocation(goal: FundingGoal, planToTake: Amount, realTake: Amount = Amount(0)) {
