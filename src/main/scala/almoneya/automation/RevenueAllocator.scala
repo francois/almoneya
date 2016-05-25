@@ -27,7 +27,7 @@ case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue
                 // We don't know when we will have other revenue, thus we can only take
                 // what's missing and hope for the best
                 Allocation(fundingGoal, planToTake = fundingGoal.amountMissing)
-        }.sortWith((a, b) => a.dueOn.compareTo(b.dueOn) < 0 || a.priority.compareTo(b.priority) < 0 || a.amountMissing.compareTo(b.amountMissing) < 0)
+        }.sorted
 
         if (plan.isEmpty) {
             Seq.empty[Allocation]
