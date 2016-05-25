@@ -14,6 +14,7 @@ BEGIN;
     , start_on date not null default current_date
     , end_on date check(end_on is null or end_on > start_on)
     , amount numeric not null check(amount > 0)
+    , priority int not null default 50
     , obligation_id serial not null unique
     , created_at timestamp with time zone not null
     , updated_at timestamp with time zone not null

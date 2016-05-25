@@ -11,6 +11,7 @@ BEGIN;
     , description text check(description is null or trim(description) = description)
     , due_on date not null
     , amount numeric not null check(amount > 0)
+    , priority int not null default 100
     , goal_id serial not null unique
     , created_at timestamp with time zone not null
     , updated_at timestamp with time zone not null
