@@ -11,7 +11,8 @@ case class RecurringObligation(priority: Priority,
                                period: Period,
                                every: Every,
                                endOn: Option[LocalDate] = None) extends FundingGoal with DueOnOrAfter {
-    override def numberOfPayoutsBefore(date: LocalDate): Int = payoutEventsStream.takeWhile(_.isBefore(date)).size
+    override def payoutsOnOrBefore(cutoffOn: LocalDate): Seq[LocalDate] =
+        payoutEventsStream.takeWhile(_.compareTo(cutoffOn) <= 0)
 
     override def startOn: LocalDate = dueOn
 }

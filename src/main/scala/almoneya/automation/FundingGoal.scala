@@ -4,7 +4,9 @@ import almoneya.{Priority, Amount, ObligationName}
 import org.joda.time.LocalDate
 
 trait FundingGoal {
-    def numberOfPayoutsBefore(date: LocalDate): Int
+    def payoutsOnOrBefore(cutoffOn: LocalDate): Seq[LocalDate]
+
+    def numberOfPayoutsOnOrBefore(cutoffOn: LocalDate): Int = payoutsOnOrBefore(cutoffOn).size
 
     def name: ObligationName
 

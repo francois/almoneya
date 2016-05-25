@@ -10,13 +10,23 @@ case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue
     def generatePlan(paidOn: LocalDate, amountReceived: Amount): Seq[Allocation] = {
         val nextRevenueOn = revenues.flatMap(_.dueOnAfter(paidOn)).toSeq.sorted.headOption
         val plan = obligations.toSeq.filterNot(_.fulfilled).map {
-            case fundingGoal if numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn) <= 1 =>
-                nextRevenueOn.map(fundingGoal.numberOfPayoutsBefore) match {
-                    case None => Allocation(fundingGoal, planToTake = fundingGoal.amountMissing)
-                    case Some(n) => Allocation(fundingGoal, planToTake = fundingGoal.amountMissing * n)
-                }
+            case fundingGoal if nextRevenueOn.exists(_.isBefore(fundingGoal.dueOn)) =>
+                // We have more than one revenue event before the payout is due:
+                // plan to take an amount that is equally divided between this revenue event
+                // all future events
+                val numRevenueEvents = numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn)
+                Allocation(fundingGoal, planToTake = fundingGoal.amountMissing / numRevenueEvents)
+
+            case fundingGoal if nextRevenueOn.isDefined =>
+                // We may have to fund more than one payout before the next revenue event,
+                // hence, take what we need to cover multiple payouts of this expense
+                val numPayoutEvents = fundingGoal.numberOfPayoutsOnOrBefore(nextRevenueOn.get)
+                Allocation(fundingGoal, planToTake = fundingGoal.amountMissing * numPayoutEvents)
+
             case fundingGoal =>
-                Allocation(fundingGoal, planToTake = fundingGoal.amountMissing / numberOfRevenueEventsBetween(paidOn, fundingGoal.dueOn))
+                // We don't know when we will have other revenue, thus we can only take
+                // what's missing and hope for the best
+                Allocation(fundingGoal, planToTake = fundingGoal.amountMissing)
         }.sortWith((a, b) => a.dueOn.compareTo(b.dueOn) < 0 || a.priority.compareTo(b.priority) < 0 || a.amountMissing.compareTo(b.amountMissing) < 0)
 
         if (plan.isEmpty) {
@@ -42,7 +52,7 @@ case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue
     private[this] def numberOfRevenueEventsBetween(paidOn: LocalDate, cutoffOn: LocalDate): Int = {
         assert(paidOn.isBefore(cutoffOn))
         val nextDatesByRevenue = for (revenue <- revenues) yield {
-            val x1 = revenue.revenueEventsStream.takeWhile(_.isBefore(cutoffOn))
+            val x1 = revenue.revenueEventsStream.takeWhile(_.compareTo(cutoffOn) <= 0)
             val x2 = x1.dropWhile(_.isBefore(paidOn))
             val x3 = x2.toList
             x3
