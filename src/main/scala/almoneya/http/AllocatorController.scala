@@ -25,7 +25,7 @@ class AllocatorController(private[this] val mapper: ObjectMapper,
         val results = for (paidOn <- maybePaidOn; amountReceived <- maybeRevenueAmount) yield {
             val maybeGoals = goalsRepository.findAll(tenantId)
             val maybeObligations = obligationsRepository.findAll(tenantId)
-            val maybeEnvelopes = accountsRepository.findAllWithBalance(tenantId)
+            val maybeEnvelopes = accountsRepository.findAllWithBalance(tenantId, paidOn)
             val maybeRevenues = revenuesRepository.findAll(tenantId)
             for (goals <- maybeGoals; obligations <- maybeObligations; envelopes <- maybeEnvelopes; revenues <- maybeRevenues) yield {
                 val fixedDateGoals = goals.map(goalToFundingGoal)
