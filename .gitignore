@@ -1,4 +1,7 @@
-/.vagrant
 /.byebug_history
+/.idea
+/.vagrant
 /node_modules
+/project/target
 /public/assets
+/target
