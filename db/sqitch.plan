@@ -1,0 +1,27 @@
+%syntax-version=1.0.0
+%project=almoneya
+
+create_roles 2016-04-27T00:20:04Z François Beausoleil <francois@teksol.info> # Add database roles to own schema objects and use the database
+schemas/credentials [create_roles] 2016-04-27T00:42:12Z François Beausoleil <francois@teksol.info> # Segregate credentials to their own schema for easier security management
+schemas/public [create_roles] 2016-04-27T00:55:36Z François Beausoleil <francois@teksol.info> # Reset the public schema's permissions
+functions/maintain_timestamps 2016-04-27T03:06:17Z François Beausoleil <francois@teksol.info> # A function to be used as a trigger that automatically maintains the created_at/updated_at columns
+tables/users [schemas/public create_roles functions/maintain_timestamps] 2016-04-27T02:30:34Z François Beausoleil <francois@teksol.info> # Need a place to record people's names
+tables/user_userpass_credentials [tables/users functions/maintain_timestamps] 2016-04-27T02:38:29Z François Beausoleil <francois@teksol.info> # A table to record username and passwords for users
+tables/user_twitter_credentials [tables/users functions/maintain_timestamps] 2016-04-27T02:50:51Z François Beausoleil <francois@teksol.info> # A place to store Twitter OAuth credentials
+tables/user_facebook_credentials [tables/users functions/maintain_timestamps] 2016-04-27T03:00:20Z François Beausoleil <francois@teksol.info> # Record people's Facebook credentials
+tables/sign_ins [schemas/credentials functions/maintain_timestamps] 2016-04-27T03:20:46Z François Beausoleil <francois@teksol.info> # Record sign in attempts to the database, in order to track attacks
+tables/userpass_sign_ins [tables/sign_ins tables/user_userpass_credentials] 2016-04-27T12:59:26Z François Beausoleil <francois@teksol.info> # Record successful and failed authentication attempts for each username separately
+tables/tenants [schemas/credentials] 2016-04-28T02:48:22Z François Beausoleil <francois@teksol.info> # Create tenants, to identify groups of people that can access the system together
+migrations/link_users_to_tenants [tables/users tables/tenants] 2016-04-28T02:53:05Z François Beausoleil <francois@teksol.info> # Link people to tenants, in order to create teams of people that work together
+tables/accounts [tables/tenants] 2016-04-28T02:59:15Z François Beausoleil <francois@teksol.info> # Chart of accounts, per tenant
+tables/bank_accounts [tables/accounts] 2016-04-29T02:34:50Z François Beausoleil <francois@teksol.info> # Add a way to remember which bank accounts map to which accounts
+tables/bank_account_transactions [tables/bank_accounts] 2016-04-29T02:43:22Z François Beausoleil <francois@teksol.info> # Record actual bank transactions in the system, for later reconciliation
+tables/goals [tables/accounts] 2016-04-30T02:15:00Z François Beausoleil <francois@teksol.info> # Record a company's goals: saving for a new delivery truck or a new fridge
+tables/obligations [tables/accounts] 2016-04-30T02:19:58Z François Beausoleil <francois@teksol.info> # Records obligations that occur periodically (monthly, weekly, etc)
+tables/transactions [tables/tenants] 2016-05-09T03:29:22Z François Beausoleil <francois@teksol.info> # The general ledger: where all transactions are described
+tables/transaction_entries [tables/transactions tables/accounts] 2016-05-09T03:38:07Z François Beausoleil <francois@teksol.info> # Records which accounts were touched by each transaction
+constraints/all_transactions_balance [tables/transaction_entries] 2016-05-09T03:45:37Z François Beausoleil <francois@teksol.info> # A constraint to ensure all transactions always balance out
+tables/revenues [tables/tenants] 2016-05-23T03:27:51Z François Beausoleil <francois@teksol.info> # Records recurring revenue events to help allocate revenue to accounts
+tables/reconciliations [tables/accounts] 2016-05-26T02:52:30Z François Beausoleil <francois@teksol.info> # Record reconciliation statements
+tables/reconciliation_entries [tables/reconciliations tables/transaction_entries] 2016-05-26T03:07:21Z François Beausoleil <francois@teksol.info> # Records which specific transaction entries have been reconciled with a bank statement
+constraints/cannot_modify_reconciled_transaction [tables/reconciliation_entries] 2016-05-26T03:20:22Z François Beausoleil <francois@teksol.info> # Prevent invalidating reconciliations by changing transactions
