@@ -16,7 +16,7 @@ BEGIN;
     , bank_account_transaction_id serial not null
     , created_at timestamp with time zone not null
     , updated_at timestamp with time zone not null
-    , primary key(bank_account_transaction_id)
+    , primary key(tenant_id, bank_account_transaction_id)
     , foreign key(tenant_id, bank_account_hash) references public.bank_accounts on update cascade on delete cascade
   );
 
