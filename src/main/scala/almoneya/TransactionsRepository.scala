@@ -2,11 +2,25 @@ package almoneya
 
 import org.joda.time.{DateTime, LocalDate}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class TransactionsRepository(executor: QueryExecutor) {
 
     import TransactionsRepository.{insertTransactionEntriesSql, insertTransactionSql}
+
+    def transaction[A](fn: => Try[A]): Try[A] = {
+        executor.beginTransaction
+        fn match {
+            case success: Success[A] =>
+                executor.commit
+                success
+
+            case failure: Failure[A] =>
+                executor.rollback
+                failure
+        }
+    }
+
 
     def create(tenantId: TenantId, transaction: Transaction): Try[Transaction] = {
         def createTransactionRow(): Try[Transaction] = {
@@ -25,7 +39,7 @@ class TransactionsRepository(executor: QueryExecutor) {
             executor.insertMany(insertTransactionEntriesSql, entries) { rs =>
                 TransactionEntry(
                     transactionEntryId = Some(TransactionEntryId(rs.getInt("transaction_entry_id"))),
-                    account = Account(name = AccountName(rs.getString("account_name")), kind = Asset),
+                    account = Account(id = Some(AccountId(rs.getInt("account_id"))), name = AccountName(rs.getString("account_name")), kind = Asset, virtual = rs.getBoolean("virtual")),
                     amount = Amount(rs.getBigDecimal("amount")))
             }
         }
@@ -45,7 +59,7 @@ object TransactionsRepository {
             "    INSERT INTO transaction_entries(tenant_id, transaction_id, account_name, amount) " +
             "    VALUES ... " +
             "    RETURNING transaction_entry_id, account_name, amount) " +
-            "SELECT transaction_entry_id, account_name, account_kind, amount " +
+            "SELECT transaction_entry_id, account_name, virtual, account_id, account_kind, amount " +
             "FROM new_rows " +
             "JOIN accounts USING (account_name)")
 }

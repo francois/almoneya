@@ -57,45 +57,25 @@ object ApiServer {
         security.setAuthenticator(new BasicAuthenticator())
         security.setLoginService(loginService)
 
-        val mapper = prepareJacksonObjectMapper
-
         val listAccountsController = new ContextHandler("/api/accounts")
-        listAccountsController.setHandler(new ListAccountsController(mapper, accountsRepository))
+        listAccountsController.setHandler(new ListAccountsController(JSON.mapper, accountsRepository))
 
         val importBankAccountsController = new ContextHandler("/api/bank-account-transactions/import")
-        importBankAccountsController.setHandler(new ImportBankAccountTransactionsController(mapper, bankAccountTransactionsRepository))
+        importBankAccountsController.setHandler(new ImportBankAccountTransactionsController(JSON.mapper, bankAccountTransactionsRepository))
 
         val allocatorController = new ContextHandler("/api/allocator/run")
-        allocatorController.setHandler(new AllocatorController(mapper, accountsRepository, goalsRepository, obligationsRepository, revenuesRepository))
+        allocatorController.setHandler(new AllocatorController(JSON.mapper, accountsRepository, goalsRepository, obligationsRepository, revenuesRepository))
+
+        val createTransactionController = new ContextHandler("/api/transactions")
+        createTransactionController.setHandler(new CreateTransactionController(JSON.mapper,accountsRepository,transactionsRepository))
 
         val contexts = new ContextHandlerCollection()
-        contexts.setHandlers(Array(listAccountsController, importBankAccountsController, allocatorController))
+        contexts.setHandlers(Array(listAccountsController, importBankAccountsController, allocatorController, createTransactionController))
 
         security.setHandler(contexts)
 
         server.start()
         server.join()
-    }
-
-    private[this] def prepareJacksonObjectMapper: ObjectMapper = {
-        val jsonFactory = new JsonFactory()
-        jsonFactory.enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
-        jsonFactory.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)
-
-        val mapper = new ObjectMapper(jsonFactory)
-        mapper.registerModule(DefaultScalaModule)
-        mapper.enable(SerializationFeature.INDENT_OUTPUT)
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-
-        val serializerModule = new SimpleModule()
-        serializerModule.addSerializer(classOf[Account], new AccountSerializer())
-        serializerModule.addSerializer(classOf[Goal], new GoalSerializer())
-        serializerModule.addSerializer(classOf[Obligation], new ObligationSerializer())
-        serializerModule.addSerializer(classOf[Allocation], new AllocationSerializer())
-        serializerModule.addSerializer(classOf[FundingGoal], new FundingGoalSerializer())
-        serializerModule.addSerializer(classOf[Results[_]], new ResultsSerializer())
-        mapper.registerModule(serializerModule)
-        mapper
     }
 
     val log = LoggerFactory.getLogger("almoneya.http.ApiServer")

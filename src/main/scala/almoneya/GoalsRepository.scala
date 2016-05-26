@@ -10,7 +10,7 @@ class GoalsRepository(executor: QueryExecutor) {
 
     def findAll(tenantId: TenantId): Try[Set[Goal]] = {
         executor.findAll(FIND_ALL_QUERY, tenantId) { rs =>
-            val account = Account(id = Some(AccountId(rs.getInt("account_id"))), name = AccountName(rs.getString("account_name")), kind = AccountKind.fromString(rs.getString("account_kind")))
+            val account = Account(id = Some(AccountId(rs.getInt("account_id"))), name = AccountName(rs.getString("account_name")), kind = AccountKind.fromString(rs.getString("account_kind")), virtual = rs.getBoolean("virtual"))
             Goal(id = Some(GoalId(rs.getInt("goal_id"))),
                 account = account,
                 description = Option(rs.getString("description")).map(Description.apply),
@@ -22,5 +22,5 @@ class GoalsRepository(executor: QueryExecutor) {
 }
 
 object GoalsRepository {
-    val FIND_ALL_QUERY = Query("SELECT goal_id, account_name, account_id, account_kind, description, due_on, amount, priority FROM goals JOIN accounts USING (tenant_id, account_name) WHERE tenant_id = ?")
+    val FIND_ALL_QUERY = Query("SELECT goal_id, account_name, virtual, account_id, account_kind, description, due_on, amount, priority FROM goals JOIN accounts USING (tenant_id, account_name) WHERE tenant_id = ?")
 }

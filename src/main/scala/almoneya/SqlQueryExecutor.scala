@@ -19,6 +19,18 @@ class SqlQueryExecutor(override val connection: Connection) extends QueryExecuto
     def findOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Try[Option[A]] =
         findAll(query, params: _*)(mapper).map(_.headOption)
 
+    override def beginTransaction: Try[Unit] = Try(connection.setAutoCommit(false))
+
+    override def rollback: Try[Unit] = Try {
+        connection.rollback()
+        connection.setAutoCommit(true)
+    }
+
+    override def commit: Try[Unit] = Try {
+        connection.commit()
+        connection.setAutoCommit(true)
+    }
+
     override def findAll[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Try[Seq[A]] = Try {
         val statement = connection.prepareStatement(query.sql)
         val startedAt = System.nanoTime()

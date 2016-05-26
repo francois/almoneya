@@ -6,7 +6,8 @@ case class Account(id: Option[AccountId] = None,
                    code: Option[AccountCode] = None,
                    name: AccountName,
                    kind: AccountKind,
-                   balance: Option[Amount] = None)
+                   balance: Option[Amount] = None,
+                   virtual: Boolean)
 
 sealed trait AccountKind extends SqlValue {
     override def setParam(statement: PreparedStatement, index: Int): Unit = statement.setString(1 + index, kindName)

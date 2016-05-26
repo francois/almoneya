@@ -28,6 +28,9 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
                             mapper.writeValue(response.getOutputStream, Results(result))
                             baseRequest.setHandled(true)
 
+                        case Failure(ex: BadFormatException) =>
+                            sendErrorResponse(HttpServletResponse.SC_BAD_REQUEST, ex, baseRequest, response)
+
                         case Failure(ex: SQLException) =>
                             sendErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex, baseRequest, response)
 
@@ -69,3 +72,5 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
 case class Results[A](data: A)
 
 case class Errors(errors: Seq[String])
+
+class BadFormatException(message: String) extends RuntimeException(message)
