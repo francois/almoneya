@@ -9,14 +9,21 @@ BEGIN;
   CREATE OR REPLACE FUNCTION public.check_cannot_modify_reconciled_transaction() RETURNS TRIGGER AS $$
   DECLARE
     rec record;
+    ORIGIN transaction_entries;
   BEGIN
+    IF TG_OP = 'INSERT' THEN
+      ORIGIN := NEW;
+    ELSE
+      ORIGIN := OLD;
+    END IF;
+
     FOR rec IN
       SELECT account_name, posted_on, closed_at
       FROM   public.reconciliation_entries
         JOIN public.reconciliations        USING (tenant_id, posted_on, account_name)
-      WHERE tenant_id      = OLD.tenant_id
-        AND account_name   = OLD.account_name
-        AND transaction_id = OLD.transaction_id
+      WHERE tenant_id      = ORIGIN.tenant_id
+        AND account_name   = ORIGIN.account_name
+        AND transaction_id = ORIGIN.transaction_id
         AND closed_at IS NOT NULL
     LOOP
       RAISE EXCEPTION 'Transaction entry on account "%" appears on the reconciliation statement dated %, which was closed at %',
@@ -37,13 +44,20 @@ BEGIN;
   CREATE OR REPLACE FUNCTION public.check_cannot_add_or_remove_reconciliation_entries_on_closed_reconciliation() RETURNS TRIGGER AS $$
   DECLARE
     rec record;
+    ORIGIN reconciliation_entries;
   BEGIN
+    IF TG_OP = 'INSERT' THEN
+      ORIGIN := NEW;
+    ELSE
+      ORIGIN := OLD;
+    END IF;
+
     FOR rec IN
       SELECT account_name, closed_at
       FROM public.reconciliations
-      WHERE tenant_id    = OLD.tenant_id
-        AND posted_on    = OLD.posted_on
-        AND account_name = OLD.account_name
+      WHERE tenant_id    = ORIGIN.tenant_id
+        AND posted_on    = ORIGIN.posted_on
+        AND account_name = ORIGIN.account_name
         AND closed_at IS NOT NULL
     LOOP
       RAISE EXCEPTION 'Modifications on closed reconciliations disallowed; reconciliation on account "%" was closed on %',
