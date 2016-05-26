@@ -4,11 +4,6 @@ import java.sql.DriverManager
 import java.util.Collections
 
 import almoneya._
-import almoneya.automation.{Allocation, FundingGoal}
-import com.fasterxml.jackson.core.{JsonFactory, JsonGenerator}
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.eclipse.jetty.security._
 import org.eclipse.jetty.security.authentication.BasicAuthenticator
 import org.eclipse.jetty.server.Server
@@ -19,6 +14,7 @@ import org.slf4j.LoggerFactory
 import scala.language.higherKinds
 
 object ApiServer {
+
     def main(args: Array[String]): Unit = {
         Class.forName("org.postgresql.Driver")
 
@@ -35,6 +31,7 @@ object ApiServer {
         val goalsRepository = new GoalsRepository(executor)
         val obligationsRepository = new ObligationsRepository(executor)
         val revenuesRepository = new RevenuesRepository(executor)
+        val reconciliationsRepository = new ReconciliationsRepository(executor)
 
         val loginService = new RepoLoginService(usersRepository, signInsRepo)
 
@@ -67,10 +64,16 @@ object ApiServer {
         allocatorController.setHandler(new AllocatorController(JSON.mapper, accountsRepository, goalsRepository, obligationsRepository, revenuesRepository))
 
         val createTransactionController = new ContextHandler("/api/transactions")
-        createTransactionController.setHandler(new CreateTransactionController(JSON.mapper,accountsRepository,transactionsRepository))
+        createTransactionController.setHandler(new CreateTransactionController(JSON.mapper, accountsRepository, transactionsRepository))
+
+        val reconcileTransactionController = new ContextHandler("/api/reconcile")
+        reconcileTransactionController.setHandler(new ReconcileTransactionController(JSON.mapper, reconciliationsRepository))
+
+        val createReconciliationController = new ContextHandler("/api/reconciliations")
+        createReconciliationController.setHandler(new CreateReconciliationController(JSON.mapper, reconciliationsRepository))
 
         val contexts = new ContextHandlerCollection()
-        contexts.setHandlers(Array(listAccountsController, importBankAccountsController, allocatorController, createTransactionController))
+        contexts.setHandlers(Array(listAccountsController, importBankAccountsController, allocatorController, createTransactionController, reconcileTransactionController, createReconciliationController))
 
         security.setHandler(contexts)
 
