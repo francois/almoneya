@@ -13,18 +13,18 @@ class BankAccountTransactionsRepository(executor: QueryExecutor) {
         executor.findAll(Query("SELECT bank_account_hash FROM bank_accounts")) { rs =>
             AccountHash(rs.getString("bank_account_hash"))
         }.map(_.toSet).map { existingAccountNums =>
-            transactions.filterNot(txn => existingAccountNums.contains(txn.bankAccount.accountNum)).map(_.bankAccount.accountNum)
+            transactions.filterNot(txn => existingAccountNums.contains(txn.bankAccount.accountHash)).map(_.bankAccount.accountHash)
         }.map { missingAccountNums =>
-            bankAccounts.filter(account => missingAccountNums.contains(account.accountNum))
+            bankAccounts.filter(account => missingAccountNums.contains(account.accountHash))
         }.flatMap { missingAccounts =>
-            executor.insertMany(Query("INSERT INTO bank_accounts(tenant_id, bank_account_hash, bank_account_last4) VALUES"), missingAccounts.map(account => Seq(tenantId, account.accountNum, account.last4)).toSeq) { rs =>
+            executor.insertMany(Query("INSERT INTO bank_accounts(tenant_id, bank_account_hash, bank_account_last4) VALUES"), missingAccounts.map(account => Seq(tenantId, account.accountHash, account.last4)).toSeq) { rs =>
                 BankAccount(id = Some(BankAccountId(rs.getInt("bank_account_id"))),
-                    accountNum = AccountHash(rs.getString("bank_account_hash")),
+                    accountHash = AccountHash(rs.getString("bank_account_hash")),
                     last4 = AccountLast4(rs.getString("bank_account_last4")))
             }
         }.flatMap { newAccounts =>
-            val accounts = (newAccounts ++ bankAccounts).map(account => (account.accountNum, account)).toMap
-            val values: Seq[Seq[SqlValue]] = transactions.map(txn => Seq[SqlValue](tenantId, txn.bankAccount.accountNum, txn.postedOn, txn.description1, txn.description2, txn.checkNum, txn.amount))
+            val accounts = (newAccounts ++ bankAccounts).map(account => (account.accountHash, account)).toMap
+            val values: Seq[Seq[SqlValue]] = transactions.map(txn => Seq[SqlValue](tenantId, txn.bankAccount.accountHash, txn.postedOn, txn.description1, txn.description2, txn.checkNum, txn.amount))
 
             executor.insertMany(importBankTransactionSql, values) { rs =>
                 BankAccountTransaction(id = Some(BankAccountTransactionId(rs.getInt("bank_account_transaction_id"))),

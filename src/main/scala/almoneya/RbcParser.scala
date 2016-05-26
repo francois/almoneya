@@ -15,7 +15,7 @@ class RbcParser {
             val isLiability = row(1).isEmpty
             val accountNum = if (isLiability) row(0) else row(1)
             val last4 = accountNum.substring(row(1).length - 4, row(1).length)
-            val bankAccount = BankAccount(accountNum = AccountHash(accountHash), last4 = AccountLast4(last4))
+            val bankAccount = BankAccount(accountHash = AccountHash(accountHash), last4 = AccountLast4(last4))
             val postedOnComponents = row(2).split("\\D").map(_.toInt)
             BankAccountTransaction(
                 bankAccount = bankAccount,

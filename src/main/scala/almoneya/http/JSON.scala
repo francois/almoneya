@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.{JsonFactory, JsonGenerator}
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.joda.time.{ReadableInstant, LocalDate}
+import org.joda.time.{LocalDate, ReadableInstant}
 import org.slf4j.LoggerFactory
 
 object JSON {
@@ -42,12 +42,18 @@ object JSON {
         serializerModule.addDeserializer(classOf[TransactionForm], new TransactionFormDeserializer())
 
         serializerModule.addSerializer(classOf[AccountCode], new AccountCodeSerializer())
+        serializerModule.addSerializer(classOf[AccountHash], new AccountHashSerializer())
         serializerModule.addSerializer(classOf[AccountId], new AccountIdSerializer())
         serializerModule.addSerializer(classOf[AccountKind], new AccountKindSerializer())
+        serializerModule.addSerializer(classOf[AccountLast4], new AccountLast4Serializer())
         serializerModule.addSerializer(classOf[AccountName], new AccountNameSerializer())
         serializerModule.addSerializer(classOf[Account], new AccountSerializer())
         serializerModule.addSerializer(classOf[Allocation], new AllocationSerializer())
         serializerModule.addSerializer(classOf[Amount], new AmountSerializer())
+        serializerModule.addSerializer(classOf[BankAccountId], new BankAccountIdSerializer())
+        serializerModule.addSerializer(classOf[BankAccountTransactionId], new BankAccountTransactionIdSerializer())
+        serializerModule.addSerializer(classOf[BankAccountTransaction], new BankAccountTransactionSerializer())
+        serializerModule.addSerializer(classOf[BankAccount], new BankAccountSerializer())
         serializerModule.addSerializer(classOf[Description], new DescriptionSerializer())
         serializerModule.addSerializer(classOf[FundingGoal], new FundingGoalSerializer())
         serializerModule.addSerializer(classOf[Goal], new GoalSerializer())

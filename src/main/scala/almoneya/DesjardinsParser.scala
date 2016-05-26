@@ -22,7 +22,7 @@ class DesjardinsParser {
                 if (row(7).trim.isEmpty) Amount(BigDecimal(row(8))) else Amount(BigDecimal(-1 * BigDecimal(row(7))))
             }
 
-            BankAccountTransaction(bankAccount = BankAccount(accountNum = accountHash, last4 = AccountLast4(last4)), checkNum = checkNumber, postedOn = postedOn, description1 = Some(Description(row(5))), amount = amount)
+            BankAccountTransaction(bankAccount = BankAccount(accountHash = accountHash, last4 = AccountLast4(last4)), checkNum = checkNumber, postedOn = postedOn, description1 = Some(Description(row(5))), amount = amount)
         }
     }
 
