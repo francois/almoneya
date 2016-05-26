@@ -12,6 +12,7 @@ package{[
   'libpq-dev',
   'libreadline-dev',
   'ntp',
+  'openjdk-8-jdk',
   'postgresql-9.4',
   'postgresql-client-9.4',
   'postgresql-contrib-9.4',
