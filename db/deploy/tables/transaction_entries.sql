@@ -12,7 +12,7 @@ BEGIN;
     , account_name text not null
     , amount numeric not null
 
-    , transaction_entry_id serial not null
+    , transaction_entry_id serial not null unique
     , created_at timestamp with time zone not null
     , updated_at timestamp with time zone not null
 

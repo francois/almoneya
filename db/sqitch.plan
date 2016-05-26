@@ -22,3 +22,6 @@ tables/transactions [tables/tenants] 2016-05-09T03:29:22Z François Beausoleil <
 tables/transaction_entries [tables/transactions tables/accounts] 2016-05-09T03:38:07Z François Beausoleil <francois@teksol.info> # Records which accounts were touched by each transaction
 constraints/all_transactions_balance [tables/transaction_entries] 2016-05-09T03:45:37Z François Beausoleil <francois@teksol.info> # A constraint to ensure all transactions always balance out
 tables/revenues [tables/tenants] 2016-05-23T03:27:51Z François Beausoleil <francois@teksol.info> # Records recurring revenue events to help allocate revenue to accounts
+tables/reconciliations [tables/accounts] 2016-05-26T02:52:30Z François Beausoleil <francois@teksol.info> # Record reconciliation statements
+tables/reconciliation_entries [tables/reconciliations tables/transaction_entries] 2016-05-26T03:07:21Z François Beausoleil <francois@teksol.info> # Records which specific transaction entries have been reconciled with a bank statement
+constraints/cannot_modify_reconciled_transaction [tables/reconciliation_entries] 2016-05-26T03:20:22Z François Beausoleil <francois@teksol.info> # Prevent invalidating reconciliations by changing transactions
