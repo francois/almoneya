@@ -7,6 +7,7 @@ import almoneya._
 import org.eclipse.jetty.security._
 import org.eclipse.jetty.security.authentication.BasicAuthenticator
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.server.handler.{ContextHandler, ContextHandlerCollection}
 import org.eclipse.jetty.util.security.Constraint
 import org.slf4j.LoggerFactory
@@ -39,7 +40,9 @@ object ApiServer {
         server.addBean(loginService)
 
         val security = new ConstraintSecurityHandler()
-        server.setHandler(security)
+        val gzipHandler = new GzipHandler()
+        gzipHandler.setHandler(security)
+        server.setHandler(gzipHandler)
 
         val constraint = new Constraint()
         constraint.setName("auth")
