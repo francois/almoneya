@@ -16,6 +16,7 @@ BEGIN;
     , primary key(tenant_id, bank_account_hash)
     , foreign key(tenant_id) references credentials.tenants on update cascade on delete cascade
     , foreign key(tenant_id, account_name) references public.accounts on update cascade on delete cascade
+    , unique(tenant_id, bank_account_hash, account_name)
   );
 
   ALTER TABLE public.bank_accounts OWNER TO almoneya;

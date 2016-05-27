@@ -69,6 +69,8 @@ object JSON {
         serializerModule.addSerializer(classOf[Results[_]], new ResultsSerializer())
         serializerModule.addSerializer(classOf[TransactionEntryId], new TransactionEntryIdSerializer())
         serializerModule.addSerializer(classOf[TransactionEntry], new TransactionEntrySerializer())
+        serializerModule.addSerializer(classOf[TransactionForm], new TransactionFormSerializer())
+        serializerModule.addSerializer(classOf[TransactionEntryForm], new TransactionEntryFormSerializer())
         serializerModule.addSerializer(classOf[TransactionId], new TransactionIdSerializer())
         serializerModule.addSerializer(classOf[Transaction], new TransactionSerializer())
 

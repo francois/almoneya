@@ -13,12 +13,12 @@ tables/user_facebook_credentials [tables/users functions/maintain_timestamps] 20
 tables/sign_ins [schemas/credentials functions/maintain_timestamps] 2016-04-27T03:20:46Z François Beausoleil <francois@teksol.info> # Record sign in attempts to the database, in order to track attacks
 tables/userpass_sign_ins [tables/sign_ins tables/user_userpass_credentials] 2016-04-27T12:59:26Z François Beausoleil <francois@teksol.info> # Record successful and failed authentication attempts for each username separately
 tables/accounts [tables/tenants] 2016-04-28T02:59:15Z François Beausoleil <francois@teksol.info> # Chart of accounts, per tenant
-tables/bank_accounts [tables/accounts] 2016-04-29T02:34:50Z François Beausoleil <francois@teksol.info> # Add a way to remember which bank accounts map to which accounts
-tables/bank_account_transactions [tables/bank_accounts] 2016-04-29T02:43:22Z François Beausoleil <francois@teksol.info> # Record actual bank transactions in the system, for later reconciliation
 tables/goals [tables/accounts] 2016-04-30T02:15:00Z François Beausoleil <francois@teksol.info> # Record a company's goals: saving for a new delivery truck or a new fridge
 tables/obligations [tables/accounts] 2016-04-30T02:19:58Z François Beausoleil <francois@teksol.info> # Records obligations that occur periodically (monthly, weekly, etc)
 tables/transactions [tables/tenants] 2016-05-09T03:29:22Z François Beausoleil <francois@teksol.info> # The general ledger: where all transactions are described
 tables/transaction_entries [tables/transactions tables/accounts] 2016-05-09T03:38:07Z François Beausoleil <francois@teksol.info> # Records which accounts were touched by each transaction
+tables/bank_accounts [tables/accounts] 2016-04-29T02:34:50Z François Beausoleil <francois@teksol.info> # Add a way to remember which bank accounts map to which accounts
+tables/bank_account_transactions [tables/bank_accounts tables/transaction_entries] 2016-04-29T02:43:22Z François Beausoleil <francois@teksol.info> # Record actual bank transactions in the system, for later reconciliation
 constraints/all_transactions_balance [tables/transaction_entries] 2016-05-09T03:45:37Z François Beausoleil <francois@teksol.info> # A constraint to ensure all transactions always balance out
 tables/revenues [tables/tenants] 2016-05-23T03:27:51Z François Beausoleil <francois@teksol.info> # Records recurring revenue events to help allocate revenue to accounts
 tables/reconciliations [tables/accounts] 2016-05-26T02:52:30Z François Beausoleil <francois@teksol.info> # Record reconciliation statements

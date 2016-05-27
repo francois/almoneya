@@ -1,6 +1,6 @@
 package almoneya.http
 
-import almoneya.{AccountName, Amount, Description, Payee}
+import almoneya._
 import com.fasterxml.jackson.core.{JsonParseException, JsonParser, JsonToken}
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
@@ -22,6 +22,8 @@ class TransactionFormDeserializer extends StdDeserializer[TransactionForm](class
 
     case object AmountField extends Field
 
+    case object BankAccountTransactionIdField extends Field
+
     override def deserialize(p: JsonParser, ctxt: DeserializationContext): TransactionForm = {
         var payee: Option[Payee] = None
         var description: Option[Description] = None
@@ -29,6 +31,7 @@ class TransactionFormDeserializer extends StdDeserializer[TransactionForm](class
         var entries: Set[TransactionEntryForm] = Set.empty
         var accountName: Option[AccountName] = None
         var amount: Option[Amount] = None
+        var bankAccountTransactionId: Option[BankAccountTransactionId] = None
         var currentField: Option[Field] = None
         var done = false
 
@@ -42,6 +45,7 @@ class TransactionFormDeserializer extends StdDeserializer[TransactionForm](class
                         case "entries" => EntriesField
                         case "account" | "account_name" | "accountName" => AccountNameField
                         case "amount" => AmountField
+                        case "bank_account_transaction_id" => BankAccountTransactionIdField
                         case other =>
                             throw new JsonParseException(p, "Found unknown FIELD named [" + other + "]: cannot continue", p.getCurrentLocation)
 
@@ -55,6 +59,15 @@ class TransactionFormDeserializer extends StdDeserializer[TransactionForm](class
                         case Some(EntriesField) => ()
                         case Some(AccountNameField) => accountName = Some(AccountName(p.getValueAsString))
                         case Some(AmountField) => amount = Some(Amount(BigDecimal(p.getValueAsString)))
+                        case None =>
+                            throw new JsonParseException(p, "Found STRING when no current field", p.getCurrentLocation)
+                    }
+
+                case JsonToken.VALUE_NUMBER_INT =>
+                    currentField match {
+                        case Some(BankAccountTransactionIdField) => bankAccountTransactionId = Some(BankAccountTransactionId(p.getValueAsInt))
+                        case Some(field) =>
+                            throw new JsonParseException(p, "Found unexpected INT value in field [" + field + "]", p.getCurrentLocation)
                         case None =>
                             throw new JsonParseException(p, "Found STRING when no current field", p.getCurrentLocation)
                     }
@@ -79,6 +92,6 @@ class TransactionFormDeserializer extends StdDeserializer[TransactionForm](class
             p.nextToken()
         }
 
-        TransactionForm(payee.get, description, postedOn.get, entries)
+        TransactionForm(payee.get, description, postedOn.get, entries, bankAccountTransactionId)
     }
 }

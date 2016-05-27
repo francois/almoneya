@@ -67,7 +67,7 @@ object ApiServer {
         allocatorController.setHandler(new AllocatorController(JSON.mapper, accountsRepository, goalsRepository, obligationsRepository, revenuesRepository))
 
         val createTransactionController = new ContextHandler("/api/transactions")
-        createTransactionController.setHandler(new CreateTransactionController(JSON.mapper, accountsRepository, transactionsRepository))
+        createTransactionController.setHandler(new CreateTransactionController(JSON.mapper, accountsRepository, transactionsRepository, bankAccountTransactionsRepository))
 
         val reconcileTransactionController = new ContextHandler("/api/reconcile")
         reconcileTransactionController.setHandler(new ReconcileTransactionController(JSON.mapper, reconciliationsRepository))
