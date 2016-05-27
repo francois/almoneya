@@ -18,7 +18,7 @@ BEGIN;
     , updated_at timestamp with time zone not null
 
     , primary key(tenant_id, revenue_name)
-    , foreign key(tenant_id) references tenants
+    , foreign key(tenant_id) references credentials.tenants on update cascade on delete cascade
   );
 
   ALTER TABLE public.revenues OWNER TO almoneya;

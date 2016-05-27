@@ -7,11 +7,14 @@ SET client_min_messages TO 'warning';
 BEGIN;
 
   CREATE TABLE public.users(
-      user_id serial not null primary key
+      tenant_id int not null
+    , user_id serial not null
     , surname text not null check(length(surname) > 0)
     , rest_of_name text
     , created_at timestamp with time zone not null default current_timestamp
     , updated_at timestamp with time zone not null default current_timestamp
+    , primary key(user_id)
+    , foreign key(tenant_id) references credentials.tenants on update cascade on delete cascade
   );
 
   ALTER TABLE public.users OWNER TO almoneya;

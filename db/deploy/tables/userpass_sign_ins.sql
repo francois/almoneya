@@ -12,7 +12,7 @@ BEGIN;
     , created_at timestamp with time zone not null
     , updated_at timestamp with time zone not null
     , primary key(sign_in_id)
-    , foreign key(sign_in_id) references credentials.sign_ins
+    , foreign key(sign_in_id) references credentials.sign_ins on update cascade on delete cascade
   );
 
   ALTER TABLE credentials.userpass_sign_ins OWNER TO almoneya;
