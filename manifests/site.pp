@@ -173,3 +173,56 @@ exec{"download nodejs ${node_version}":
   ensure => link,
   target => "/usr/local/node-v${node_version}-linux-x64/bin/webpack",
 }
+
+service{'postgresql':
+  ensure  => running,
+  enable  => true,
+  require => Package['postgresql-9.4'],
+}
+
+file{'/etc/postgresql/9.4/main/pg_hba.conf':
+  ensure  => file,
+  owner   => postgres,
+  group   => postgres,
+  notify  => Service['postgresql'],
+  content => "# This file is managed by Puppet
+# DO NOT EDIT
+
+# DO NOT DISABLE!
+# Database administrative login by Unix domain socket
+local   all             postgres                                peer
+
+local   all             all                                     peer
+host    all             all             127.0.0.1/32            md5
+host    all             all             ::1/128                 md5
+
+# I'm lazy, this is fine for development
+host    vagrant         vagrant         10.9.1.1/32             trust
+"
+}
+
+file{'/etc/postgresql/9.4/main/postgresql.conf':
+  ensure  => file,
+  owner   => postgres,
+  group   => postgres,
+  notify  => Service['postgresql'],
+  content => "# This file is managed by Puppet
+# DO NOT EDIT
+
+data_directory = '/var/lib/postgresql/9.4/main'
+hba_file = '/etc/postgresql/9.4/main/pg_hba.conf'
+ident_file = '/etc/postgresql/9.4/main/pg_ident.conf'
+external_pid_file = '/var/run/postgresql/9.4-main.pid'
+
+# This exposes the PostgreSQL outside the VirtualBox VM
+listen_addresses = '0.0.0.0'
+port = 5432
+
+max_connections = 20
+unix_socket_directories = '/var/run/postgresql'
+shared_buffers = 128MB
+work_mem = 16MB
+log_line_prefix = '%t [%p-%l] %q%u@%d '
+timezone = 'Etc/UTC'
+"
+}
