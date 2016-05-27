@@ -24,12 +24,14 @@ class RepoLoginService(usersRepository: UsersRepository, signInsRepository: Sign
         val result = Option(super.login(username, credentials, request))
         request match {
             case httpServletRequest: HttpServletRequest =>
-                signInsRepository.create(
-                    SignIn(username = Username(username),
-                        sourceIp = IpAddress(request.getRemoteAddr),
-                        userAgent = UserAgent(Option(httpServletRequest.getHeader("User-Agent")).getOrElse("Unknown")),
-                        method = UserpassSignIn,
-                        successful = result.isDefined))
+                signInsRepository.transaction {
+                    signInsRepository.create(
+                        SignIn(username = Username(username),
+                            sourceIp = IpAddress(request.getRemoteAddr),
+                            userAgent = UserAgent(Option(httpServletRequest.getHeader("User-Agent")).getOrElse("Unknown")),
+                            method = UserpassSignIn,
+                            successful = result.isDefined))
+                }
         }
 
         result match {

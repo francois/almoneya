@@ -18,7 +18,9 @@ class CreateReconciliationController(mapper: ObjectMapper, reconciliationsReposi
             Reconciliation(accountName = accountName, postedOn = postedOn, openingBalance = openingBalance, endingBalance = endingBalance)
         maybeReconciliation match {
             case Some(reconciliation) =>
-                reconciliationsRepository.createReconciliation(tenantId, reconciliation)
+                reconciliationsRepository.transaction {
+                    reconciliationsRepository.createReconciliation(tenantId, reconciliation)
+                }
             case None =>
                 // TODO: implement some kind of validation library
                 Failure(new RuntimeException("Validation error; sorry no nice message to help you out"))

@@ -7,7 +7,7 @@ import scala.util.Try
   *
   * @param executor The object responsible for actually running queries.
   */
-class SignInsRepository(executor: QueryExecutor) {
+class SignInsRepository(val executor: QueryExecutor) extends Repository {
 
     import SignInsRepository.{insertSignInSql, insertUserPassSignInSql}
 

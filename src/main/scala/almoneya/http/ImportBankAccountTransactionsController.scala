@@ -19,7 +19,9 @@ class ImportBankAccountTransactionsController(mapper: ObjectMapper, bankAccountT
             Option(request.getPart("file")) match {
                 case Some(filePart) if TEXT_CSV_RE.findFirstIn(filePart.getContentType).isDefined =>
                     val reader = new InputStreamReader(filePart.getInputStream, Charset.forName("ISO-8859-1"))
-                    importTransactions(tenantId, reader)
+                    bankAccountTransactionsRepo.transaction {
+                        importTransactions(tenantId, reader)
+                    }
 
                 case _ =>
                     Failure(new RuntimeException("When uploading files using multipart/form-data, we expect to find a file part, but we did not find it. Instead, we found the following part names: " + request.getParts.map(_.getName).mkString(", ")))

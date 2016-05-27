@@ -2,25 +2,11 @@ package almoneya
 
 import org.joda.time.{DateTime, LocalDate}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
-class TransactionsRepository(executor: QueryExecutor) {
+class TransactionsRepository(val executor: QueryExecutor) extends Repository {
 
     import TransactionsRepository.{insertTransactionEntriesSql, insertTransactionSql}
-
-    def transaction[A](fn: => Try[A]): Try[A] = {
-        executor.beginTransaction
-        fn match {
-            case success: Success[A] =>
-                executor.commit
-                success
-
-            case failure: Failure[A] =>
-                executor.rollback
-                failure
-        }
-    }
-
 
     def create(tenantId: TenantId, transaction: Transaction): Try[Transaction] = {
         def createTransactionRow(): Try[Transaction] = {

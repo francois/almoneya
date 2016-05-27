@@ -17,7 +17,11 @@ class ReconcileTransactionController(mapper: ObjectMapper, reconciliationsReposi
                               accountName <- Option(request.getParameter("account_name"))) yield
             ReconciliationEntry(transactionId = TransactionId(transactionId), postedOn = new LocalDate(postedOn), accountName = AccountName(accountName))
         maybeEntry match {
-            case Some(entry) => reconciliationsRepository.createEntry(tenantId, entry)
+            case Some(entry) =>
+                reconciliationsRepository.transaction {
+                    reconciliationsRepository.createEntry(tenantId, entry)
+                }
+
             case None =>
                 val missingParams = Set("transaction_id", "posted_on", "account_name") -- request.getParameterNames.toSet
                 if (missingParams.isEmpty) {

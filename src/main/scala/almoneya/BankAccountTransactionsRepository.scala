@@ -4,7 +4,7 @@ import org.joda.time.LocalDate
 
 import scala.util.Try
 
-class BankAccountTransactionsRepository(executor: QueryExecutor) {
+class BankAccountTransactionsRepository(val executor: QueryExecutor) extends Repository {
 
     import BankAccountTransactionsRepository.importBankTransactionSql
 

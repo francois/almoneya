@@ -2,7 +2,7 @@ package almoneya
 
 import scala.util.Try
 
-class ReconciliationsRepository(executor: QueryExecutor) {
+class ReconciliationsRepository(val executor: QueryExecutor) extends Repository {
 
     import ReconciliationsRepository.{INSERT_ENTRY_QUERY, INSERT_RECONCILIATION_QUERY}
 

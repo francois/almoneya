@@ -4,7 +4,7 @@ import org.joda.time.LocalDate
 
 import scala.util.Try
 
-class RevenuesRepository(executor: QueryExecutor) {
+class RevenuesRepository(val executor: QueryExecutor) extends Repository {
 
     import RevenuesRepository.FIND_ALL_QUERY
 

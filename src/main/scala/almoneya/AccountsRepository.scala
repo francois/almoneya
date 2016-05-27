@@ -4,7 +4,7 @@ import org.joda.time.LocalDate
 
 import scala.util.Try
 
-class AccountsRepository(executor: QueryExecutor) {
+class AccountsRepository(val executor: QueryExecutor) extends Repository {
 
     import AccountsRepository.{FIND_ALL_QUERY, FIND_ALL_WITH_BALANCE_QUERY}
 
