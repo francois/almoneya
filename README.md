@@ -21,10 +21,6 @@ vagrant ssh
 cd /vagrant
 bin/bootstrap
 
-# Fix broken openjdk-8-jdk certificates
-# See http://stackoverflow.com/a/29313285/7355
-sudo update-ca-certificates -f
-
 bin/sbt test run
 
 # In another terminal window, run:
