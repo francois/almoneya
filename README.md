@@ -27,7 +27,6 @@ bin/bootstrap
 sudo update-ca-certificates -f
 
 bin/sbt test run
-# Choose almoneya.http.ApiServer
 
 # In another terminal window, run:
 curl --silent --user username:francois http://localhost:8080/api/accounts/ | jq --color-output . | less --RAW-CONTROL-CHARS
