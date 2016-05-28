@@ -8,7 +8,7 @@ import org.eclipse.jetty.security._
 import org.eclipse.jetty.security.authentication.BasicAuthenticator
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
-import org.eclipse.jetty.server.handler.{ContextHandler, ContextHandlerCollection}
+import org.eclipse.jetty.server.handler.{ContextHandler, ContextHandlerCollection, ResourceHandler}
 import org.eclipse.jetty.util.security.Constraint
 import org.slf4j.LoggerFactory
 
@@ -75,8 +75,14 @@ object ApiServer {
         val createReconciliationController = new ContextHandler("/api/reconciliations")
         createReconciliationController.setHandler(new CreateReconciliationController(JSON.mapper, reconciliationsRepository))
 
+        val fileServer = new ContextHandler("/")
+        val fileServerHandler = new ResourceHandler()
+        fileServerHandler.setDirectoriesListed(false)
+        fileServerHandler.setResourceBase("public/")
+        fileServer.setHandler(fileServerHandler)
+
         val contexts = new ContextHandlerCollection()
-        contexts.setHandlers(Array(listAccountsController, importBankAccountsController, allocatorController, createTransactionController, reconcileTransactionController, createReconciliationController))
+        contexts.setHandlers(Array(fileServer, listAccountsController, importBankAccountsController, allocatorController, createTransactionController, reconcileTransactionController, createReconciliationController))
 
         security.setHandler(contexts)
 

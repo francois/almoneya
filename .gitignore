@@ -1,7 +1,9 @@
 /.byebug_history
+/elm-stuff/
 /.idea
-/.vagrant
 /node_modules
 /project/target
 /public/assets
+/public/js/bundle.js
 /target
+/.vagrant

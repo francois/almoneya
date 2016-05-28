@@ -1,26 +1,48 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Almoneya</title>
-</head>
-<body>
-<div id="root" class="row">
-</div>
-<script type="text/javascript">
-window.app = {};
-window.app.accounts = [
-  {"name": "Bank 1", "kind": "asset"},
-  {"name": "Bank 2", "kind": "asset"},
-  {"name": "Bank 3", "kind": "asset"},
-  {"name": "Credit Card 1", "kind": "liability"},
-  {"name": "Mortgage", "kind": "liability"},
-  {"name": "Total Worth", "kind": "equity"},
-  {"name": "Salary", "kind": "revenue"},
-  {"name": "Utilities", "kind": "expense"},
-  {"name": "Cell phone service", "kind": "expense"},
-];
-</script>
-<script type="text/javascript" src="/assets/accounts_list.bundle.js" charset="utf-8"></script>
-</body>
+<html class="no-js" dir="ltr" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Almoneya</title>
+    <link rel="stylesheet" href="/css/foundation.min.css">
+    <link rel="stylesheet" href="/css/app.css">
+  </head>
+  <body>
+    <div class="expanded row">
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <ul class="dropdown menu" data-dropdown-menu>
+            <li class="menu-text">almoneya.com</li>
+            <li>
+              <a href="#">One</a>
+              <ul class="menu vertical">
+                <li><a href="#">One</a></li>
+                <li><a href="#">Two</a></li>
+                <li><a href="#">Three</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Two</a></li>
+            <li><a href="#">Three</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="expanded row">
+      <div class="small-12 columns">
+        <div id="elmapp">
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/vendor/jquery.js"></script>
+    <script src="/js/vendor/what-input.js"></script>
+    <script src="/js/vendor/foundation.js"></script>
+    <script src="/js/bundle.js"></script>
+    <script>
+      var node = document.getElementById("elmapp");
+      var app = Elm.Main.embed(node);
+    </script>
+  </body>
 </html>
