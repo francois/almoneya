@@ -59,6 +59,8 @@ class TransactionFormDeserializer extends StdDeserializer[TransactionForm](class
                         case Some(EntriesField) => ()
                         case Some(AccountNameField) => accountName = Some(AccountName(p.getValueAsString))
                         case Some(AmountField) => amount = Some(Amount(BigDecimal(p.getValueAsString)))
+                        case Some(BankAccountTransactionIdField) =>
+                            throw new JsonParseException(p, "Found STRING value in bank_account_transaction_id field; expected INT value", p.getCurrentLocation)
                         case None =>
                             throw new JsonParseException(p, "Found STRING when no current field", p.getCurrentLocation)
                     }
