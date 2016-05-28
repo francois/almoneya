@@ -146,6 +146,7 @@ file{'/etc/postgresql/9.4/main/pg_hba.conf':
   owner   => postgres,
   group   => postgres,
   notify  => Service['postgresql'],
+  require => Package['postgresql-9.4'],
   content => "# This file is managed by Puppet
 # DO NOT EDIT
 
@@ -167,6 +168,7 @@ file{'/etc/postgresql/9.4/main/postgresql.conf':
   owner   => postgres,
   group   => postgres,
   notify  => Service['postgresql'],
+  require => Package['postgresql-9.4'],
   content => "# This file is managed by Puppet
 # DO NOT EDIT
 
