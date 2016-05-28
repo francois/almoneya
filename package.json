@@ -1,0 +1,20 @@
+{
+  "name": "almoneya",
+  "version": "1.0.0",
+  "description": "## A double-entry accounting system",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "node_modules/.bin/watchman src/main/javascript 'elm make --output public/js/bundle.js $( find src/main/javascript -type f )'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/francoisb/almoneya.git"
+  },
+  "author": "Frnaçois Beausoleil",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/francoisb/almoneya#readme",
+  "devDependencies": {
+    "watchman": "^0.1.8"
+  }
+}
