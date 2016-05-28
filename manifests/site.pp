@@ -8,6 +8,7 @@ package{[
   'git',
   'heroku-toolbelt',
   'htop',
+  'jq',
   'libpq5',
   'libpq-dev',
   'libreadline-dev',
@@ -197,7 +198,7 @@ host    all             all             127.0.0.1/32            md5
 host    all             all             ::1/128                 md5
 
 # I'm lazy, this is fine for development
-host    vagrant         vagrant         10.9.1.1/32             trust
+host    vagrant         vagrant         10.9.1.0/8              trust
 "
 }
 
