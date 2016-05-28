@@ -19,15 +19,8 @@ At the moment, only the API is exposed. To play with the API, run the following 
 vagrant up
 vagrant ssh
 sudo /usr/bin/cpan -i -f -T App::Sqitch DBD::Pg TAP::Parser::SourceHandler::pgTAP
-sudo -u postgres createuser --createdb --superuser vagrant
-sudo -u postgres createdb --owner vagrant --locale en_US.UTF-8 --encoding UTF-8 --template template0 vagrant
 cd /vagrant
-sqitch deploy
-psql --command "INSERT INTO credentials.tenants(tenant_id) VALUES (default)"
-psql --command "INSERT INTO public.users(tenant_id, surname, rest_of_name) VALUES (1, 'Me', NULL)"
-# This BCrypt password hash is "francois"
-psql --command 'INSERT INTO credentials.user_userpass_credentials(user_id, username, password_hash) VALUES (1, '\''username'\'', '\''$2a$10$9mLW3xjnzSl2rYAZfOjyvuYmq31lI8ajZOfRVQn4y9YGCLkJJTxT6'\'')'
-psql --command "INSERT INTO public.accounts(tenant_id, account_name, account_kind) VALUES (1, 'Checking', 'asset')"
+bin/bootstrap
 
 # Fix broken openjdk-8-jdk certificates
 # See http://stackoverflow.com/a/29313285/7355
