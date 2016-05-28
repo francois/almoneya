@@ -18,7 +18,6 @@ At the moment, only the API is exposed. To play with the API, run the following 
 ```
 vagrant up
 vagrant ssh
-sudo /usr/bin/cpan -i -f -T App::Sqitch DBD::Pg TAP::Parser::SourceHandler::pgTAP
 cd /vagrant
 bin/bootstrap
 

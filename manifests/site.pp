@@ -62,6 +62,7 @@ exec{'/usr/bin/git clone git://github.com/francois/dotfiles.git':
 }
 
 exec{'/usr/bin/cpan -i -f -T App::Sqitch DBD::Pg TAP::Parser::SourceHandler::pgTAP':
+  timeout => 1800, # Wait up to 30 minutes for Sqitch and dependencies to install
   creates => '/usr/local/bin/sqitch',
   require => [
     Exec['/usr/bin/apt-get update'],
