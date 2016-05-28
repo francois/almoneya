@@ -33,26 +33,6 @@ package{[
   ensure => absent,
 }
 
-group{'francois':
-  ensure => present,
-}
-
-user{'francois':
-  ensure     => present,
-  gid        => 'francois',
-  groups     => ['sudo'],
-  managehome => true,
-  shell      => '/bin/zsh',
-  require    => Package['zsh']
-}
-
-ssh_authorized_key{'francois@m481':
-  ensure => present,
-  type   => 'ssh-rsa',
-  key    => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQC2VWbsTL59eN/kOcVsps9QeFZQGpFqK6GU9cI/qRA+YUybQahdz+vW38kLyF2kcBPpIHI5lP/WnFL/UWqeHpM1wsOK3pQ8Aw9swV/3OnZ/4pLGkZoof+5fieyDiTe1Gdy2grBCyfEklVQmqLCMvGYix4Ka2IsyYYJu/lAEZk6lC/4ccPU7Gm42oWMjhysNGU6aguePe4xMVfoxVrCy9URzK+f5mQsxtTkdPTSB5aNIM6poCtbbIbrwOuALLvifN9etWdb4UWryIIKERxrJN1sUa77f5g+WN5YOhnJeHC0aLLrScDGMH6B6K+d7L0+4oOlWsCQ0eXQdfD/eqBtm/ZOJ',
-  user   => 'francois',
-}
-
 file{'/usr/local/bin/edb':
   ensure  => file,
   mode    => 0775,
@@ -73,30 +53,18 @@ exec{'/usr/bin/wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.
 File['/etc/apt/sources.list.d/pgdg.list'] -> Exec['/usr/bin/wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | /usr/bin/apt-key add -'] -> Exec['/usr/bin/apt-get update']
 
 exec{'/usr/bin/git clone git://github.com/francois/dotfiles.git':
-  user    => 'francois',
-  cwd     => '/home/francois',
-  creates => '/home/francois/dotfiles/.git',
+  user    => 'vagrant',
+  cwd     => '/home/vagrant',
+  creates => '/home/vagrant/dotfiles/.git',
   require => [
     Package['git'],
-    User['francois'],
-  ],
-}
-
-exec{'use-zsh':
-  command => '/usr/bin/chsh --shell /bin/zsh francois',
-  unless  => '/bin/grep --quiet --extended-regexp "^francois:.*:/bin/zsh$" /etc/passwd',
-  require => [
-    Package['zsh'],
-    User['francois'],
   ],
 }
 
 exec{'/usr/bin/cpan -i -f -T App::Sqitch DBD::Pg TAP::Parser::SourceHandler::pgTAP':
-  user    => 'francois',
   creates => '/usr/local/bin/sqitch',
   require => [
     Exec['/usr/bin/apt-get update'],
-    User['francois'],
   ],
 }
 
@@ -128,14 +96,6 @@ exec{'install pgtap':
   require => [
     Exec['install pgxn client'],
   ],
-}
-
-file{'/home/francois/.config':
-  ensure  => directory,
-  owner   => 'francois',
-  group   => 'francois',
-  mode    => 0700,
-  recurse => true,
 }
 
 file{'/etc/apt/sources.list.d/heroku.list':
