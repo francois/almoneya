@@ -3,9 +3,9 @@ import AccountsTable exposing (AccountsResponse, accountsTable)
 import Debug exposing (crash)
 import Either exposing (..)
 import Html.App as Html
-import Html.Attributes exposing (class, classList, colspan)
+import Html.Attributes exposing (class, classList, colspan, action, enctype, method, type', name)
 import Html.Events exposing (onClick)
-import Html exposing (Html, div, text, table, thead, tr, th, tbody, td, h1, p)
+import Html exposing (Html, div, text, table, thead, tr, th, tbody, td, h1, label, form, input, button)
 import Http exposing (get)
 import List exposing (length)
 import Task exposing (Task)
@@ -31,9 +31,17 @@ update msg model = case msg of
 view : Model -> Html Msg
 view model =
   div [class "row"] [
-    div [class "small-12 medium-6 columns"] [
+    div [class "small-12 large-6 columns"] [
         h1 [] [text "Accounts"]
       , accountsTable model
+    ]
+    , div [class "small-12 large-6 columns show-for-large"] [
+        h1 [] [text "Import Transactions"]
+      , form [method "post", enctype "multipart/form-data", action "/api/bank-account-transactions/import/"] [
+          label [] [
+            input [type' "file", name "file"] []]
+        , button [type' "submit", class "button button-primary"] [ text "Import" ]
+        ]
     ]
   ]
 
