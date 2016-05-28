@@ -14,7 +14,7 @@ class AccountsRepository(val executor: QueryExecutor) extends Repository {
                 code = Option(rs.getString("account_code")).map(AccountCode.apply),
                 name = AccountName(rs.getString("account_name")),
                 kind = kindStringToKind(rs.getString("account_kind")),
-                balance = Some(Amount(0)),
+                balance = Option(rs.getBigDecimal("balance")).map(BigDecimal.apply).map(Amount.apply),
                 virtual = rs.getBoolean("virtual"))
         }
     }.map(_.toSet)
@@ -40,13 +40,14 @@ class AccountsRepository(val executor: QueryExecutor) extends Repository {
 }
 
 object AccountsRepository {
-    val FIND_ALL_WITH_BALANCE_QUERY = Query("SELECT account_code, account_name, account_kind, virtual, account_id, sum(amount) AS balance " +
-            "FROM public.accounts " +
-            "JOIN transaction_entries USING (tenant_id, account_name) " +
-            "JOIN transactions USING (tenant_id, transaction_id) " +
-            "WHERE tenant_id = ? " +
-            "  AND posted_on < ?" +
-            "GROUP BY account_code, account_name, account_kind, account_id")
+    val FIND_ALL_WITH_BALANCE_QUERY = Query("" +
+            "SELECT account_code, account_name, account_kind, virtual, account_id, sum(amount) AS balance " +
+            "FROM        public.accounts " +
+            "  LEFT JOIN public.transaction_entries USING (tenant_id, account_name) " +
+            "  LEFT JOIN public.transactions USING (tenant_id, transaction_id) " +
+            "WHERE tenant_id  = ? " +
+            "  AND (posted_on IS NULL OR posted_on <= ?) " +
+            "GROUP BY account_code, account_name, account_kind, virtual, account_id")
 
     val FIND_ALL_QUERY = Query("SELECT account_code, account_name, account_kind, virtual, account_id FROM public.accounts WHERE tenant_id = ?")
 }
