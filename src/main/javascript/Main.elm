@@ -1,5 +1,5 @@
 import Account exposing (Account, decodeAccountsJson)
-import AccountsTable exposing (accountsTable)
+import AccountsTable exposing (AccountsResponse, accountsTable)
 import Debug exposing (crash)
 import Either exposing (..)
 import Html.App as Html
@@ -12,7 +12,7 @@ import Task exposing (Task)
 
 main = Html.program { init = init, view = view, subscriptions = subscriptions, update = update }
 
-type alias Model = Either.Either String (List Account)
+type alias Model = AccountsResponse
 
 type Msg = FetchFail Http.Error
          | FetchSucceed (List Account)

@@ -1,4 +1,4 @@
-module AccountsTable exposing (accountsTable)
+module AccountsTable exposing (AccountsResponse, accountsTable)
 
 import Account exposing (Account)
 import Either exposing (..)
@@ -7,7 +7,9 @@ import Html.Attributes exposing (class, classList, colspan)
 import Html exposing (Html, div, text, table, thead, tr, th, tbody, td, h1, p)
 import String exposing (toLower)
 
-accountsTable : Either.Either String (List Account) -> Html a
+type alias AccountsResponse = Either.Either String (List Account)
+
+accountsTable : AccountsResponse -> Html a
 accountsTable model =
   table [] [
     thead [] [
