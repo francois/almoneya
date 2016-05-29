@@ -30,7 +30,9 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
     FetchFail error                  -> ({ model | accounts = Left (toString error) }, Cmd.none)
     FetchSucceed accounts            -> ({ model | accounts = Right accounts }, Cmd.none)
-    NewAccountEdit newAccountEditMsg -> ({ model | newAccount = AccountForm.update newAccountEditMsg model.newAccount }, Cmd.none)
+    NewAccountEdit newAccountEditMsg ->
+      let (newAccountModel, saveAccountMsg) = AccountForm.update newAccountEditMsg model.newAccount 
+      in ({ model | newAccount = newAccountModel }, Cmd.map NewAccountEdit saveAccountMsg)
 
 view : Model -> Html Msg
 view model =
