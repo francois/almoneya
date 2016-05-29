@@ -11,15 +11,18 @@ type alias AccountsResponse = Either.Either String (List Account)
 
 accountsTable : AccountsResponse -> Html a
 accountsTable model =
-  table [] [
-    thead [] [
-      tr [] [
-          th [] [ text "Account" ]
-        , th [] [ text "Kind" ]
-        , th [class "amount"] [ text "Balance" ]
+  div [] [
+      h1 [] [text "Accounts"]
+    , table [] [
+      thead [] [
+        tr [] [
+            th [] [ text "Account" ]
+          , th [] [ text "Kind" ]
+          , th [class "amount"] [ text "Balance" ]
+        ]
       ]
+      , tbody [] (accountRows model)
     ]
-    , tbody [] (accountRows model)
   ]
 
 accountRows : Either.Either String (List Account) -> List (Html a)
