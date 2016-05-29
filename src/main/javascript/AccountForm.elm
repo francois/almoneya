@@ -33,18 +33,18 @@ initExisting name kind virtual = { name = name, kind = Just kind, virtual = virt
 update : Msg -> Model -> Model
 update msg model = case msg of
   Name newName     -> { model | name = Debug.log "newName: " newName }
-  Kind newKind     -> { model | kind = stringToKind newKind |> Just |> Debug.log "newKind: " }
+  Kind newKind     -> { model | kind = stringToKind newKind |> Debug.log "newKind: " }
   Virtual newState -> { model | virtual = newState |> Debug.log "newVirtual: " }
 
-stringToKind : String -> AccountKind
+stringToKind : String -> Maybe AccountKind
 stringToKind str = case str of
-  "asset"     -> Asset
-  "liability" -> Liability
-  "equity"    -> Equity
-  "revenue"   -> Revenue
-  "expense"   -> Expense
-  "contra"    -> Contra
-  other       -> "Received unexpected AccountKind String in stringToKind: " ++ other |> Debug.crash
+  "asset"     -> Just Asset
+  "liability" -> Just Liability
+  "equity"    -> Just Equity
+  "revenue"   -> Just Revenue
+  "expense"   -> Just Expense
+  "contra"    -> Just Contra
+  _           -> Nothing
 
 accountFormTitle : Model -> String
 accountFormTitle model = case model.isNew of
