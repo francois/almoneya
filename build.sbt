@@ -24,6 +24,7 @@ libraryDependencies ++= Seq(
     "com.fasterxml.jackson.core"    % "jackson-databind"     % "2.7.4",
     "com.fasterxml.jackson.core"    % "jackson-annotations"  % "2.7.4",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.7.3",
+    "com.wix"                      %% "accord-core"          % "0.5",
     "joda-time"                     % "joda-time"            % "[2.1,3.0[",
     "org.apache.commons"            % "commons-csv"          % "1.2",
     "org.eclipse.jetty"             % "jetty-server"         % "9.3.8.v20160314",
@@ -34,6 +35,7 @@ libraryDependencies ++= Seq(
     "org.postgresql"                % "postgresql"           % "9.4.1208.jre7",
     "org.postgresql"                % "postgresql"           % "9.4.1208.jre7",
 
+    "com.wix"                      %% "accord-scalatest"     % "0.5"          % "test",
     "org.scalacheck"               %% "scalacheck"           % "[1.11.4,2.0[" % "test",
     "org.scalatest"                %% "scalatest"            % "[2.1.6,3.0["  % "test",
     "junit"                         %  "junit"               % "[4.11,5.0["   % "test",

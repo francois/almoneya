@@ -4,6 +4,8 @@ case class Query(querySql: String, returning: Seq[Column] = Seq.empty) {
 
     import Query.REPLACEABLE_RE
 
+    def append(sql: String): Query = copy(querySql = querySql + " " + sql)
+
     def replaceOrAppend(newSql: String): Query = {
         val firstIn = REPLACEABLE_RE.findFirstIn(querySql)
         if (firstIn.isDefined) {

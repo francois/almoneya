@@ -45,6 +45,4 @@ class CreateTransactionController(mapper: ObjectMapper, accountsRepository: Acco
                 Failure(new BadFormatException("This endpoint only accepts application/json"))
         }
     }
-
-    private[this] val log = LoggerFactory.getLogger(classOf[CreateTransactionController])
 }

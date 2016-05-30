@@ -11,6 +11,8 @@ package object almoneya {
 
     implicit def localDate2SqlValue(date: LocalDate): SqlValue = LocalDateSqlValue(date)
 
+    implicit def stringToSqlValue(str: String): SqlValue = BasicStringSqlValue(str)
+
     implicit def option2SqlValue[A <: SqlValue](option: Option[A]): SqlValue = option match {
         case Some(v) => v
         case None => NullSqlValue

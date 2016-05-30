@@ -1,11 +1,13 @@
 module AccountForm exposing (Model, Msg, initNew, initExisting, update, view)
 
-import Account exposing (Account, decodeAccountJson)
+import Account exposing (Account, decodeAccountJson, decodeAccountsJson)
 import Debug
-import Html.Attributes exposing (class, classList, action, enctype, method, type', name, id, value, for, disabled)
+import Html.Attributes exposing (class, classList, action, enctype, method, type', name, id, value, for, disabled, selected)
 import Html.Events exposing (onInput, onCheck, onSubmit)
 import Html exposing (Html, div, text, label, form, input, button, select, option, h1, span)
 import Http
+import Json.Encode
+import String
 import Task
 
 type alias Model =
@@ -31,7 +33,7 @@ type AccountKind  = Asset
                   | Contra
 
 initNew : Model
-initNew = { name = "", kind = Nothing, virtual = False, isNew = True, saving = False }
+initNew = { name = "", kind = Just Asset, virtual = False, isNew = True, saving = False }
 
 initExisting : String -> AccountKind -> Bool -> Model
 initExisting name kind virtual = { name = name, kind = Just kind, virtual = virtual, isNew = False, saving = False }
@@ -41,9 +43,9 @@ update msg model = case msg of
   Name newName     -> ({ model | name = newName }, Cmd.none)
   Kind newKind     -> ({ model | kind = stringToKind newKind }, Cmd.none)
   Virtual newState -> ({ model | virtual = newState }, Cmd.none)
-  Save             -> ( { model | saving = True }, putAccount model )
+  Save             -> ({ model | saving = True }, putAccount model)
   SaveFailed err   ->
-    Debug.crash "Failed to save"
+    Debug.crash (toString err)
     (model, Cmd.none)
   SaveSucceeded _ ->
     (initNew, Cmd.none)
@@ -60,7 +62,7 @@ stringToKind str = case str of
 
 accountFormTitle : Model -> String
 accountFormTitle model = case model.isNew of
-  True -> "New Account"
+  True -> "Create Account"
   False -> "Edit Account"
 
 formClasses : Bool -> List (String, Bool)
@@ -83,12 +85,12 @@ view model = form [ formClasses model.saving |> classList, onSubmit Save ] [
       , label [] [
           text "Kind"
         , select [ onInput Kind, model.saving |> disabled ] [
-              option [ value "asset"     ] [ text "asset" ]
-            , option [ value "liability" ] [ text "liability" ]
-            , option [ value "equity"    ] [ text "equity" ]
-            , option [ value "revenue"   ] [ text "revenue" ]
-            , option [ value "expense"   ] [ text "expense" ]
-            , option [ value "contra"    ] [ text "contra" ]
+              option [ selected (model.kind == Just Asset),     value "asset"     ] [ text "asset" ]
+            , option [ selected (model.kind == Just Liability), value "liability" ] [ text "liability" ]
+            , option [ selected (model.kind == Just Equity),    value "equity"    ] [ text "equity" ]
+            , option [ selected (model.kind == Just Revenue),   value "revenue"   ] [ text "revenue" ]
+            , option [ selected (model.kind == Just Expense),   value "expense"   ] [ text "expense" ]
+            , option [ selected (model.kind == Just Contra),    value "contra"    ] [ text "contra" ]
           ]
         ]
       , input [type' "checkbox", model.saving |> disabled, id "account_virtual", onCheck Virtual] []
@@ -96,15 +98,37 @@ view model = form [ formClasses model.saving |> classList, onSubmit Save ] [
     ]
     , button [ class "button button-primary", model.saving |> disabled ] [
       span [class "icon"] [
-        saveButtonLabel model.saving |> text
+        saveButtonLabel model |> text
       ]
     ]
   ]
 
-saveButtonLabel : Bool -> String
-saveButtonLabel saving = case saving of
-  True  -> "Saving"
-  False -> "Save"
+saveButtonLabel : Model -> String
+saveButtonLabel model = case (model.isNew, model.saving) of
+  (True, False)  -> "Create"
+  (True, True)   -> "Creating"
+  (False, False) -> "Save"
+  (False, True)  -> "Saving"
 
 putAccount : Model -> Cmd Msg
-putAccount model = Debug.log "saving!" Task.perform SaveFailed SaveSucceeded (Http.post decodeAccountJson "/api/accounts/" Http.empty)
+putAccount model = Task.perform SaveFailed SaveSucceeded (Http.post decodeAccountJson "/api/accounts/create" (postAccountBody model))
+
+postAccountBody : Model -> Http.Body
+postAccountBody model = Http.multipart [
+    Http.stringData "name" model.name
+  , Http.stringData "kind" (Debug.log "kindToString = " kindToString (Debug.log "model.kind = " model.kind))
+  , Http.stringData "virtual" (model.virtual |> toString |> String.toLower)
+  ]
+
+kindToString : Maybe AccountKind -> String
+kindToString kind = case kind of
+  Just Asset     -> "asset"
+  Just Liability -> "liability"
+  Just Equity    -> "equity"
+  Just Revenue   -> "revenue"
+  Just Expense   -> "expense"
+  Just Contra    -> "contra"
+  Nothing        -> ""
+
+-- postJSON : Json.Encode.Value -> String -> Task.Task Http.RawError Http.Response
+-- postJSON body url = Task.perform Http.send Http.defaultSettings {}

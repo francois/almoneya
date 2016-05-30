@@ -57,8 +57,8 @@ object ApiServer {
         security.setAuthenticator(new BasicAuthenticator())
         security.setLoginService(loginService)
 
-        val listAccountsController = new ContextHandler("/api/accounts")
-        listAccountsController.setHandler(new ListAccountsController(JSON.mapper, accountsRepository))
+        val accountsController = new ContextHandler("/api/accounts")
+        accountsController.setHandler(new AccountsController(JSON.mapper, accountsRepository))
 
         val importBankAccountsController = new ContextHandler("/api/bank-account-transactions/import")
         importBankAccountsController.setHandler(new ImportBankAccountTransactionsController(JSON.mapper, bankAccountTransactionsRepository))
@@ -82,7 +82,7 @@ object ApiServer {
         fileServer.setHandler(fileServerHandler)
 
         val contexts = new ContextHandlerCollection()
-        contexts.setHandlers(Array(fileServer, listAccountsController, importBankAccountsController, allocatorController, createTransactionController, reconcileTransactionController, createReconciliationController))
+        contexts.setHandlers(Array(fileServer, accountsController, importBankAccountsController, allocatorController, createTransactionController, reconcileTransactionController, createReconciliationController))
 
         security.setHandler(contexts)
 

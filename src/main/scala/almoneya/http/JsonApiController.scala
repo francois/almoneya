@@ -31,6 +31,12 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
                         case Failure(ex: BadFormatException) =>
                             sendErrorResponse(HttpServletResponse.SC_BAD_REQUEST, ex, baseRequest, response)
 
+                        case Failure(ex: NumberFormatException) =>
+                            sendErrorResponse(HttpServletResponse.SC_BAD_REQUEST, ex, baseRequest, response)
+
+                        case Failure(ex: NotFoundException) =>
+                            sendErrorResponse(HttpServletResponse.SC_NOT_FOUND, ex, baseRequest, response)
+
                         case Failure(ex: SQLException) =>
                             sendErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex, baseRequest, response)
 
@@ -51,6 +57,8 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
         }
     }
 
+    def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[A]
+
     private[this] def sendErrorResponse(statusCode: Int, ex: Throwable, baseRequest: Request, response: HttpServletResponse): Unit = {
         response.setStatus(statusCode)
         response.setContentType("application/json;charset=utf-8")
@@ -60,13 +68,11 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
         // Immediately tell the client there was an error, then log
         // This way, clients don't wait for logging to finish before continuing
         response.flushBuffer()
-        log.error("Failed to process request", ex)
+        log.info("Failed to process request", ex)
     }
 
-    def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[A]
-
     private[this] val multiPartConfig = new MultipartConfigElement(System.getProperty("java.io.tmpdir"))
-    private[this] val log = LoggerFactory.getLogger(classOf[JsonApiController[_]])
+    protected val log = LoggerFactory.getLogger(this.getClass)
 }
 
 case class Results[A](data: A)
@@ -74,3 +80,5 @@ case class Results[A](data: A)
 case class Errors(errors: Seq[String])
 
 class BadFormatException(message: String) extends RuntimeException(message)
+
+class NotFoundException(message: String) extends RuntimeException(message)
