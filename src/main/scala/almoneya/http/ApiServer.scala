@@ -64,6 +64,7 @@ object ApiServer {
         fileServer.setHandler(fileServerHandler)
 
         val router = Router(Seq(
+            Route("""/accounts/search""".r, methods = Set(Route.GET), controller = new SearchAccountsController(accountsRepository)),
             Route("""/accounts""".r, methods = Set(Route.GET), controller = new ListAccountsController(accountsRepository)),
             Route("""/accounts""".r, methods = Set(Route.POST), controller = new CreateAccountController(accountsRepository))
         ))
