@@ -13,7 +13,6 @@ import org.eclipse.jetty.util.security.Credential
 import org.slf4j.{LoggerFactory, MDC}
 
 import scala.collection.JavaConversions._
-import scala.util.{Failure, Success}
 
 class RepoLoginService(usersRepository: UsersRepository, signInsRepository: SignInsRepository) extends MappedLoginService {
     override def login(username: String, credentials: scala.Any, request: ServletRequest): UserIdentity = {
@@ -54,29 +53,21 @@ class RepoLoginService(usersRepository: UsersRepository, signInsRepository: Sign
     override def loadUserInfo(userIdentifier: String): KnownUser = {
         val username = Username(userIdentifier)
         usersRepository.findCredentialsByUsername(username) match {
-            case Success(Some(userPassCredentials)) =>
+            case Some(userPassCredentials) =>
                 new AlmoneyaKnownUser(userIdentifier, BasicCredentials(userPassCredentials))
 
-            case Success(None) => null // no user with this usernmae
-
-            case Failure(ex) =>
-                log.error("Failed to talk to database while attempting to authenticate", ex)
-                throw ex
+            case None => null // no user with this usernmae
         }
     }
 
     override def loadUser(userIdentifier: String): UserIdentity = {
         val username = Username(userIdentifier)
         usersRepository.findCredentialsByUsername(username) match {
-            case Success(Some(userPassCredentials)) =>
+            case Some(userPassCredentials) =>
                 val subject = new Subject(true, Set(userPassCredentials), Set.empty[AnyRef], Set.empty[AnyRef])
                 new DefaultUserIdentity(subject, userPassCredentials, Array[String]("user"))
 
-            case Success(None) => null // no user with this usernmae
-
-            case Failure(ex) =>
-                log.error("Failed to talk to database while attempting to authenticate", ex)
-                throw ex
+            case None => null // no user with this usernmae
         }
     }
 

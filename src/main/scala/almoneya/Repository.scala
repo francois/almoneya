@@ -1,20 +1,17 @@
 package almoneya
 
-import scala.util.{Failure, Success, Try}
-
 trait Repository {
     def executor: QueryExecutor
 
-    def transaction[A](fn: => Try[A]): Try[A] = {
-        executor.beginTransaction
-        fn match {
-            case success: Success[A] =>
-                executor.commit
-                success
-
-            case failure: Failure[A] =>
-                executor.rollback
-                failure
+    def transaction[A](fn: => A): A = {
+        executor.beginTransaction()
+        try {
+            val results = fn
+            executor.commit()
+            results
+        } catch {
+            case ex: Throwable => executor.rollback()
+                throw ex
         }
     }
 }

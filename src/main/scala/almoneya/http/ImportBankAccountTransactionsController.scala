@@ -10,10 +10,9 @@ import org.apache.commons.csv.CSVFormat
 import org.eclipse.jetty.server.Request
 
 import scala.collection.JavaConversions._
-import scala.util.{Failure, Try}
 
 class ImportBankAccountTransactionsController(mapper: ObjectMapper, bankAccountTransactionsRepo: BankAccountTransactionsRepository) extends JsonApiController[Seq[BankAccountTransaction]](mapper) {
-    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[Seq[BankAccountTransaction]] = {
+    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Seq[BankAccountTransaction] = {
         val hasContentType = Option(request.getContentType).isDefined
         if (hasContentType && request.getContentType.startsWith("multipart/form-data")) {
             Option(request.getPart("file")) match {
@@ -24,21 +23,21 @@ class ImportBankAccountTransactionsController(mapper: ObjectMapper, bankAccountT
                     }
 
                 case _ =>
-                    Failure(new RuntimeException("When uploading files using multipart/form-data, we expect to find a file part, but we did not find it. Instead, we found the following part names: " + request.getParts.map(_.getName).mkString(", ")))
+                    throw new RuntimeException("When uploading files using multipart/form-data, we expect to find a file part, but we did not find it. Instead, we found the following part names: " + request.getParts.map(_.getName).mkString(", "))
             }
         } else if (hasContentType && TEXT_CSV_RE.findFirstIn(request.getContentType).isDefined) {
             importTransactions(tenantId, request.getReader)
         } else {
-            Failure(new RuntimeException("Expected to find text/csv or multipart/form-data Content-Type but found " + Option(request.getContentType).getOrElse("[NULL]")))
+            throw new RuntimeException("Expected to find text/csv or multipart/form-data Content-Type but found " + Option(request.getContentType).getOrElse("[NULL]"))
         }
     }
 
-    def importTransactions(tenantId: TenantId, reader: Reader): Try[Seq[BankAccountTransaction]] = {
+    def importTransactions(tenantId: TenantId, reader: Reader): Seq[BankAccountTransaction] = {
         val parser = CSVFormat.EXCEL.parse(reader)
         val rows = parser.getRecords
         val parsed = rows.map(row => (0 until row.size()).map(idx => row.get(idx))).toSeq
         parseToBankAccountTransactions(parsed) match {
-            case Left(ex) => Failure(ex)
+            case Left(ex) => throw ex
             case Right(transactions) =>
                 bankAccountTransactionsRepo.importBankTransactionsTransactions(tenantId, transactions)
         }

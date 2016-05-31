@@ -9,7 +9,7 @@ import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
 import org.slf4j.MDC
 
-import scala.util.{Failure, Success}
+import scala.util.{Try, Failure, Success}
 
 class FrontController(val router: Router,
                       val mapper: ObjectMapper) extends AbstractHandler {
@@ -37,7 +37,7 @@ class FrontController(val router: Router,
         val tenantId = Option(request.getAttribute(ApiServer.TenantIdAttribute)).map(id => id.asInstanceOf[TenantId])
         maybeRoute match {
             case Some(route) if tenantId.isDefined =>
-                val (status, results) = route.execute(tenantId.get, baseRequest, request) match {
+                val (status, results) = Try(route.execute(tenantId.get, baseRequest, request)) match {
                     case Success(Right(theResults)) =>
                         (HttpServletResponse.SC_OK, Results(theResults))
 

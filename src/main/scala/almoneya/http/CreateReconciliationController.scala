@@ -7,10 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
 
-import scala.util.{Failure, Try}
-
 class CreateReconciliationController(mapper: ObjectMapper, reconciliationsRepository: ReconciliationsRepository) extends JsonApiController[Reconciliation](mapper) {
-    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[Reconciliation] = {
+    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Reconciliation = {
         val maybeReconciliation = for (accountName <- Option(request.getParameter("account_name")).map(AccountName.apply);
                                        postedOn <- Option(request.getParameter("posted_on")).map(new LocalDate(_));
                                        openingBalance <- Option(request.getParameter("opening_balance")).map(BigDecimal.apply).map(Amount.apply);
@@ -23,7 +21,7 @@ class CreateReconciliationController(mapper: ObjectMapper, reconciliationsReposi
                 }
             case None =>
                 // TODO: implement some kind of validation library
-                Failure(new RuntimeException("Validation error; sorry no nice message to help you out"))
+                throw new RuntimeException("Validation error; sorry no nice message to help you out")
         }
     }
 }

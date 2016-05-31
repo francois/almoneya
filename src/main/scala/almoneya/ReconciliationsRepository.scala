@@ -6,13 +6,13 @@ class ReconciliationsRepository(val executor: QueryExecutor) extends Repository 
 
     import ReconciliationsRepository.{INSERT_ENTRY_QUERY, INSERT_RECONCILIATION_QUERY}
 
-    def createReconciliation(tenantId: TenantId, reconciliation: Reconciliation): Try[Reconciliation] = {
+    def createReconciliation(tenantId: TenantId, reconciliation: Reconciliation): Reconciliation = {
         executor.insertOne(INSERT_RECONCILIATION_QUERY, tenantId, reconciliation.accountName, reconciliation.postedOn, reconciliation.openingBalance, reconciliation.endingBalance, reconciliation.notes) { rs =>
             reconciliation.copy(id = Some(ReconciliationId(rs.getInt("reconciliation_id"))))
         }
     }
 
-    def createEntry(tenantId: TenantId, entry: ReconciliationEntry): Try[ReconciliationEntry] = {
+    def createEntry(tenantId: TenantId, entry: ReconciliationEntry): ReconciliationEntry = {
         executor.insertOne(INSERT_ENTRY_QUERY, tenantId, entry.transactionId, entry.accountName, entry.postedOn) { rs =>
             entry.copy(id = Some(ReconciliationEntryId(rs.getInt("reconciliation_entry_id"))))
         }

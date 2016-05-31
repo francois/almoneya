@@ -1,7 +1,5 @@
 package almoneya
 
-import scala.util.Try
-
 /**
   * Repository and mapper for SignIn objects.
   *
@@ -11,17 +9,17 @@ class SignInsRepository(val executor: QueryExecutor) extends Repository {
 
     import SignInsRepository.{insertSignInSql, insertUserPassSignInSql}
 
-    def create(signIn: SignIn): Try[SignIn] = {
-        executor.insertOne(insertSignInSql, signIn.sourceIp, signIn.userAgent, signIn.method, signIn.successful) { rs =>
+    def create(signIn: SignIn): SignIn = {
+        val basicSignIn = executor.insertOne(insertSignInSql, signIn.sourceIp, signIn.userAgent, signIn.method, signIn.successful) { rs =>
             signIn.copy(id = Some(SignInId(rs.getInt("sign_in_id"))),
                 sourceIp = IpAddress(rs.getString("source_ip")),
                 userAgent = UserAgent(rs.getString("user_agent")),
                 method = SignInMethod.fromString(rs.getString("method")).get, // the database constraints guarantee that the value is correct
                 successful = rs.getBoolean("successful"))
-        }.flatMap { basicSignIn =>
-            executor.insertOne(insertUserPassSignInSql, basicSignIn.id.get, signIn.username) { rs =>
-                basicSignIn.copy(username = Username(rs.getString("username")))
-            }
+        }
+
+        executor.insertOne(insertUserPassSignInSql, basicSignIn.id.get, signIn.username) { rs =>
+            basicSignIn.copy(username = Username(rs.getString("username")))
         }
     }
 }

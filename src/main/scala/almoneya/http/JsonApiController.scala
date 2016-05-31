@@ -6,7 +6,7 @@ import javax.servlet.MultipartConfigElement
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import almoneya.TenantId
-import almoneya.http.FrontController.{Results, Errors}
+import almoneya.http.FrontController.Errors
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
@@ -23,7 +23,7 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
 
             Option(request.getAttribute(ApiServer.TenantIdAttribute)) match {
                 case Some(tenantId: TenantId) =>
-                    process(tenantId, baseRequest, request) match {
+                    Try(process(tenantId, baseRequest, request)) match {
                         case Success(result) =>
                             response.setContentType("application/json;charset=utf-8")
                             mapper.writeValue(response.getOutputStream, FrontController.Results(result))
@@ -58,7 +58,7 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
         }
     }
 
-    def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[A]
+    def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): A
 
     private[this] def sendErrorResponse(statusCode: Int, ex: Throwable, baseRequest: Request, response: HttpServletResponse): Unit = {
         response.setStatus(statusCode)

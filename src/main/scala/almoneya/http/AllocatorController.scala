@@ -8,49 +8,44 @@ import almoneya.{Revenue => DRevenue, _}
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
-import org.slf4j.LoggerFactory
-
-import scala.util.{Failure, Try}
 
 class AllocatorController(private[this] val mapper: ObjectMapper,
                           private[this] val accountsRepository: AccountsRepository,
                           private[this] val goalsRepository: GoalsRepository,
                           private[this] val obligationsRepository: ObligationsRepository,
                           private[this] val revenuesRepository: RevenuesRepository) extends JsonApiController[Seq[Allocation]](mapper) {
-    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[Seq[Allocation]] = {
+    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Seq[Allocation] = {
         val maybePaidOn = Option(request.getParameter("paid_on")).map(new LocalDate(_))
         val maybeRevenueAmount = Option(request.getParameter("amount")).map(BigDecimal.apply).map(Amount.apply)
         val autofulfillThreshold = Option(request.getParameter("auto_fulfill_threshold")).map(BigDecimal.apply).map(Amount.apply).getOrElse(Amount(100))
 
+        // TODO: Replace excpetions with form validation
+        if (maybePaidOn.isEmpty && maybeRevenueAmount.isEmpty) throw new RuntimeException("Missing paid_on and amount parameters")
+        if (maybePaidOn.isEmpty) throw new RuntimeException("Missing paid_on parameter")
+        if (maybeRevenueAmount.isEmpty) throw new RuntimeException("Missing amount parameter")
+
         val results = for (paidOn <- maybePaidOn; amountReceived <- maybeRevenueAmount) yield {
-            val maybeGoals = goalsRepository.findAll(tenantId)
-            val maybeObligations = obligationsRepository.findAll(tenantId)
-            val maybeEnvelopes = accountsRepository.findAllWithBalance(tenantId, paidOn)
-            val maybeRevenues = revenuesRepository.findAll(tenantId)
-            for (goals <- maybeGoals; obligations <- maybeObligations; envelopes <- maybeEnvelopes; revenues <- maybeRevenues) yield {
-                val fixedDateGoals = goals.map(goalToFundingGoal)
-                val recurringGoals = obligations.flatMap(obligationToFundingGoal(paidOn))
-                val fundingGoals = fixedDateGoals ++ recurringGoals
+            val goals = goalsRepository.findAll(tenantId)
+            val obligations = obligationsRepository.findAll(tenantId)
+            val envelopes = accountsRepository.findAllWithBalance(tenantId, paidOn)
+            val revenues = revenuesRepository.findAll(tenantId)
+            val fixedDateGoals = goals.map(goalToFundingGoal)
+            val recurringGoals = obligations.map(obligationToFundingGoal(paidOn)).flatten
+            val fundingGoals = fixedDateGoals ++ recurringGoals
 
-                val allocator = RevenueAllocator(fundingGoals, revenues = revenues.flatMap(domainRevenueToAutomationRevenue(paidOn)), autoFulfillThreshold = autofulfillThreshold)
+            val allocator = RevenueAllocator(fundingGoals, revenues = revenues.map(domainRevenueToAutomationRevenue(paidOn)).flatten, autoFulfillThreshold = autofulfillThreshold)
 
-                val startAllocationAt = System.nanoTime()
-                val plan = allocator.generatePlan(paidOn, amountReceived)
-                val endAllocationAt = System.nanoTime()
-                if (log.isInfoEnabled()) {
-                    log.info("Allocated revenue in {} ms", "%.3f".format((endAllocationAt - startAllocationAt).toDouble / TimeUnit.MILLISECONDS.toNanos(1)))
-                }
-
-                plan
+            val startAllocationAt = System.nanoTime()
+            val plan = allocator.generatePlan(paidOn, amountReceived)
+            val endAllocationAt = System.nanoTime()
+            if (log.isInfoEnabled()) {
+                log.info("Allocated revenue in {} ms", "%.3f".format((endAllocationAt - startAllocationAt).toDouble / TimeUnit.MILLISECONDS.toNanos(1)))
             }
+
+            plan
         }
 
-        results match {
-            case None if maybePaidOn.isEmpty && maybeRevenueAmount.isEmpty => Failure(new RuntimeException("Missing paid_on and amount parameters"))
-            case None if maybePaidOn.isEmpty => Failure(new RuntimeException("Missing paid_on parameter"))
-            case None if maybeRevenueAmount.isEmpty => Failure(new RuntimeException("Missing amount parameter"))
-            case Some(result) => result
-        }
+        results.get
     }
 
     private[this] def domainRevenueToAutomationRevenue(paidOn: LocalDate)(revenue: DRevenue): Option[ARevenue] =

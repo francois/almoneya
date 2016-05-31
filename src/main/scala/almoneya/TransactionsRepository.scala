@@ -2,14 +2,12 @@ package almoneya
 
 import org.joda.time.{DateTime, LocalDate}
 
-import scala.util.Try
-
 class TransactionsRepository(val executor: QueryExecutor) extends Repository {
 
     import TransactionsRepository.{insertTransactionEntriesSql, insertTransactionSql}
 
-    def create(tenantId: TenantId, transaction: Transaction): Try[Transaction] = {
-        def createTransactionRow(): Try[Transaction] = {
+    def create(tenantId: TenantId, transaction: Transaction): Transaction = {
+        def createTransactionRow(): Transaction = {
             executor.insertOne(insertTransactionSql, tenantId, transaction.postedOn, transaction.payee, transaction.description) { rs =>
                 transaction.copy(
                     transactionId = Some(TransactionId(rs.getInt("transaction_id"))),
@@ -20,7 +18,7 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
             }
         }
 
-        def createTransactionEntriesRows(transactionId: TransactionId): Try[Seq[TransactionEntry]] = {
+        def createTransactionEntriesRows(transactionId: TransactionId): Seq[TransactionEntry] = {
             val entries = transaction.entries.map(entry => Seq[SqlValue](tenantId, transactionId, entry.accountName, entry.amount)).toSeq
             executor.insertMany(insertTransactionEntriesSql, entries) { rs =>
                 TransactionEntry(
@@ -30,9 +28,9 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
             }
         }
 
-        for (newTransaction <- createTransactionRow();
-             newEntries <- createTransactionEntriesRows(newTransaction.transactionId.get)) yield
-            newTransaction.copy(entries = newEntries.toSet)
+        val newTransaction = createTransactionRow()
+        val newEntries = createTransactionEntriesRows(newTransaction.transactionId.get)
+        newTransaction.copy(entries = newEntries.toSet)
     }
 }
 

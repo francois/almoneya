@@ -8,7 +8,7 @@ class ObligationsRepository(val executor: QueryExecutor) extends Repository {
 
     import ObligationsRepository.FIND_ALL_QUERY
 
-    def findAll(tenantId: TenantId): Try[Set[Obligation]] = {
+    def findAll(tenantId: TenantId): Set[Obligation] = {
         executor.findAll(FIND_ALL_QUERY, tenantId) { rs =>
             val account = Account(id = Some(AccountId(rs.getInt("account_id"))), name = AccountName(rs.getString("account_name")), kind = AccountKind.fromString(rs.getString("account_kind")), virtual = rs.getBoolean("virtual"))
             Obligation(id = Some(ObligationId(rs.getInt("obligation_id"))),
@@ -26,7 +26,7 @@ class ObligationsRepository(val executor: QueryExecutor) extends Repository {
                     case "year" => Yearly
                 }
             )
-        }.map(_.toSet)
+        }.toSet
     }
 }
 

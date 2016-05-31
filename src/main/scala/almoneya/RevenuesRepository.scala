@@ -8,7 +8,7 @@ class RevenuesRepository(val executor: QueryExecutor) extends Repository {
 
     import RevenuesRepository.FIND_ALL_QUERY
 
-    def findAll(tenantId: TenantId): Try[Set[Revenue]] =
+    def findAll(tenantId: TenantId): Set[Revenue] =
         executor.findAll(FIND_ALL_QUERY, tenantId) { rs =>
             Revenue(id = Some(RevenueId(rs.getInt("revenue_id"))),
                 name = RevenueName(rs.getString("revenue_name")),
@@ -22,7 +22,7 @@ class RevenuesRepository(val executor: QueryExecutor) extends Repository {
                     case "month" => Monthly
                     case "year" => Yearly
                 })
-        }.map(_.toSet)
+        }.toSet
 }
 
 object RevenuesRepository {

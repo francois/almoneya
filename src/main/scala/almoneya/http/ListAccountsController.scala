@@ -21,14 +21,14 @@ case class ListAccountsController(accountsRepository: AccountsRepository) extend
         }
     }
 
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[Either[Set[Violation], AnyRef]] = Try {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Set[Violation], AnyRef] = {
         val form = ListAccountsForm(Option(request.getParameter("balance_an")))
         validate(form) match {
             case AccordSuccess =>
                 val balanceOn = form.balanceOn.map(new LocalDate(_)).getOrElse(new LocalDate())
-                accountsRepository.findAllWithBalance(tenantId, balanceOn).map(Right.apply)
+                Right(accountsRepository.findAllWithBalance(tenantId, balanceOn))
 
-            case AccordFailure(violations) => ScalaSuccess(Left(violations))
+            case AccordFailure(violations) => Left(violations)
         }
-    }.flatten
+    }
 }

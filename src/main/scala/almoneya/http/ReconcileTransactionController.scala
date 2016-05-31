@@ -8,10 +8,9 @@ import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
 
 import scala.collection.JavaConversions._
-import scala.util.{Failure, Try}
 
 class ReconcileTransactionController(mapper: ObjectMapper, reconciliationsRepository: ReconciliationsRepository) extends JsonApiController[ReconciliationEntry](mapper) {
-    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[ReconciliationEntry] = {
+    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): ReconciliationEntry = {
         val maybeEntry = for (transactionId <- Option(request.getParameter("transaction_id")).map(_.toInt);
                               postedOn <- Option(request.getParameter("posted_on"));
                               accountName <- Option(request.getParameter("account_name"))) yield
@@ -26,9 +25,9 @@ class ReconcileTransactionController(mapper: ObjectMapper, reconciliationsReposi
                 val missingParams = Set("transaction_id", "posted_on", "account_name") -- request.getParameterNames.toSet
                 if (missingParams.isEmpty) {
                     // all parameteres are accounted for, thus the problem is transaction_id that couldn't be parsed as an Int
-                    Failure(new RuntimeException("Parameter transaction_id could not be parsed as an Int, found [" + request.getParameter("transaction_id") + "]"))
+                    throw new RuntimeException("Parameter transaction_id could not be parsed as an Int, found [" + request.getParameter("transaction_id") + "]")
                 } else {
-                    Failure(new RuntimeException("Missing parameters: " + missingParams.mkString(", ")))
+                    throw new RuntimeException("Missing parameters: " + missingParams.mkString(", "))
                 }
         }
     }

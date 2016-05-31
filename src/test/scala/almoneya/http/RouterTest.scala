@@ -74,4 +74,10 @@ class RouteTest extends FlatSpec {
         val route = Route("""^/accounts""".r, Set(Route.GET))
         assert(route.accepts("/accounts", Route.GET))
     }
+
+    it must "anchor the regexp on it's own even if not specified in the Regexp" in {
+        val route = Route("""/accounts""".r, Set(Route.GET))
+        assert(route.accepts("/accounts", Route.GET))
+        assert(!route.accepts("/api/accounts", Route.GET))
+    }
 }

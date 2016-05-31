@@ -4,27 +4,22 @@ import java.sql.ResultSet
 
 import org.joda.time.LocalDate
 
-import scala.util.Try
-
 class AccountsRepository(val executor: QueryExecutor) extends Repository {
 
     import AccountsRepository.{FIND_ALL_QUERY, FIND_ALL_WITH_BALANCE_QUERY, INSERT_ONE_QUERY}
 
-    def findAllWithBalance(tenantId: TenantId, balanceOn: LocalDate): Try[Set[Account]] =
-        executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balanceOn)(resultSetRowToAccountWithBalance)
-                .map(_.toSet)
+    def findAllWithBalance(tenantId: TenantId, balanceOn: LocalDate): Set[Account] =
+        executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balanceOn)(resultSetRowToAccountWithBalance).toSet
 
-    def findAll(tenantId: TenantId): Try[Set[Account]] =
-        executor.findAll(FIND_ALL_QUERY, tenantId)(resultSetRowToAccountWithoutBalance)
-                .map(_.toSet)
+    def findAll(tenantId: TenantId): Set[Account] =
+        executor.findAll(FIND_ALL_QUERY, tenantId)(resultSetRowToAccountWithoutBalance).toSet
 
-    def create(tenantId: TenantId, account: Account): Try[Account] =
-        executor.findOne(INSERT_ONE_QUERY, tenantId, account.code, account.name, account.kind, account.virtual)(resultSetRowToAccountWithoutBalance).map(_.get)
+    def create(tenantId: TenantId, account: Account): Account =
+        executor.findOne(INSERT_ONE_QUERY, tenantId, account.code, account.name, account.kind, account.virtual)(resultSetRowToAccountWithoutBalance).get
 
 
-    def search(tenantId: TenantId, query: String): Try[Set[Account]] =
-        executor.findAll(FIND_ALL_QUERY.append("AND account_name ilike ?"), tenantId, "%" + query + "%")(resultSetRowToAccountWithoutBalance)
-                .map(_.toSet)
+    def search(tenantId: TenantId, query: String): Set[Account] =
+        executor.findAll(FIND_ALL_QUERY.append("AND account_name ilike ?"), tenantId, "%" + query + "%")(resultSetRowToAccountWithoutBalance).toSet
 
     private[this] def resultSetRowToAccountWithBalance(rs: ResultSet): Account =
         Account(id = Some(AccountId(rs.getInt("account_id"))),

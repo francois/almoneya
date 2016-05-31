@@ -11,7 +11,7 @@ class UsersRepository(val executor: QueryExecutor) extends Repository {
 
     import UsersRepository.{findByIdSql, findCredentialsByUsernameQuery}
 
-    def findById(id: UserId): Try[Option[User]] = {
+    def findById(id: UserId): Option[User] = {
         executor.findOne(findByIdSql, id) { rs =>
             User(Some(UserId(rs.getInt("user_id"))),
                 TenantId(rs.getInt("tenant_id")),
@@ -20,7 +20,7 @@ class UsersRepository(val executor: QueryExecutor) extends Repository {
         }
     }
 
-    def findCredentialsByUsername(username: Username): Try[Option[UserPassCredentials]] = {
+    def findCredentialsByUsername(username: Username): Option[UserPassCredentials] = {
         executor.findOne(findCredentialsByUsernameQuery, username) { rs =>
             UserPassCredentials(userId = Some(UserId(rs.getInt("user_id"))),
                 tenantId = TenantId(rs.getInt("tenant_id")),
