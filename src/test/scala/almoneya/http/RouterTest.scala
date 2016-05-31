@@ -2,11 +2,13 @@ package almoneya.http
 
 import org.scalatest.FlatSpec
 
+import scala.collection.SortedSet
+
 class RouterTest extends FlatSpec {
     behavior of "An empty Router"
 
     it must "fail to match any path" in {
-        val router = Router(Seq.empty)
+        val router = Router(SortedSet.empty)
         assert(router.route("/").isEmpty)
         assert(router.route("/a").isEmpty)
     }
@@ -14,13 +16,13 @@ class RouterTest extends FlatSpec {
     behavior of "A Router with one route to /accounts/list"
 
     it must "fail to match /list" in {
-        val router = Router(Seq(Route("""^/accounts/list""".r)))
+        val router = Router(SortedSet(Route("""^/accounts/list""".r)))
         assert(router.route("/list").isEmpty)
     }
 
     it must "match /accounts/list" in {
         val route = Route("""^/accounts/list""".r)
-        val router = Router(Seq(route))
+        val router = Router(SortedSet(route))
         assert(router.route("/accounts/list").contains(route))
     }
 
@@ -29,14 +31,14 @@ class RouterTest extends FlatSpec {
     it must "match /accounts/list and return the correct route" in {
         val list = Route("""^/accounts/list""".r)
         val create = Route("""^/accounts/create""".r)
-        val router = Router(Seq(list, create))
+        val router = Router(SortedSet(list, create))
         assert(router.route("/accounts/list").contains(list))
     }
 
     it must "match /accounts/create and return the correct route" in {
         val list = Route("""^/accounts/list""".r)
         val create = Route("""^/accounts/create""".r)
-        val router = Router(Seq(list, create))
+        val router = Router(SortedSet(list, create))
         assert(router.route("/accounts/create").contains(create))
     }
 
@@ -45,15 +47,27 @@ class RouterTest extends FlatSpec {
     it must "match GET /accounts to the correct route" in {
         val list = Route("""^/accounts""".r, Set(Route.GET))
         val create = Route("""^/accounts""".r, Set(Route.POST))
-        val router = Router(Seq(list, create))
+        val router = Router(SortedSet(list, create))
         assert(router.route("/accounts", Route.GET).contains(list))
     }
 
     it must "match POST /accounts to the correct route" in {
         val list = Route("""^/accounts""".r, Set(Route.GET))
         val create = Route("""^/accounts""".r, Set(Route.POST))
-        val router = Router(Seq(list, create))
+        val router = Router(SortedSet(list, create))
         assert(router.route("/accounts", Route.POST).contains(create))
+    }
+
+    it must "match longer routes first, even when passed out-of-order" in {
+        val list = Route("""/accounts""".r, Set(Route.GET))
+        val search = Route("""/accounts/search""".r, Set(Route.GET))
+        val routerLS = Router(SortedSet(list, search))
+        assert(routerLS.route("/accounts/search").contains(search))
+        assert(routerLS.route("/accounts").contains(list))
+
+        val routerSL = Router(SortedSet(list, search))
+        assert(routerSL.route("/accounts/search").contains(search))
+        assert(routerSL.route("/accounts").contains(list))
     }
 }
 

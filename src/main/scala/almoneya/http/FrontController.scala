@@ -7,9 +7,9 @@ import almoneya.TenantId
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
-import org.slf4j.MDC
+import org.slf4j.{LoggerFactory, MDC}
 
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class FrontController(val router: Router,
                       val mapper: ObjectMapper) extends AbstractHandler {
@@ -72,6 +72,9 @@ class FrontController(val router: Router,
                 .filter(_.startsWith("multipart/form-data"))
                 .foreach(_ => baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, multiPartConfig))
     }
+
+    private[this] val log = LoggerFactory.getLogger(this.getClass)
+    log.info("Front Controller Ready: {} routes defined", router.numberOfRoutes)
 }
 
 object FrontController {

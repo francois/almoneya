@@ -12,6 +12,7 @@ import org.eclipse.jetty.server.handler.{ContextHandler, ContextHandlerCollectio
 import org.eclipse.jetty.util.security.Constraint
 import org.slf4j.LoggerFactory
 
+import scala.collection.SortedSet
 import scala.language.higherKinds
 
 object ApiServer {
@@ -63,10 +64,10 @@ object ApiServer {
         fileServerHandler.setResourceBase("public/")
         fileServer.setHandler(fileServerHandler)
 
-        val router = Router(Seq(
-            Route("""/accounts/search""".r, methods = Set(Route.GET), controller = new SearchAccountsController(accountsRepository)),
+        val router = Router(SortedSet(
             Route("""/accounts""".r, methods = Set(Route.GET), controller = new ListAccountsController(accountsRepository)),
-            Route("""/accounts""".r, methods = Set(Route.POST), controller = new CreateAccountController(accountsRepository))
+            Route("""/accounts""".r, methods = Set(Route.POST), controller = new CreateAccountController(accountsRepository)),
+            Route("""/accounts/search""".r, methods = Set(Route.GET), controller = new SearchAccountsController(accountsRepository))
         ))
         val frontController = new ContextHandler("/api")
         frontController.setHandler(new FrontController(router, JSON.mapper))
