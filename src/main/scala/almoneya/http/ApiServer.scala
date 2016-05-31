@@ -86,6 +86,12 @@ object ApiServer {
 
         security.setHandler(contexts)
 
+
+        val router = Router(Seq(
+            Route("""^/accounts""".r,controller=new ListAccountsController(accountsRepository))
+        ))
+        new FrontController(router,JSON.mapper)
+
         server.start()
         server.join()
     }

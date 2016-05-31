@@ -12,7 +12,6 @@ import org.slf4j.MDC
 import scala.util.{Failure, Success}
 
 class FrontController(val router: Router,
-                      val controllers: Map[Route, Controller],
                       val mapper: ObjectMapper) extends AbstractHandler {
 
     import FrontController.{Errors, Results, multiPartConfig}
@@ -21,11 +20,10 @@ class FrontController(val router: Router,
         try {
             activeMultipartHandlingIfRequestIsMultipart(baseRequest)
 
-            val maybeController = for (method <- Route.methodToHttpMethod(request.getMethod);
-                                       route <- router.route(request.getPathInfo, method);
-                                       controller <- controllers.get(route)) yield controller
+            val route = for (method <- Route.methodToHttpMethod(request.getMethod);
+                             route <- router.route(request.getPathInfo, method)) yield route
 
-            sendResponse(maybeController, baseRequest, request, response)
+            sendResponse(route, baseRequest, request, response)
         } finally {
             // These are not the FrontController's concerns, but due to the API design of
             // the security subsystem in the HttpServlet spec, we have to do it here. The
@@ -35,16 +33,16 @@ class FrontController(val router: Router,
         }
     }
 
-    private[this] def sendResponse(maybeController: Option[Controller], baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    private[this] def sendResponse(maybeRoute: Option[Route], baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse): Unit = {
         val tenantId = Option(request.getAttribute(ApiServer.TenantIdAttribute)).map(id => TenantId(id.asInstanceOf[Int]))
-        maybeController match {
-            case Some(controller) if tenantId.isDefined =>
-                val (status, results) = controller.handle(tenantId.get, baseRequest, request) match {
+        maybeRoute match {
+            case Some(route) if tenantId.isDefined =>
+                val (status, results) = route.execute(tenantId.get, baseRequest, request) match {
                     case Success(Right(theResults)) =>
                         (HttpServletResponse.SC_OK, Results(theResults))
 
                     case Success(Left(violations)) =>
-                        val messages = violations.violations.map(violation => violation.description.map(_ + " ").getOrElse("") + violation.constraint)
+                        val messages = violations.map(violation => violation.description.map(_ + " ").getOrElse("") + violation.constraint)
                         (HttpServletResponse.SC_BAD_REQUEST, Errors(messages))
 
                     case Failure(ex) =>
