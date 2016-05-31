@@ -57,40 +57,22 @@ object ApiServer {
         security.setAuthenticator(new BasicAuthenticator())
         security.setLoginService(loginService)
 
-        val accountsController = new ContextHandler("/api/accounts")
-        accountsController.setHandler(new AccountsController(JSON.mapper, accountsRepository))
-
-        val importBankAccountsController = new ContextHandler("/api/bank-account-transactions/import")
-        importBankAccountsController.setHandler(new ImportBankAccountTransactionsController(JSON.mapper, bankAccountTransactionsRepository))
-
-        val allocatorController = new ContextHandler("/api/allocator/run")
-        allocatorController.setHandler(new AllocatorController(JSON.mapper, accountsRepository, goalsRepository, obligationsRepository, revenuesRepository))
-
-        val createTransactionController = new ContextHandler("/api/transactions")
-        createTransactionController.setHandler(new CreateTransactionController(JSON.mapper, accountsRepository, transactionsRepository, bankAccountTransactionsRepository))
-
-        val reconcileTransactionController = new ContextHandler("/api/reconcile")
-        reconcileTransactionController.setHandler(new ReconcileTransactionController(JSON.mapper, reconciliationsRepository))
-
-        val createReconciliationController = new ContextHandler("/api/reconciliations")
-        createReconciliationController.setHandler(new CreateReconciliationController(JSON.mapper, reconciliationsRepository))
-
         val fileServer = new ContextHandler("/")
         val fileServerHandler = new ResourceHandler()
         fileServerHandler.setDirectoriesListed(false)
         fileServerHandler.setResourceBase("public/")
         fileServer.setHandler(fileServerHandler)
 
+        val router = Router(Seq(
+            Route("""^/accounts""".r, controller = new ListAccountsController(accountsRepository))
+        ))
+        val frontController = new ContextHandler("/api")
+        frontController.setHandler(new FrontController(router, JSON.mapper))
+
         val contexts = new ContextHandlerCollection()
-        contexts.setHandlers(Array(fileServer, accountsController, importBankAccountsController, allocatorController, createTransactionController, reconcileTransactionController, createReconciliationController))
+        contexts.setHandlers(Array(fileServer, frontController))
 
         security.setHandler(contexts)
-
-
-        val router = Router(Seq(
-            Route("""^/accounts""".r,controller=new ListAccountsController(accountsRepository))
-        ))
-        new FrontController(router,JSON.mapper)
 
         server.start()
         server.join()

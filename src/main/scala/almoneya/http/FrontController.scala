@@ -34,7 +34,7 @@ class FrontController(val router: Router,
     }
 
     private[this] def sendResponse(maybeRoute: Option[Route], baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse): Unit = {
-        val tenantId = Option(request.getAttribute(ApiServer.TenantIdAttribute)).map(id => TenantId(id.asInstanceOf[Int]))
+        val tenantId = Option(request.getAttribute(ApiServer.TenantIdAttribute)).map(id => id.asInstanceOf[TenantId])
         maybeRoute match {
             case Some(route) if tenantId.isDefined =>
                 val (status, results) = route.execute(tenantId.get, baseRequest, request) match {

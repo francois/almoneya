@@ -10,8 +10,8 @@ class AccountsRepository(val executor: QueryExecutor) extends Repository {
 
     import AccountsRepository.{FIND_ALL_QUERY, FIND_ALL_WITH_BALANCE_QUERY, INSERT_ONE_QUERY}
 
-    def findAllWithBalance(tenantId: TenantId, balance_on: LocalDate): Try[Set[Account]] =
-        executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balance_on)(resultSetRowToAccountWithBalance)
+    def findAllWithBalance(tenantId: TenantId, balanceOn: LocalDate): Try[Set[Account]] =
+        executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balanceOn)(resultSetRowToAccountWithBalance)
                 .map(_.toSet)
 
     def findAll(tenantId: TenantId): Try[Set[Account]] =

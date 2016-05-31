@@ -7,7 +7,7 @@ import com.wix.accord.{Failure => AccordFailure, Success => AccordSuccess, Viola
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
 
-import scala.util.{ Success => ScalaSuccess, Try}
+import scala.util.{Success => ScalaSuccess, Try}
 
 case class ListAccountsController(accountsRepository: AccountsRepository) extends Controller {
 
@@ -21,13 +21,14 @@ case class ListAccountsController(accountsRepository: AccountsRepository) extend
         }
     }
 
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[Either[Set[Violation], AnyRef]] = {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Try[Either[Set[Violation], AnyRef]] = Try {
         val form = ListAccountsForm(Option(request.getParameter("balance_an")))
         validate(form) match {
             case AccordSuccess =>
-                accountsRepository.findAllWithBalance(tenantId, new LocalDate(form.balanceOn.get)).map(Right.apply)
+                val balanceOn = form.balanceOn.map(new LocalDate(_)).getOrElse(new LocalDate())
+                accountsRepository.findAllWithBalance(tenantId, balanceOn).map(Right.apply)
 
             case AccordFailure(violations) => ScalaSuccess(Left(violations))
         }
-    }
+    }.flatten
 }
