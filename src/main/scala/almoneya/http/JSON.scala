@@ -2,6 +2,7 @@ package almoneya.http
 
 import almoneya._
 import almoneya.automation.{Allocation, FundingGoal}
+import almoneya.http.FrontController.Results
 import com.fasterxml.jackson.core.{JsonFactory, JsonGenerator}
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}

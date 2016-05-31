@@ -1,5 +1,6 @@
 package almoneya.http
 
+import almoneya.http.FrontController.Results
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
 

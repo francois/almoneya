@@ -6,6 +6,7 @@ import javax.servlet.MultipartConfigElement
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import almoneya.TenantId
+import almoneya.http.FrontController.{Results, Errors}
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
@@ -25,7 +26,7 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
                     process(tenantId, baseRequest, request) match {
                         case Success(result) =>
                             response.setContentType("application/json;charset=utf-8")
-                            mapper.writeValue(response.getOutputStream, Results(result))
+                            mapper.writeValue(response.getOutputStream, FrontController.Results(result))
                             baseRequest.setHandled(true)
 
                         case Failure(ex: BadFormatException) =>
@@ -74,10 +75,6 @@ abstract class JsonApiController[A](private[this] val mapper: ObjectMapper) exte
     private[this] val multiPartConfig = new MultipartConfigElement(System.getProperty("java.io.tmpdir"))
     protected val log = LoggerFactory.getLogger(this.getClass)
 }
-
-case class Results[A](data: A)
-
-case class Errors(errors: Seq[String])
 
 class BadFormatException(message: String) extends RuntimeException(message)
 
