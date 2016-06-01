@@ -68,7 +68,8 @@ object ApiServer {
             Route("""/accounts""".r, methods = Set(Route.GET), controller = new ListAccountsController(accountsRepository)),
             Route("""/accounts""".r, methods = Set(Route.POST), controller = new CreateAccountController(accountsRepository)),
             Route("""/accounts/search""".r, methods = Set(Route.GET), controller = new SearchAccountsController(accountsRepository)),
-            Route("""/allocations/build""".r, methods = Set(Route.GET), controller = new BuildAllocationController(accountsRepository, goalsRepository, obligationsRepository, revenuesRepository))
+            Route("""/allocations/build""".r, methods = Set(Route.GET), controller = new BuildAllocationController(accountsRepository, goalsRepository, obligationsRepository, revenuesRepository)),
+            Route("""/bank-account-transactions/import""".r, methods = Set(Route.POST), controller = new ImportBankAccountTransactionsController(bankAccountTransactionsRepository))
         ))
         val frontController = new ContextHandler("/api")
         frontController.setHandler(new FrontController(router, JSON.mapper))

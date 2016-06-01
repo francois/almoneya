@@ -69,15 +69,25 @@ object Route {
         case _ => None
     }
 
-    sealed trait HttpMethod
+    sealed trait HttpMethod {
+        def name: String
+    }
 
-    case object GET extends HttpMethod
+    case object GET extends HttpMethod {
+        override def name: String = "GET"
+    }
 
-    case object POST extends HttpMethod
+    case object POST extends HttpMethod {
+        override def name: String = "POST"
+    }
 
-    case object PATCH extends HttpMethod
+    case object PATCH extends HttpMethod {
+        override def name: String = "PATCH"
+    }
 
-    case object DELETE extends HttpMethod
+    case object DELETE extends HttpMethod {
+        override def name: String = "DELETE"
+    }
 
     val ALL_HTTP_METHODS: Set[HttpMethod] = Set(GET, POST, PATCH, DELETE)
 }

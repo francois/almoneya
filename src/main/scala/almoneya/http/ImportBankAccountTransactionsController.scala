@@ -5,30 +5,30 @@ import java.nio.charset.Charset
 import javax.servlet.http.HttpServletRequest
 
 import almoneya._
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.wix.accord.{RuleViolation, Violation}
 import org.apache.commons.csv.CSVFormat
 import org.eclipse.jetty.server.Request
 
 import scala.collection.JavaConversions._
 
-class ImportBankAccountTransactionsController(mapper: ObjectMapper, bankAccountTransactionsRepo: BankAccountTransactionsRepository) extends JsonApiController[Seq[BankAccountTransaction]](mapper) {
-    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Seq[BankAccountTransaction] = {
+class ImportBankAccountTransactionsController(bankAccountTransactionsRepo: BankAccountTransactionsRepository) extends Controller {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
         val hasContentType = Option(request.getContentType).isDefined
         if (hasContentType && request.getContentType.startsWith("multipart/form-data")) {
             Option(request.getPart("file")) match {
                 case Some(filePart) if TEXT_CSV_RE.findFirstIn(filePart.getContentType).isDefined =>
                     val reader = new InputStreamReader(filePart.getInputStream, Charset.forName("ISO-8859-1"))
                     bankAccountTransactionsRepo.transaction {
-                        importTransactions(tenantId, reader)
+                        Right(importTransactions(tenantId, reader))
                     }
 
                 case _ =>
-                    throw new RuntimeException("When uploading files using multipart/form-data, we expect to find a file part, but we did not find it. Instead, we found the following part names: " + request.getParts.map(_.getName).mkString(", "))
+                    Left(Set(RuleViolation(null, "When uploading files using multipart/form-data, we expect to find a file part, but we did not find it. Instead, we found the following part names: " + request.getParts.map(_.getName).mkString(", "), None)))
             }
         } else if (hasContentType && TEXT_CSV_RE.findFirstIn(request.getContentType).isDefined) {
-            importTransactions(tenantId, request.getReader)
+            Right(importTransactions(tenantId, request.getReader))
         } else {
-            throw new RuntimeException("Expected to find text/csv or multipart/form-data Content-Type but found " + Option(request.getContentType).getOrElse("[NULL]"))
+            Left(Set(RuleViolation(null, "Expected to find text/csv or multipart/form-data Content-Type but found " + Option(request.getContentType).getOrElse("[NULL]"), None)))
         }
     }
 

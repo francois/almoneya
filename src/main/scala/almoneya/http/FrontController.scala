@@ -75,6 +75,9 @@ class FrontController(val router: Router,
 
     private[this] val log = LoggerFactory.getLogger(this.getClass)
     log.info("Front Controller Ready: {} routes defined", router.numberOfRoutes)
+    router.routes.foreach { route =>
+        route.methods.foreach(method => log.debug("{}", "%-8s %s".format(method.name, route.path)))
+    }
 }
 
 object FrontController {
