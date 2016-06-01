@@ -7,7 +7,7 @@ import com.wix.accord._
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
 
-class ReconcileTransactionController(reconciliationsRepository: ReconciliationsRepository, accountsRepository: AccountsRepository) extends Controller {
+class ReconcileTransactionController(reconciliationsRepository: ReconciliationsRepository, accountsRepository: AccountsRepository, transactionsRepository: TransactionsRepository) extends Controller {
 
     import com.wix.accord.dsl._
 
@@ -23,7 +23,7 @@ class ReconcileTransactionController(reconciliationsRepository: ReconciliationsR
         implicit val reconcileTransactionFormValidator = validator[ReconcileTransactionForm] { form =>
             form.transactionId is notEmpty
             form.transactionId.each is notEmpty
-            form.transactionId.each is matchRegexFully(TransactionId.VALID_RE)
+            form.transactionId.each is valid(TransactionIdValidatorBuilder(form.tenantId, transactionsRepository).build)
 
             form.postedOn is notEmpty
             form.postedOn.each is notEmpty

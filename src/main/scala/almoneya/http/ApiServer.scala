@@ -72,7 +72,7 @@ object ApiServer {
             Route("""/bank-account-transactions/import""".r, methods = Set(Route.POST), controller = new ImportBankAccountTransactionsController(bankAccountTransactionsRepository)),
             Route("""/transactions""".r, methods = Set(Route.POST), controller = new CreateTransactionController(JSON.mapper, accountsRepository, transactionsRepository, bankAccountTransactionsRepository)),
             Route("""/reconciliations""".r, methods = Set(Route.POST), controller = new CreateReconciliationController(reconciliationsRepository)),
-            Route("""/transactions/reconcile""".r, methods = Set(Route.POST), controller = new ReconcileTransactionController(reconciliationsRepository, accountsRepository))
+            Route("""/transactions/reconcile""".r, methods = Set(Route.POST), controller = new ReconcileTransactionController(reconciliationsRepository, accountsRepository, transactionsRepository))
         ))
 
         val frontController = new ContextHandler("/api")

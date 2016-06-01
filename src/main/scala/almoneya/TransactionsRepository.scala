@@ -6,6 +6,11 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
 
     import TransactionsRepository.{insertTransactionEntriesSql, insertTransactionSql}
 
+    def exists(tenantId: TenantId, transactionId: TransactionId) =
+        executor.findOne(Query("SELECT transaction_id FROM public.transactions WHERE tenant_id = ? AND transaction_id = ?"), tenantId, transactionId) { rs =>
+            TransactionId(rs.getInt("transaction_id"))
+        }.isDefined
+
     def create(tenantId: TenantId, transaction: Transaction): Transaction = {
         def createTransactionRow(): Transaction = {
             executor.insertOne(insertTransactionSql, tenantId, transaction.postedOn, transaction.payee, transaction.description) { rs =>
