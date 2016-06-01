@@ -3,25 +3,49 @@ package almoneya.http
 import javax.servlet.http.HttpServletRequest
 
 import almoneya._
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.wix.accord.{Failure, Success, Violation, validate}
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
 
-class CreateReconciliationController(mapper: ObjectMapper, reconciliationsRepository: ReconciliationsRepository) extends JsonApiController[Reconciliation](mapper) {
-    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Reconciliation = {
-        val maybeReconciliation = for (accountName <- Option(request.getParameter("account_name")).map(AccountName.apply);
-                                       postedOn <- Option(request.getParameter("posted_on")).map(new LocalDate(_));
-                                       openingBalance <- Option(request.getParameter("opening_balance")).map(BigDecimal.apply).map(Amount.apply);
-                                       endingBalance <- Option(request.getParameter("ending_balance")).map(BigDecimal.apply).map(Amount.apply)) yield
-            Reconciliation(accountName = accountName, postedOn = postedOn, openingBalance = openingBalance, endingBalance = endingBalance)
-        maybeReconciliation match {
-            case Some(reconciliation) =>
+class CreateReconciliationController(reconciliationsRepository: ReconciliationsRepository) extends Controller {
+
+    import com.wix.accord.dsl._
+
+    case class ReconciliationForm(accountName: Option[String], postedOn: Option[String], openingBalance: Option[String], endingBalance: Option[String]) {
+        def toReconciliation: Reconciliation =
+            Reconciliation(
+                accountName = accountName.map(AccountName.apply).get,
+                postedOn = postedOn.map(new LocalDate(_)).get,
+                openingBalance = openingBalance.map(BigDecimal.apply).map(Amount.apply).get,
+                endingBalance = endingBalance.map(BigDecimal.apply).map(Amount.apply).get)
+    }
+
+    object ReconciliationForm {
+        implicit val reconciliationFormValidator = validator[ReconciliationForm] { form =>
+            form.accountName is notEmpty 
+            form.accountName.each is notEmpty
+            form.postedOn is notEmpty
+            form.postedOn.each is notEmpty
+            form.openingBalance is notEmpty
+            form.openingBalance.each is notEmpty
+            form.endingBalance is notEmpty
+            form.endingBalance.each is notEmpty
+        }
+    }
+
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
+        val form = ReconciliationForm(
+            Option(request.getParameter("account_name")),
+            Option(request.getParameter("posted_on")),
+            Option(request.getParameter("opening_balance")),
+            Option(request.getParameter("ending_balance")))
+        validate(form) match {
+            case Success =>
                 reconciliationsRepository.transaction {
-                    reconciliationsRepository.createReconciliation(tenantId, reconciliation)
+                    Right(reconciliationsRepository.createReconciliation(tenantId, form.toReconciliation))
                 }
-            case None =>
-                // TODO: implement some kind of validation library
-                throw new RuntimeException("Validation error; sorry no nice message to help you out")
+
+            case Failure(violations) => Left(violations)
         }
     }
 }

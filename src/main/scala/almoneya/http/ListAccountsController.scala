@@ -2,7 +2,7 @@ package almoneya.http
 
 import javax.servlet.http.HttpServletRequest
 
-import almoneya.{AccountsRepository, TenantId}
+import almoneya.{LocalDateEx, AccountsRepository, TenantId}
 import com.wix.accord.{Failure => AccordFailure, Success => AccordSuccess, Violation, validate}
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
@@ -17,7 +17,7 @@ case class ListAccountsController(accountsRepository: AccountsRepository) extend
 
     object ListAccountsForm {
         implicit val listAccountsFormValidator = validator[ListAccountsForm] { form =>
-            (form.balanceOn is empty) or (form.balanceOn.each is matchRegexFully("""\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[0-1])"""))
+            (form.balanceOn is empty) or (form.balanceOn.each is matchRegexFully(LocalDateEx.VALID_RE))
         }
     }
 

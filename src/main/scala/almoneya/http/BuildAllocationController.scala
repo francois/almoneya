@@ -22,9 +22,9 @@ class BuildAllocationController(accountsRepository: AccountsRepository, goalsRep
     object AllocationForm {
         implicit val allocationFormValidator = validator[AllocationForm] { form =>
             form.paidOn is notEmpty
-            form.paidOn.each is matchRegexFully("""\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[0-1])""")
+            form.paidOn.each is matchRegexFully(LocalDateEx.VALID_RE)
             form.amount is notEmpty
-            form.amount.each is matchRegexFully("""\d+(?:\.\d+)?""".r)
+            form.amount.each is matchRegexFully(Amount.VALID_RE)
             (form.autoFulfillThreshold is empty) or ((form.autoFulfillThreshold is notEmpty) and (form.autoFulfillThreshold.each is notEmpty) and (form.autoFulfillThreshold.each is matchRegexFully("""\d+(?:\.\d+)?""".r)))
         }
     }

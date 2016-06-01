@@ -1,5 +1,7 @@
 package almoneya.http
 
+import almoneya.Amount
+
 case class TransactionEntryForm(accountName: Option[String],
                                 amount: Option[String])
 
@@ -13,6 +15,6 @@ object TransactionEntryForm {
 
         form.amount is notEmpty
         form.amount.each is notEmpty
-        form.amount.each is matchRegexFully("""-?\d+(?:\.\d+)?""".r)
+        form.amount.each is matchRegexFully(Amount.VALID_RE)
     }
 }

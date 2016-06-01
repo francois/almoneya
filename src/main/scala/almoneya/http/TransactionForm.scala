@@ -30,7 +30,7 @@ object TransactionForm {
         form.payee.each is notEmpty
 
         form.postedOn is notEmpty
-        form.postedOn.each is matchRegexFully("""\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[0-1])""")
+        form.postedOn.each is matchRegexFully(LocalDateEx.VALID_RE)
 
         (form.bankAccountTransactionId is empty) or ((form.bankAccountTransactionId is notEmpty) and (form.bankAccountTransactionId.each is matchRegexFully("""\d+""".r)))
 
