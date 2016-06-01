@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import almoneya.TenantId
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.wix.accord.{GroupViolation, RuleViolation, Violation}
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
 import org.slf4j.{LoggerFactory, MDC}
@@ -42,7 +43,7 @@ class FrontController(val router: Router,
                         (HttpServletResponse.SC_OK, Results(theResults))
 
                     case Success(Left(violations)) =>
-                        val messages = violations.map(violation => violation.description.map(_ + " ").getOrElse("") + violation.constraint)
+                        val messages = violations.foldLeft(Set.empty[String])((memo, violation) => violationToErrorMessage(violation, memo))
                         (HttpServletResponse.SC_BAD_REQUEST, Errors(messages))
 
                     case Failure(ex) =>
@@ -59,6 +60,20 @@ class FrontController(val router: Router,
 
             case _ => () // Something went wrong, so we let someone else handle the eventual 404
         }
+    }
+
+    private[this] def violationToErrorMessage(violation: Violation, accumulator: Set[String]): Set[String] = violation match {
+        case RuleViolation(value, constraint, Some(description)) =>
+            accumulator + "%s %s".format(description, constraint)
+
+        case RuleViolation(value, constraint, None) =>
+            accumulator + constraint
+
+        case GroupViolation(value, constraint, Some(description), children) =>
+            children.foldLeft(accumulator)((memo, violation) => violationToErrorMessage(violation, memo))
+
+        case GroupViolation(value, constraint, None, children) =>
+            children.foldLeft(accumulator)((memo, violation) => violationToErrorMessage(violation, memo))
     }
 
     private[this] def cleanupLoggingContext(): Unit = {

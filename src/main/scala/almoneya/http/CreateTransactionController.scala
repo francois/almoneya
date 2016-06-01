@@ -4,34 +4,40 @@ import javax.servlet.http.HttpServletRequest
 
 import almoneya._
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.wix.accord._
 import org.eclipse.jetty.server.Request
 
-class CreateTransactionController(mapper: ObjectMapper, accountsRepository: AccountsRepository, transactionsRepository: TransactionsRepository, bankAccountTransactionsRepository: BankAccountTransactionsRepository) extends JsonApiController[Transaction](mapper) {
-    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Transaction = {
-        request.getContentType match {
-            case "application/json" =>
+class CreateTransactionController(val mapper: ObjectMapper,
+                                  val accountsRepository: AccountsRepository,
+                                  val transactionsRepository: TransactionsRepository,
+                                  val bankAccountTransactionsRepository: BankAccountTransactionsRepository) extends Controller {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
+        Option(request.getContentType) match {
+            case Some("application/json") =>
                 val transactionForm = mapper.readValue(request.getInputStream, classOf[TransactionForm])
-                val accounts = accountsRepository.findAll(tenantId)
-                val newEntries: Set[TransactionEntry] = transactionForm.entries.map(entry => accounts.find(_.name == entry.accountName).map(account => TransactionEntry(account = account, amount = entry.amount))).flatten
-                if (newEntries.size == transactionForm.entries.size) {
-                    val newTransaction = Transaction(payee = transactionForm.payee, description = transactionForm.description, postedOn = transactionForm.postedOn, entries = newEntries)
+                validate(transactionForm) match {
+                    case Success =>
+                        val accounts = accountsRepository.findAll(tenantId)
+                        val newTransaction = transactionForm.toTransaction(accounts)
+                        if (newTransaction.entries.size == transactionForm.entries.size) {
+                            transactionsRepository.transaction {
+                                val txn = transactionsRepository.create(tenantId, newTransaction)
+                                transactionForm.bankAccountTransactionId.foreach { id =>
+                                    bankAccountTransactionsRepository.linkBankAccountTransactionToTransactionEntry(tenantId, BankAccountTransactionId(id.toInt), txn.transactionId.get)
+                                }
 
-                    transactionsRepository.transaction {
-                        val txn = transactionsRepository.create(tenantId, transaction = newTransaction)
-                        transactionForm.bankAccountTransactionId.foreach { id =>
-                            bankAccountTransactionsRepository.linkBankAccountTransactionToTransactionEntry(tenantId, id, txn.transactionId.get)
+                                Right(txn)
+                            }
+                        } else {
+                            val missingNames = transactionForm.entries.flatMap(_.accountName) -- newTransaction.entries.map(_.accountName.name)
+                            Left(missingNames.map(name => RuleViolation(name, "could not identify account", Some("account_name"))))
                         }
 
-                        txn
-                    }
-                } else {
-                    val missingNames = transactionForm.entries.map(_.accountName) -- newEntries.map(_.accountName)
-                    throw new RuntimeException("Account name(s) " + missingNames + " were not found")
+                    case Failure(violations) => Left(violations)
                 }
 
             case contentType =>
-                log.warn("Failed to receive ")
-                throw new BadFormatException("This endpoint only accepts application/json")
+                Left(Set(RuleViolation(contentType, "must be application/json", Some("Content-Type"))))
         }
     }
 }
