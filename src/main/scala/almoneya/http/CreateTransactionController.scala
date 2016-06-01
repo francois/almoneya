@@ -29,7 +29,7 @@ class CreateTransactionController(val mapper: ObjectMapper,
                                 Right(txn)
                             }
                         } else {
-                            val missingNames = transactionForm.entries.flatMap(_.accountName) -- newTransaction.entries.map(_.accountName.name)
+                            val missingNames = transactionForm.entries.flatMap(_.accountName) -- newTransaction.entries.map(_.accountName.value)
                             Left(missingNames.map(name => RuleViolation(name, "could not identify account", Some("account_name"))))
                         }
 

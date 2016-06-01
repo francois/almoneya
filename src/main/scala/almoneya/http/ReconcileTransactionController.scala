@@ -3,15 +3,15 @@ package almoneya.http
 import javax.servlet.http.HttpServletRequest
 
 import almoneya._
-import com.wix.accord.{Failure, Success, Violation, validate}
+import com.wix.accord._
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
 
-class ReconcileTransactionController(reconciliationsRepository: ReconciliationsRepository) extends Controller {
+class ReconcileTransactionController(reconciliationsRepository: ReconciliationsRepository, accountsRepository: AccountsRepository) extends Controller {
 
     import com.wix.accord.dsl._
 
-    case class ReconcileTransactionForm(transactionId: Option[String], postedOn: Option[String], accountName: Option[String]) {
+    case class ReconcileTransactionForm(tenantId: TenantId, transactionId: Option[String], postedOn: Option[String], accountName: Option[String]) {
         def toReconciliationEntry =
             ReconciliationEntry(
                 transactionId = TransactionId(transactionId.get.toInt),
@@ -31,11 +31,13 @@ class ReconcileTransactionController(reconciliationsRepository: ReconciliationsR
 
             form.accountName is notEmpty
             form.accountName.each is notEmpty
+            form.accountName.each is valid(AccountNameValidatorBuilder(form.tenantId, accountsRepository).build)
         }
     }
 
     override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
-        val form = ReconcileTransactionForm(Option(request.getParameter("transaction_id")),
+        val form = ReconcileTransactionForm(tenantId,
+            Option(request.getParameter("transaction_id")),
             Option(request.getParameter("posted_on")),
             Option(request.getParameter("account_name")))
         validate(form) match {

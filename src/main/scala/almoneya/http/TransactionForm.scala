@@ -16,7 +16,7 @@ case class TransactionForm(payee: Option[String],
     }
 
     def buildEntries(accounts: Set[Account]): Set[TransactionEntry] = entries.map { entry =>
-        TransactionEntry(account = accounts.find(_.name.name == entry.accountName.get).get,
+        TransactionEntry(account = accounts.find(_.name.value == entry.accountName.get).get,
             amount = Amount(BigDecimal(entry.amount.get)))
     }
 }
