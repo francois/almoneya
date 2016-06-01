@@ -22,7 +22,7 @@ class CreateReconciliationController(reconciliationsRepository: ReconciliationsR
 
     object ReconciliationForm {
         implicit val reconciliationFormValidator = validator[ReconciliationForm] { form =>
-            form.accountName is notEmpty 
+            form.accountName is notEmpty
             form.accountName.each is notEmpty
             form.postedOn is notEmpty
             form.postedOn.each is notEmpty

@@ -3,32 +3,48 @@ package almoneya.http
 import javax.servlet.http.HttpServletRequest
 
 import almoneya._
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.wix.accord.{Failure, Success, Violation, validate}
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
 
-import scala.collection.JavaConversions._
+class ReconcileTransactionController(reconciliationsRepository: ReconciliationsRepository) extends Controller {
 
-class ReconcileTransactionController(mapper: ObjectMapper, reconciliationsRepository: ReconciliationsRepository) extends JsonApiController[ReconciliationEntry](mapper) {
-    override def process(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): ReconciliationEntry = {
-        val maybeEntry = for (transactionId <- Option(request.getParameter("transaction_id")).map(_.toInt);
-                              postedOn <- Option(request.getParameter("posted_on"));
-                              accountName <- Option(request.getParameter("account_name"))) yield
-            ReconciliationEntry(transactionId = TransactionId(transactionId), postedOn = new LocalDate(postedOn), accountName = AccountName(accountName))
-        maybeEntry match {
-            case Some(entry) =>
+    import com.wix.accord.dsl._
+
+    case class ReconcileTransactionForm(transactionId: Option[String], postedOn: Option[String], accountName: Option[String]) {
+        def toReconciliationEntry =
+            ReconciliationEntry(
+                transactionId = TransactionId(transactionId.get.toInt),
+                postedOn = new LocalDate(postedOn.get),
+                accountName = AccountName(accountName.get))
+    }
+
+    object ReconcileTransactionForm {
+        implicit val reconcileTransactionFormValidator = validator[ReconcileTransactionForm] { form =>
+            form.transactionId is notEmpty
+            form.transactionId.each is notEmpty
+            form.transactionId.each is matchRegexFully(TransactionId.VALID_RE)
+
+            form.postedOn is notEmpty
+            form.postedOn.each is notEmpty
+            form.postedOn.each is matchRegexFully(LocalDateEx.VALID_RE)
+
+            form.accountName is notEmpty
+            form.accountName.each is notEmpty
+        }
+    }
+
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
+        val form = ReconcileTransactionForm(Option(request.getParameter("transaction_id")),
+            Option(request.getParameter("posted_on")),
+            Option(request.getParameter("account_name")))
+        validate(form) match {
+            case Success =>
                 reconciliationsRepository.transaction {
-                    reconciliationsRepository.createEntry(tenantId, entry)
+                    Right(reconciliationsRepository.createEntry(tenantId, form.toReconciliationEntry))
                 }
 
-            case None =>
-                val missingParams = Set("transaction_id", "posted_on", "account_name") -- request.getParameterNames.toSet
-                if (missingParams.isEmpty) {
-                    // all parameteres are accounted for, thus the problem is transaction_id that couldn't be parsed as an Int
-                    throw new RuntimeException("Parameter transaction_id could not be parsed as an Int, found [" + request.getParameter("transaction_id") + "]")
-                } else {
-                    throw new RuntimeException("Missing parameters: " + missingParams.mkString(", "))
-                }
+            case Failure(violations) => Left(violations)
         }
     }
 }
