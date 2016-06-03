@@ -4,3 +4,11 @@
   background: url("/images/saving.gif") left/1rem no-repeat;
   padding-left: 1.25rem;
 }
+
+.menubar {
+  background-color: #eee;
+}
+
+.menubar h2 {
+  font-size: 1.5625rem;
+}

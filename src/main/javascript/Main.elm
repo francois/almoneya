@@ -1,55 +1,50 @@
-import Account exposing (Account, decodeAccountsJson)
-import AccountForm
-import AccountsTable exposing (AccountsResponse, accountsTable)
-import Debug exposing (crash)
-import Either exposing (Either(Left, Right))
-import Html.App as Html
-import Html.Attributes exposing (class, classList, colspan, action, enctype, method, type', name)
-import Html.Events exposing (onClick)
-import Html exposing (Html, div, text, table, thead, tr, th, tbody, td, h1, label, form, input, button)
-import Http
-import Task exposing (Task)
+import Html exposing (..)
+import Html.App as App
+import Html.Attributes exposing (..)
 
-main = Html.program { init = init, view = view, subscriptions = subscriptions, update = update }
+type alias Model = {}
 
-type alias Model =  { accounts : AccountsResponse
-                    , newAccount : AccountForm.Model
-                    }
+type Msg = None
 
-type Msg = FetchFail Http.Error
-         | FetchSucceed (List Account)
-         | NewAccountEdit AccountForm.Msg
+main = App.program { init = init, update = update, view = view, subscriptions = subscriptions }
 
 init : (Model, Cmd Msg)
-init = ({ accounts = Right [], newAccount = AccountForm.initNew}, getAccounts)
-
-subscriptions : Model -> Sub Msg
-subscriptions model = Sub.none
+init = ({}, Cmd.none)
 
 update : Msg -> Model -> (Model, Cmd Msg)
-update msg model = case msg of
-    FetchFail error                  -> ({ model | accounts = Left (toString error) }, Cmd.none)
-    FetchSucceed accounts            -> ({ model | accounts = Right accounts }, Cmd.none)
-    NewAccountEdit newAccountEditMsg ->
-      let (newAccountModel, saveAccountMsg) = AccountForm.update newAccountEditMsg model.newAccount 
-      in ({ model | newAccount = newAccountModel }, Cmd.map NewAccountEdit saveAccountMsg)
+update msg model = (model, Cmd.none)
 
-view : Model -> Html Msg
-view model =
-  div [class "row"] [
-      div [class "medium-12 large-6 columns"] [
-        accountsTable model.accounts
-    ]
-    , div [class "medium-12 large-6 columns"] [ Html.map NewAccountEdit (AccountForm.view model.newAccount) ]
-    , div [class "medium-12 large-6 columns show-for-medium"] [
-        h1 [] [text "Import Transactions"]
-      , form [method "post", enctype "multipart/form-data", action "/api/bank-account-transactions/import/"] [
-          label [] [
-            input [type' "file", name "file"] []]
-        , button [type' "submit", class "button button-primary"] [ text "Import" ]
+view : Model -> (Html Msg)
+view model = div [class "expanded row"] [
+  div [class "large-3 medium-4 columns show-for-medium menubar"] [
+    h1 [] [ text "Almoneya" ]
+    , h2 [] [ text "Operations" ]
+    , ul [class "menu vertical"] [
+        li [class "active"] [ a [href "#"] [ i [ class "fi-page-csv" ] [], text " Import ", span [class "hide"] [text "Bank Transactions"]] ]
+      , li [] [ a [href "#"] [i [class "fi-calendar"] [], text " Reconcile", span [class "hide"] [text "Bank Transactions"]] ]
+      , li [] [ a [href "#"] [i [class "fi-ticket"] [], text " Record Check"] ]
+      , li [] [ a [href "#"] [i [class "fi-clipboard-pencil"] [], text " Record Expense"] ]
+      , li [] [ a [href "#"] [i [class "fi-clipboard-notes"] [], text " Record Revenue"] ]
+      ]
+      , h2 [] [text "Reports"]
+      , ul [class "menu vertical"] [
+          li [] [ a [href "#"] [i [class "fi-graph-trend"] [], text " Next Obligations"] ]
+        , li [] [ a [href "#"] [i [class "fi-calendar"] [], text " Obligations"] ]
+        , li [] [ a [href "#"] [i [class "fi-calendar"] [], text " Goals"] ]
+        , li [] [ a [href "#"] [i [class "fi-book"] [], text " Transactions"] ]
+        , li [] [ a [href "#"] [i [class "fi-map"] [], text " Accounts"] ]
+        , li [] [ a [href "#"] [i [class "fi-clipboard"] [], text " Bank Transactions"] ]
         ]
+      , h2 [] [text "Utilities"]
+      , ul [class "menu vertical"] [
+          li [] [ a [href "#"] [i [class "fi-telephone"] [], text " Need help?"] ]
+        , li [] [ a [href "#"] [i [class "fi-widget"] [], text " Settings"] ]
+        ]
+    ]
+    , div [class "large-9 medium-8 columns"] [
+      h1 [] [text "Content"]
     ]
   ]
 
-getAccounts : Cmd Msg
-getAccounts = Task.perform FetchFail FetchSucceed (Http.get decodeAccountsJson "/api/accounts/")
+subscriptions : Model -> Sub Msg
+subscriptions model = Sub.none
