@@ -18,13 +18,19 @@ case class Router(routes: SortedSet[Route]) {
         routes.find(_.accepts(pathInfo, method))
 }
 
-case class Route(path: Regex, methods: Set[HttpMethod] = Route.ALL_HTTP_METHODS, controller: Controller = NoopController) {
+case class Route(path: Regex, methods: Set[HttpMethod] = Route.ALL_HTTP_METHODS, controller: Controller = NoopController, transactionalBehaviour: TransactionalBehaviour = TransactionRequired) {
     def accepts(pathInfo: String, method: HttpMethod = Route.GET): Boolean =
         methods.contains(method) && path.findPrefixMatchOf(pathInfo).isDefined
 
     def execute(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Iterable[Violation], AnyRef] =
         controller.handle(tenantId, baseRequest, request)
 }
+
+sealed trait TransactionalBehaviour
+
+case object TransactionRequired extends TransactionalBehaviour
+
+case object NoTransactionNeeded extends TransactionalBehaviour
 
 object Route {
     implicit val routerOrdering = new Ordering[Route] {
