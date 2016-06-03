@@ -57,7 +57,7 @@ object ApiServer {
         constraint.setRoles(Array[String]("user", "admin"))
 
         val mapping = new ConstraintMapping()
-        mapping.setPathSpec("/*")
+        mapping.setPathSpec("/api/*")
         mapping.setConstraint(constraint)
 
         security.setConstraintMappings(Collections.singletonList(mapping))
