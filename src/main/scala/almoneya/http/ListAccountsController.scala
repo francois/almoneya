@@ -1,5 +1,6 @@
 package almoneya.http
 
+import java.sql.Connection
 import javax.servlet.http.HttpServletRequest
 
 import almoneya.{LocalDateEx, AccountsRepository, TenantId}
@@ -21,7 +22,7 @@ case class ListAccountsController(accountsRepository: AccountsRepository) extend
         }
     }
 
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Set[Violation], AnyRef] = {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Set[Violation], AnyRef] = {
         val form = ListAccountsForm(Option(request.getParameter("balance_an")))
         validate(form) match {
             case AccordSuccess =>

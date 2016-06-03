@@ -2,6 +2,7 @@ package almoneya.http
 
 import java.io.{InputStreamReader, Reader}
 import java.nio.charset.Charset
+import java.sql.Connection
 import javax.servlet.http.HttpServletRequest
 
 import almoneya._
@@ -12,15 +13,13 @@ import org.eclipse.jetty.server.Request
 import scala.collection.JavaConversions._
 
 class ImportBankAccountTransactionsController(bankAccountTransactionsRepo: BankAccountTransactionsRepository) extends Controller {
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Iterable[Violation], AnyRef] = {
         val hasContentType = Option(request.getContentType).isDefined
         if (hasContentType && request.getContentType.startsWith("multipart/form-data")) {
             Option(request.getPart("file")) match {
                 case Some(filePart) if TEXT_CSV_RE.findFirstIn(filePart.getContentType).isDefined =>
                     val reader = new InputStreamReader(filePart.getInputStream, Charset.forName("ISO-8859-1"))
-                    bankAccountTransactionsRepo.transaction {
                         Right(importTransactions(tenantId, reader))
-                    }
 
                 case _ =>
                     Left(Set(RuleViolation(null, "When uploading files using multipart/form-data, we expect to find a file part, but we did not find it. Instead, we found the following part names: " + request.getParts.map(_.getName).mkString(", "), None)))
@@ -32,7 +31,7 @@ class ImportBankAccountTransactionsController(bankAccountTransactionsRepo: BankA
         }
     }
 
-    def importTransactions(tenantId: TenantId, reader: Reader): Seq[BankAccountTransaction] = {
+    def importTransactions(tenantId: TenantId, reader: Reader)(implicit connection: Connection): Seq[BankAccountTransaction] = {
         val parser = CSVFormat.EXCEL.parse(reader)
         val rows = parser.getRecords
         val parsed = rows.map(row => (0 until row.size()).map(idx => row.get(idx))).toSeq

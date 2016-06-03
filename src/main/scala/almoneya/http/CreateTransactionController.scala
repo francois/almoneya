@@ -1,5 +1,6 @@
 package almoneya.http
 
+import java.sql.Connection
 import javax.servlet.http.HttpServletRequest
 
 import almoneya._
@@ -11,7 +12,7 @@ class CreateTransactionController(val mapper: ObjectMapper,
                                   val accountsRepository: AccountsRepository,
                                   val transactionsRepository: TransactionsRepository,
                                   val bankAccountTransactionsRepository: BankAccountTransactionsRepository) extends Controller {
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Iterable[Violation], AnyRef] = {
         Option(request.getContentType) match {
             case Some("application/json") =>
                 val transactionForm = mapper.readValue(request.getInputStream, classOf[TransactionForm])
@@ -20,14 +21,12 @@ class CreateTransactionController(val mapper: ObjectMapper,
                         val accounts = accountsRepository.findAll(tenantId)
                         val newTransaction = transactionForm.toTransaction(accounts)
                         if (newTransaction.entries.size == transactionForm.entries.size) {
-                            transactionsRepository.transaction {
-                                val txn = transactionsRepository.create(tenantId, newTransaction)
-                                transactionForm.bankAccountTransactionId.foreach { id =>
-                                    bankAccountTransactionsRepository.linkBankAccountTransactionToTransactionEntry(tenantId, BankAccountTransactionId(id.toInt), txn.transactionId.get)
-                                }
-
-                                Right(txn)
+                            val txn = transactionsRepository.create(tenantId, newTransaction)
+                            transactionForm.bankAccountTransactionId.foreach { id =>
+                                bankAccountTransactionsRepository.linkBankAccountTransactionToTransactionEntry(tenantId, BankAccountTransactionId(id.toInt), txn.transactionId.get)
                             }
+
+                            Right(txn)
                         } else {
                             val missingNames = transactionForm.entries.flatMap(_.accountName) -- newTransaction.entries.map(_.accountName.value)
                             Left(missingNames.map(name => RuleViolation(name, "could not identify account", Some("account_name"))))

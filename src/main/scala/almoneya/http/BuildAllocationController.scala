@@ -1,5 +1,6 @@
 package almoneya.http
 
+import java.sql.Connection
 import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletRequest
 
@@ -29,7 +30,7 @@ class BuildAllocationController(accountsRepository: AccountsRepository, goalsRep
         }
     }
 
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Iterable[Violation], AnyRef] = {
         val form = AllocationForm(
             Option(request.getParameter("paid_on")),
             Option(request.getParameter("amount")),

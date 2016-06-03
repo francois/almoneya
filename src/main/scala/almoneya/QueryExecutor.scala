@@ -3,19 +3,11 @@ package almoneya
 import java.sql.{Connection, ResultSet}
 
 trait QueryExecutor {
-    def beginTransaction(): Unit
+    def findOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A)(implicit connection: Connection): Option[A]
 
-    def commit(): Unit
+    def findAll[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A)(implicit connection: Connection): Seq[A]
 
-    def rollback(): Unit
+    def insertOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A)(implicit connection: Connection): A
 
-    def connection: Connection
-
-    def findOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Option[A]
-
-    def findAll[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): Seq[A]
-
-    def insertOne[A](query: Query, params: SqlValue*)(mapper: (ResultSet) => A): A
-
-    def insertMany[A](query: Query, params: Seq[Seq[SqlValue]])(mapper: (ResultSet) => A): Seq[A]
+    def insertMany[A](query: Query, params: Seq[Seq[SqlValue]])(mapper: (ResultSet) => A)(implicit connection: Connection): Seq[A]
 }

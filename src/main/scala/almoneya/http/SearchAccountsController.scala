@@ -1,5 +1,6 @@
 package almoneya.http
 
+import java.sql.Connection
 import javax.servlet.http.HttpServletRequest
 
 import almoneya.{AccountsRepository, TenantId}
@@ -20,7 +21,7 @@ class SearchAccountsController(accountsRepository: AccountsRepository) extends C
         }
     }
 
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Iterable[Violation], AnyRef] = {
         val form = SearchForm(Option(request.getParameter("q")))
         validate(form) match {
             case Success =>

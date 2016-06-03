@@ -1,5 +1,7 @@
 package almoneya
 
+import java.sql.Connection
+
 import org.joda.time.LocalDate
 
 class BankAccountTransactionsRepository(val executor: QueryExecutor) extends Repository {
@@ -8,7 +10,8 @@ class BankAccountTransactionsRepository(val executor: QueryExecutor) extends Rep
 
     def linkBankAccountTransactionToTransactionEntry(tenantId: TenantId,
                                                      bankAccountTransactionId: BankAccountTransactionId,
-                                                     transactionId: TransactionId): Option[BankAccountTransaction] = {
+                                                     transactionId: TransactionId)
+                                                    (implicit connection:Connection): Option[BankAccountTransaction] = {
         executor.findOne(LINK_BANK_ACCOUNT_TRANSACTION_TO_TRANSACTION_ENTRY_QUERY, transactionId, tenantId, tenantId, bankAccountTransactionId) { rs =>
             BankAccountTransaction(id = Some(BankAccountTransactionId(rs.getInt("bank_account_transaction_id"))),
                 bankAccount = BankAccount(id = Option(rs.getInt("bank_account_id")).map(BankAccountId.apply),
@@ -29,7 +32,7 @@ class BankAccountTransactionsRepository(val executor: QueryExecutor) extends Rep
         }
     }
 
-    def importBankTransactionsTransactions(tenantId: TenantId, transactions: Seq[BankAccountTransaction]): Seq[BankAccountTransaction] = {
+    def importBankTransactionsTransactions(tenantId: TenantId, transactions: Seq[BankAccountTransaction])(implicit connection:Connection): Seq[BankAccountTransaction] = {
         val bankAccounts = transactions.map(_.bankAccount).toSet
         val existingAccountNums = executor.findAll(Query("SELECT bank_account_hash FROM bank_accounts")) { rs =>
             AccountHash(rs.getString("bank_account_hash"))

@@ -1,5 +1,7 @@
 package almoneya
 
+import java.sql.Connection
+
 import org.joda.time.LocalDate
 
 import scala.util.Try
@@ -8,7 +10,7 @@ class RevenuesRepository(val executor: QueryExecutor) extends Repository {
 
     import RevenuesRepository.FIND_ALL_QUERY
 
-    def findAll(tenantId: TenantId): Set[Revenue] =
+    def findAll(tenantId: TenantId)(implicit connection:Connection): Set[Revenue] =
         executor.findAll(FIND_ALL_QUERY, tenantId) { rs =>
             Revenue(id = Some(RevenueId(rs.getInt("revenue_id"))),
                 name = RevenueName(rs.getString("revenue_name")),

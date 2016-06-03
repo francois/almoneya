@@ -1,6 +1,6 @@
 package almoneya
 
-import java.sql.ResultSet
+import java.sql.{Connection, ResultSet}
 
 import org.joda.time.LocalDate
 
@@ -8,17 +8,17 @@ class AccountsRepository(val executor: QueryExecutor) extends Repository {
 
     import AccountsRepository.{FIND_ALL_QUERY, FIND_ALL_WITH_BALANCE_QUERY, INSERT_ONE_QUERY}
 
-    def findAllWithBalance(tenantId: TenantId, balanceOn: LocalDate): Set[Account] =
+    def findAllWithBalance(tenantId: TenantId, balanceOn: LocalDate)(implicit connection:Connection) :Set[Account] =
         executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balanceOn)(resultSetRowToAccountWithBalance).toSet
 
-    def findAll(tenantId: TenantId): Set[Account] =
+    def findAll(tenantId: TenantId)(implicit connection:Connection): Set[Account] =
         executor.findAll(FIND_ALL_QUERY, tenantId)(resultSetRowToAccountWithoutBalance).toSet
 
-    def create(tenantId: TenantId, account: Account): Account =
+    def create(tenantId: TenantId, account: Account)(implicit connection:Connection): Account =
         executor.findOne(INSERT_ONE_QUERY, tenantId, account.code, account.name, account.kind, account.virtual)(resultSetRowToAccountWithoutBalance).get
 
 
-    def search(tenantId: TenantId, query: String): Set[Account] =
+    def search(tenantId: TenantId, query: String)(implicit connection:Connection): Set[Account] =
         executor.findAll(FIND_ALL_QUERY.append("AND account_name ilike ?"), tenantId, "%" + query + "%")(resultSetRowToAccountWithoutBalance).toSet
 
     private[this] def resultSetRowToAccountWithBalance(rs: ResultSet): Account =

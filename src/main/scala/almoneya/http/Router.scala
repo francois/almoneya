@@ -1,5 +1,6 @@
 package almoneya.http
 
+import java.sql.Connection
 import javax.servlet.http.HttpServletRequest
 
 import almoneya.TenantId
@@ -21,7 +22,7 @@ case class Route(path: Regex, methods: Set[HttpMethod] = Route.ALL_HTTP_METHODS,
     def accepts(pathInfo: String, method: HttpMethod = Route.GET): Boolean =
         methods.contains(method) && path.findPrefixMatchOf(pathInfo).isDefined
 
-    def execute(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] =
+    def execute(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Iterable[Violation], AnyRef] =
         controller.handle(tenantId, baseRequest, request)
 }
 
@@ -93,6 +94,6 @@ object Route {
 }
 
 case object NoopController extends Controller {
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] =
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Iterable[Violation], AnyRef] =
         throw new RuntimeException("TODO: implement this controller")
 }

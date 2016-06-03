@@ -1,17 +1,19 @@
 package almoneya
 
+import java.sql.Connection
+
 import org.joda.time.{DateTime, LocalDate}
 
 class TransactionsRepository(val executor: QueryExecutor) extends Repository {
 
     import TransactionsRepository.{insertTransactionEntriesSql, insertTransactionSql}
 
-    def exists(tenantId: TenantId, transactionId: TransactionId) =
+    def exists(tenantId: TenantId, transactionId: TransactionId)(implicit connection:Connection):Boolean =
         executor.findOne(Query("SELECT transaction_id FROM public.transactions WHERE tenant_id = ? AND transaction_id = ?"), tenantId, transactionId) { rs =>
             TransactionId(rs.getInt("transaction_id"))
         }.isDefined
 
-    def create(tenantId: TenantId, transaction: Transaction): Transaction = {
+    def create(tenantId: TenantId, transaction: Transaction)(implicit connection:Connection): Transaction = {
         def createTransactionRow(): Transaction = {
             executor.insertOne(insertTransactionSql, tenantId, transaction.postedOn, transaction.payee, transaction.description) { rs =>
                 transaction.copy(
@@ -23,7 +25,7 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
             }
         }
 
-        def createTransactionEntriesRows(transactionId: TransactionId): Seq[TransactionEntry] = {
+        def createTransactionEntriesRows(transactionId: TransactionId)(implicit connection:Connection): Seq[TransactionEntry] = {
             val entries = transaction.entries.map(entry => Seq[SqlValue](tenantId, transactionId, entry.accountName, entry.amount)).toSeq
             executor.insertMany(insertTransactionEntriesSql, entries) { rs =>
                 TransactionEntry(

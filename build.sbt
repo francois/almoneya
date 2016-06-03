@@ -24,6 +24,7 @@ libraryDependencies ++= Seq(
     "com.fasterxml.jackson.core"    % "jackson-databind"     % "2.7.4",
     "com.fasterxml.jackson.core"    % "jackson-annotations"  % "2.7.4",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.7.3",
+    "com.mchange"                   % "c3p0"                 % "0.9.5.2",
     "com.wix"                      %% "accord-core"          % "0.5",
     "joda-time"                     % "joda-time"            % "[2.1,3.0[",
     "org.apache.commons"            % "commons-csv"          % "1.2",

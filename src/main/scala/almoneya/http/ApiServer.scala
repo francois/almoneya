@@ -1,9 +1,9 @@
 package almoneya.http
 
-import java.sql.DriverManager
 import java.util.Collections
 
 import almoneya._
+import com.mchange.v2.c3p0.ComboPooledDataSource
 import org.eclipse.jetty.security._
 import org.eclipse.jetty.security.authentication.BasicAuthenticator
 import org.eclipse.jetty.server.Server
@@ -18,12 +18,18 @@ import scala.language.higherKinds
 object ApiServer {
 
     def main(args: Array[String]): Unit = {
-        Class.forName("org.postgresql.Driver")
-
         log.info("Booting")
         log.info("Connecting to database server")
-        val connection = DriverManager.getConnection("jdbc:postgresql://10.9.1.21:5432/vagrant", "vagrant", null)
-        val executor: QueryExecutor = new SqlQueryExecutor(connection)
+
+        /* Configuration of the dataSource occurs using c3p0.properties, at the root of the classpath.
+         * The defaults are suitable for connecting to the Vagrant-powered PostgreSQL database server.
+         * Extra configuration can be set using System properties.
+         * See http://www.mchange.com/projects/c3p0/#configuration_precedence for the order of precedence and
+         * http://www.mchange.com/projects/c3p0/#configuration_properties for the configuration properties that can be set
+         */
+        val dataSource = new ComboPooledDataSource()
+
+        val executor: QueryExecutor = new SqlQueryExecutor()
 
         val usersRepository = new UsersRepository(executor)
         val signInsRepo = new SignInsRepository(executor)
@@ -35,7 +41,7 @@ object ApiServer {
         val revenuesRepository = new RevenuesRepository(executor)
         val reconciliationsRepository = new ReconciliationsRepository(executor)
 
-        val loginService = new RepoLoginService(usersRepository, signInsRepo)
+        val loginService = new RepoLoginService(usersRepository, signInsRepo, dataSource)
 
         val server = new Server(8080)
         server.addBean(loginService)
@@ -76,7 +82,7 @@ object ApiServer {
         ))
 
         val frontController = new ContextHandler("/api")
-        frontController.setHandler(new FrontController(router, JSON.mapper))
+        frontController.setHandler(new FrontController(router, dataSource, JSON.mapper))
 
         val contexts = new ContextHandlerCollection()
         contexts.setHandlers(Array(fileServer, frontController))

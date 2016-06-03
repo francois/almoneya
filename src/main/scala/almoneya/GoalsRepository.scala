@@ -1,5 +1,7 @@
 package almoneya
 
+import java.sql.Connection
+
 import org.joda.time.LocalDate
 
 import scala.util.Try
@@ -8,7 +10,7 @@ class GoalsRepository(val executor: QueryExecutor) extends Repository {
 
     import GoalsRepository.FIND_ALL_QUERY
 
-    def findAll(tenantId: TenantId): Set[Goal] = {
+    def findAll(tenantId: TenantId)(implicit connection:Connection): Set[Goal] = {
         executor.findAll(FIND_ALL_QUERY, tenantId) { rs =>
             val account = Account(id = Some(AccountId(rs.getInt("account_id"))), name = AccountName(rs.getString("account_name")), kind = AccountKind.fromString(rs.getString("account_kind")), virtual = rs.getBoolean("virtual"))
             Goal(id = Some(GoalId(rs.getInt("goal_id"))),

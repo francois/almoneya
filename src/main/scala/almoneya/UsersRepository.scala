@@ -1,5 +1,7 @@
 package almoneya
 
+import java.sql.Connection
+
 import scala.util.Try
 
 /**
@@ -11,7 +13,7 @@ class UsersRepository(val executor: QueryExecutor) extends Repository {
 
     import UsersRepository.{findByIdSql, findCredentialsByUsernameQuery}
 
-    def findById(id: UserId): Option[User] = {
+    def findById(id: UserId)(implicit connection:Connection): Option[User] = {
         executor.findOne(findByIdSql, id) { rs =>
             User(Some(UserId(rs.getInt("user_id"))),
                 TenantId(rs.getInt("tenant_id")),
@@ -20,7 +22,7 @@ class UsersRepository(val executor: QueryExecutor) extends Repository {
         }
     }
 
-    def findCredentialsByUsername(username: Username): Option[UserPassCredentials] = {
+    def findCredentialsByUsername(username: Username)(implicit connection:Connection): Option[UserPassCredentials] = {
         executor.findOne(findCredentialsByUsernameQuery, username) { rs =>
             UserPassCredentials(userId = Some(UserId(rs.getInt("user_id"))),
                 tenantId = TenantId(rs.getInt("tenant_id")),

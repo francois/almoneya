@@ -1,5 +1,6 @@
 package almoneya.http
 
+import java.sql.Connection
 import javax.servlet.http.HttpServletRequest
 
 import almoneya._
@@ -35,16 +36,14 @@ class ReconcileTransactionController(reconciliationsRepository: ReconciliationsR
         }
     }
 
-    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest): Either[Iterable[Violation], AnyRef] = {
+    override def handle(tenantId: TenantId, baseRequest: Request, request: HttpServletRequest)(implicit connection: Connection): Either[Iterable[Violation], AnyRef] = {
         val form = ReconcileTransactionForm(tenantId,
             Option(request.getParameter("transaction_id")),
             Option(request.getParameter("posted_on")),
             Option(request.getParameter("account_name")))
         validate(form) match {
             case Success =>
-                reconciliationsRepository.transaction {
-                    Right(reconciliationsRepository.createEntry(tenantId, form.toReconciliationEntry))
-                }
+                Right(reconciliationsRepository.createEntry(tenantId, form.toReconciliationEntry))
 
             case Failure(violations) => Left(violations)
         }

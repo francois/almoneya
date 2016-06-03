@@ -2,6 +2,7 @@ package almoneya.http
 
 import javax.servlet.MultipartConfigElement
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import javax.sql.DataSource
 
 import almoneya.TenantId
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -13,6 +14,7 @@ import org.slf4j.{LoggerFactory, MDC}
 import scala.util.{Failure, Success, Try}
 
 class FrontController(val router: Router,
+                      val dataSource: DataSource,
                       val mapper: ObjectMapper) extends AbstractHandler {
 
     import FrontController.{Errors, Results, multiPartConfig}
@@ -38,25 +40,39 @@ class FrontController(val router: Router,
         val tenantId = Option(request.getAttribute(ApiServer.TenantIdAttribute)).map(id => id.asInstanceOf[TenantId])
         maybeRoute match {
             case Some(route) if tenantId.isDefined =>
-                val (status, results) = Try(route.execute(tenantId.get, baseRequest, request)) match {
-                    case Success(Right(theResults)) =>
-                        (HttpServletResponse.SC_OK, Results(theResults))
+                implicit val connection = dataSource.getConnection
+                log.debug("Acquired database connection {}", connection.hashCode())
+                AppConnection.currentConnection.set(Some(connection))
 
-                    case Success(Left(violations)) =>
-                        val messages = violations.foldLeft(Set.empty[String])((memo, violation) => violationToErrorMessage(violation, memo))
-                        (HttpServletResponse.SC_BAD_REQUEST, Errors(messages))
+                try {
+                    connection.setAutoCommit(false)
 
-                    case Failure(ex) =>
-                        (HttpServletResponse.SC_INTERNAL_SERVER_ERROR, Errors(Set(ex.getMessage)))
+                    val (status, results) = Try(route.execute(tenantId.get, baseRequest, request)) match {
+                        case Success(Right(theResults)) =>
+                            connection.commit()
+                            (HttpServletResponse.SC_OK, Results(theResults))
+
+                        case Success(Left(violations)) =>
+                            connection.rollback()
+                            val messages = violations.foldLeft(Set.empty[String])((memo, violation) => violationToErrorMessage(violation, memo))
+                            (HttpServletResponse.SC_BAD_REQUEST, Errors(messages))
+
+                        case Failure(ex) =>
+                            connection.rollback()
+                            (HttpServletResponse.SC_INTERNAL_SERVER_ERROR, Errors(Set(ex.getMessage)))
+                    }
+
+                    response.setStatus(status)
+                    response.setContentType("application/json")
+                    response.setCharacterEncoding("UTF-8")
+
+                    mapper.writeValue(response.getWriter, results)
+
+                    baseRequest.setHandled(true)
+                } finally {
+                    log.debug("Closing database connection {}", connection.hashCode())
+                    connection.close()
                 }
-
-                response.setStatus(status)
-                response.setContentType("application/json")
-                response.setCharacterEncoding("UTF-8")
-
-                mapper.writeValue(response.getWriter, results)
-
-                baseRequest.setHandled(true)
 
             case _ => () // Something went wrong, so we let someone else handle the eventual 404
         }
