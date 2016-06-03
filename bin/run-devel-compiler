@@ -1,2 +1,3 @@
 #!/bin/sh
+cd almoneya-frontend
 exec npm run-script watch

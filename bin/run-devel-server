@@ -1,3 +1,4 @@
 #!/bin/bash
 echo "Booting Almoneya HTTP API Server..."
+cd almoneya-api
 bin/sbt run almoneya.http.ApiServer
