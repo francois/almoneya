@@ -39,6 +39,7 @@ object JSON {
         val serializerModule = new SimpleModule()
 
         serializerModule.addDeserializer(classOf[Amount], new AmountDeserializer())
+        serializerModule.addDeserializer(classOf[CreateRevenueTransactionForm], new CreateRevenueTransactionFormDeserializer())
         serializerModule.addDeserializer(classOf[Payee], new PayeeDeserializer())
         serializerModule.addDeserializer(classOf[TransactionForm], new TransactionFormDeserializer())
 

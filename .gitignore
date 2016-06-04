@@ -1,3 +1,4 @@
+/almoneya-api/.idea
 /almoneya-api/project/target
 /almoneya-api/target
 
@@ -7,9 +8,7 @@
 /almoneya-frontend/public/js/bundle.js
 
 /.byebug_history
-/.idea
+/.vagrant
+/npm-debug.log
 /project
 /target
-
-/npm-debug.log
-/.vagrant

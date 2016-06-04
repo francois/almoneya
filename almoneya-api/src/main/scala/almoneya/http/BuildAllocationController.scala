@@ -26,7 +26,7 @@ class BuildAllocationController(accountsRepository: AccountsRepository, goalsRep
             form.paidOn.each is matchRegexFully(LocalDateEx.VALID_RE)
             form.amount is notEmpty
             form.amount.each is matchRegexFully(Amount.VALID_RE)
-            (form.autoFulfillThreshold is empty) or ((form.autoFulfillThreshold is notEmpty) and (form.autoFulfillThreshold.each is notEmpty) and (form.autoFulfillThreshold.each is matchRegexFully("""\d+(?:\.\d+)?""".r)))
+            (form.autoFulfillThreshold is empty) or ((form.autoFulfillThreshold is notEmpty) and (form.autoFulfillThreshold.each is notEmpty) and (form.autoFulfillThreshold.each is matchRegexFully(Amount.VALID_RE)))
         }
     }
 

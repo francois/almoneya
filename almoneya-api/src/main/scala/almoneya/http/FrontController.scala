@@ -68,6 +68,7 @@ class FrontController(val router: Router,
 
                 case Failure(ex) =>
                     connection.rollback()
+                    log.warn("Internal error while processing " + route, ex)
                     (HttpServletResponse.SC_INTERNAL_SERVER_ERROR, Errors(Set(ex.getMessage)))
             }
 
