@@ -12,7 +12,12 @@ class ReconcileTransactionController(reconciliationsRepository: ReconciliationsR
 
     import com.wix.accord.dsl._
 
-    case class ReconcileTransactionForm(tenantId: TenantId, transactionId: Option[String], postedOn: Option[String], accountName: Option[String]) {
+    case class ReconcileTransactionForm(tenantId: TenantId,
+                                        transactionId: Option[String],
+                                        postedOn: Option[String],
+                                        accountName: Option[String],
+                                        validAccounts: Set[Account] = Set.empty,
+                                        validTransactionIds: Set[TransactionId] = Set.empty) {
         def toReconciliationEntry =
             ReconciliationEntry(
                 transactionId = TransactionId(transactionId.get.toInt),
@@ -24,7 +29,7 @@ class ReconcileTransactionController(reconciliationsRepository: ReconciliationsR
         implicit val reconcileTransactionFormValidator = validator[ReconcileTransactionForm] { form =>
             form.transactionId is notEmpty
             form.transactionId.each is notEmpty
-            form.transactionId.each is valid(TransactionIdValidatorBuilder(form.tenantId, transactionsRepository).build)
+            form.transactionId.each is valid(TransactionIdValidatorBuilder(form.validTransactionIds).build)
 
             form.postedOn is notEmpty
             form.postedOn.each is notEmpty
@@ -32,7 +37,7 @@ class ReconcileTransactionController(reconciliationsRepository: ReconciliationsR
 
             form.accountName is notEmpty
             form.accountName.each is notEmpty
-            form.accountName.each is valid(AccountNameValidatorBuilder(form.tenantId, accountsRepository).build)
+            form.accountName.each is valid(AccountNameValidator(form.validAccounts).build)
         }
     }
 
@@ -41,7 +46,7 @@ class ReconcileTransactionController(reconciliationsRepository: ReconciliationsR
             Option(request.getParameter("transaction_id")),
             Option(request.getParameter("posted_on")),
             Option(request.getParameter("account_name")))
-        validate(form) match {
+        validate(form.copy(validAccounts = accountsRepository.findAll(tenantId), validTransactionIds = transactionsRepository.findAllIds(tenantId))) match {
             case Success =>
                 Right(reconciliationsRepository.createEntry(tenantId, form.toReconciliationEntry))
 

@@ -115,13 +115,11 @@ class FrontController(val router: Router,
     private[this] def acquireConnection: Connection = {
         val connection = dataSource.getConnection
         log.debug("Acquired database connection {}", connection.hashCode())
-        AppConnection.currentConnection.set(Some(connection))
         connection
     }
 
     private[this] def returnConnection(connection: Connection): Unit = {
         log.debug("Closing database connection {}", connection.hashCode())
-        AppConnection.currentConnection.remove()
         connection.close()
     }
 

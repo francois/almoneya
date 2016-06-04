@@ -14,14 +14,11 @@ case class CreateRevenueTransactionForm(revenueAccountName: Option[String],
                                         bankAccountAccountName: Option[String],
                                         payee: Option[String],
                                         receivedOn: Option[String],
-                                        amount: Option[String]) {
-    def toTransaction(tenantId: TenantId, accountsRepository: AccountsRepository)(implicit connection: Connection): Transaction = {
-        val accounts = accountsRepository.findAll(tenantId)
-        val revenueAccount = accounts.find(_.name.isEqualTo(revenueAccountName.get))
-        val bankAccountAccount = accounts.find(_.name.isEqualTo(bankAccountAccountName.get))
-
-        if (revenueAccount.isEmpty) throw new RuntimeException("Undefined revenue account name \"" + revenueAccountName.get + "\"")
-        if (bankAccountAccount.isEmpty) throw new RuntimeException("Undefined bank account name \"" + bankAccountAccountName.get + "\"")
+                                        amount: Option[String],
+                                        validAccounts:Set[Account]=Set.empty) {
+    def toTransaction(implicit connection: Connection): Transaction = {
+        val revenueAccount = validAccounts.find(_.name.isEqualTo(revenueAccountName.get))
+        val bankAccountAccount = validAccounts.find(_.name.isEqualTo(bankAccountAccountName.get))
 
         Transaction(
             payee = Payee(payee.get),
@@ -42,11 +39,11 @@ object CreateRevenueTransactionForm {
 
         form.revenueAccountName is notEmpty
         form.revenueAccountName.each is notEmpty
-        // form.revenueAccountName.each is valid(AccountNameValidatorBuilder(form.tenantId.get, accountsRepository).build)
+        form.revenueAccountName.each is valid(AccountNameValidator(form.validAccounts).build)
 
         form.bankAccountAccountName is notEmpty
         form.bankAccountAccountName.each is notEmpty
-        // form.bankAccountAccountName.each is valid(AccountNameValidatorBuilder(form.tenantId.get, accountsRepository).build)
+        form.bankAccountAccountName.each is valid(AccountNameValidator(form.validAccounts).build)
 
         form.amount is notEmpty
         form.amount.each is notEmpty
