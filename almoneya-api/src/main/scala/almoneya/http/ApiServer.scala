@@ -67,7 +67,7 @@ object ApiServer {
         val fileServer = new ContextHandler("/")
         val fileServerHandler = new ResourceHandler()
         fileServerHandler.setDirectoriesListed(false)
-        fileServerHandler.setResourceBase("public/")
+        fileServerHandler.setResourceBase("../almoneya-frontend/public/")
         fileServer.setHandler(fileServerHandler)
 
         val router = Router(SortedSet(
