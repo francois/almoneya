@@ -73,11 +73,17 @@ accountOption selectedAccount name = option [ selected (selectedAccount == name)
 
 accountOptions : AccountKind -> AccountName -> List Account -> List (Html Msg)
 accountOptions kind selectedName accounts =
-  let bankAccounts = List.filter (\x -> (x.virtual == False) && (x.kind == kind)) accounts
-      names       = List.map (\x -> x.name) bankAccounts
+  let candidateAccounts = List.filter (\x -> (x.virtual == False) && (x.kind == kind)) accounts
+      names       = List.map (\x -> x.name) candidateAccounts
       sortedNames = List.sortBy String.toLower names
       options     = List.map (accountOption selectedName) sortedNames
   in options
+
+revenueAccountOptions : AccountName -> List Account -> List (Html Msg)
+revenueAccountOptions = accountOptions "asset"
+
+bankAccountOptions : AccountName -> List Account -> List (Html Msg)
+bankAccountOptions = accountOptions "revenue"
 
 view : Model -> Html Msg
 view model = div []
@@ -87,8 +93,8 @@ view model = div []
       , label [] [ text "Payee", input [ type' "text", name "revenue[payee]", placeholder "ACME Corp.", value model.payee, onInput ChangePayee ] [] ]
       , label [] [ text "Received on", input [ type' "text", name "revenue[received_on]", placeholder "2016-06-09", value model.receivedOn, onInput ChangeReceivedOn ] [] ]
       , label [] [ text "Amount", input [ type' "text", name "revenue[amount]", placeholder "1031.78", value model.amount, onInput ChangeAmount ] [] ]
-      , label [] [ text "Bank Account Account Name", select [ name "revenue[bank_account_account_name]", onInput ChangeBankAccountAccountName ] (accountOptions "asset" model.bankAccountAccountName model.accounts) ]
-      , label [] [ text "Revenue Account Name", select [ name "revenue[revenue_account_name]", onInput ChangeRevenueName ] (accountOptions "revenue" model.revenueAccountName model.accounts) ]
+      , label [] [ text "Bank Account Account Name", select [ name "revenue[bank_account_account_name]", onInput ChangeBankAccountAccountName ] (revenueAccountOptions model.bankAccountAccountName model.accounts) ]
+      , label [] [ text "Revenue Account Name", select [ name "revenue[revenue_account_name]", onInput ChangeRevenueName ] (bankAccountOptions model.revenueAccountName model.accounts) ]
       , button [ type' "submit", class "button primary", disabled model.saving ] [ i [class "icon"] [], text "Record" ]
     ]
   ]
