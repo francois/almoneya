@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <logger name="almoneya.http.FrontController" level="DEBUG"/>
+    <logger name="almoneya.http" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDERR"/>

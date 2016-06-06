@@ -15,10 +15,13 @@ case class CreateRevenueTransactionForm(revenueAccountName: Option[String],
                                         payee: Option[String],
                                         receivedOn: Option[String],
                                         amount: Option[String],
-                                        validAccounts:Set[Account]=Set.empty) {
+                                        validAccounts: Set[Account] = Set.empty) {
     def toTransaction(implicit connection: Connection): Transaction = {
         val revenueAccount = validAccounts.find(_.name.isEqualTo(revenueAccountName.get))
+        assert(revenueAccount.isDefined)
+
         val bankAccountAccount = validAccounts.find(_.name.isEqualTo(bankAccountAccountName.get))
+        assert(bankAccountAccount.isDefined)
 
         Transaction(
             payee = Payee(payee.get),
@@ -30,6 +33,9 @@ case class CreateRevenueTransactionForm(revenueAccountName: Option[String],
 
 object CreateRevenueTransactionForm {
     implicit val createRevenueTransactionFormValidator = validator[CreateRevenueTransactionForm] { form =>
+        // this is really an assertion: it would mean the caller did not correctly provide the values we're looking for
+        form.validAccounts is notEmpty
+
         form.payee is notEmpty
         form.payee.each is notEmpty
 
@@ -92,7 +98,8 @@ class CreateRevenueTransactionFormDeserializer extends StdDeserializer[CreateRev
             }
         }
 
-        CreateRevenueTransactionForm(revenueAccountName = revenueAccountName,
+        CreateRevenueTransactionForm(
+            revenueAccountName = revenueAccountName,
             bankAccountAccountName = bankAccountAccountName,
             payee = payee,
             receivedOn = receivedOn,

@@ -85,6 +85,4 @@ class BuildAllocationController(accountsRepository: AccountsRepository, goalsRep
             balance = Amount(0),
             dueOn = goal.dueOn)
     }
-
-    private[this] val log = LoggerFactory.getLogger(this.getClass)
 }

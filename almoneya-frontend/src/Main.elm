@@ -3,10 +3,13 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
+import RecordRevenueApp
+
 main = App.program { init = init, update = update, view = view, subscriptions = subscriptions }
 
 type alias Model = {
-    location : Location
+      location : Location
+    , recordRevenueApp : RecordRevenueApp.Model
   }
 
 type Location = ImportBankTransactions
@@ -23,18 +26,38 @@ type Location = ImportBankTransactions
               | NeedHelp
               | Settings
 
-type Msg = NavigateTo Location
+type Msg =  NavigateTo Location
+          | RecordRevenueEvent RecordRevenueApp.Msg
 
 init : (Model, Cmd Msg)
-init = ({ location = RecordRevenue }, Cmd.none)
+init =
+  let (recordRevenueAppModel, recordRevenueAppCmd) = RecordRevenueApp.init
+  in ({
+        location = RecordRevenue
+      , recordRevenueApp = recordRevenueAppModel
+    }, Cmd.batch [ Cmd.map RecordRevenueEvent recordRevenueAppCmd ])
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
+  NavigateTo RecordRevenue ->
+    let (recordRevenueAppModel, recordRevenueAppCmd) = RecordRevenueApp.init
+    in ({ model |
+          location = RecordRevenue
+        , recordRevenueApp = recordRevenueAppModel
+      }, Cmd.batch [ Cmd.map RecordRevenueEvent recordRevenueAppCmd ])
+  RecordRevenueEvent rreMsg ->
+    let (rreModel, rreCmd) = RecordRevenueApp.update rreMsg model.recordRevenueApp
+    in ({ model | recordRevenueApp = rreModel }, Cmd.map RecordRevenueEvent rreCmd )
   NavigateTo newLocation -> ({ model | location = newLocation }, Cmd.none)
 
 menuItem : Model -> String -> String -> String -> Location -> Html Msg
 menuItem model icon content anchorTitle location =
   li [classList [("active", model.location == location)]] [ a [ title anchorTitle, onClick (NavigateTo location) ] [ i [ class icon ] [], text content ] ]
+
+drawView : Model -> Html Msg
+drawView model = case model.location of
+  RecordRevenue -> App.map RecordRevenueEvent (RecordRevenueApp.view model.recordRevenueApp)
+  _ -> h1 [] [text "Content"]
 
 view : Model -> (Html Msg)
 view model = div [class "expanded row"] [
@@ -64,7 +87,7 @@ view model = div [class "expanded row"] [
       ]
     ]
     , div [class "large-9 medium-8 columns"] [
-      h1 [] [text "Content"]
+      drawView model
     ]
   ]
 

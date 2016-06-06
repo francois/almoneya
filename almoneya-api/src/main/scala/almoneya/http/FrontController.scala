@@ -88,6 +88,7 @@ class FrontController(val router: Router,
 
                 case Success(Left(violations)) =>
                     val messages = violations.foldLeft(Set.empty[String])((memo, violation) => violationToErrorMessage(violation, memo))
+                    log.debug("{}: {}", route, violations, null)
                     (HttpServletResponse.SC_BAD_REQUEST, Errors(messages))
 
                 case Failure(ex) =>
