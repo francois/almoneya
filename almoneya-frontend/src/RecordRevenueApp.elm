@@ -1,20 +1,22 @@
 module RecordRevenueApp exposing (Model, Msg, init, update, view)
 
-import Http
-import Html.Attributes exposing (type', name, placeholder, value, class, classList, disabled)
+import Html.Attributes exposing (type', name, placeholder, value, class, classList, disabled, selected)
 import Html.Events exposing (onSubmit, onInput)
 import Html exposing (..)
+import Http
+import Json.Decode as Decode exposing ((:=))
 import Json.Encode as Encode
-import Json.Decode as Decode
+import String
 import Task exposing (..)
 
-type alias Model = { revenueAccountName : String
-                   , bankAccountAccountName : String
+type alias Model = { revenueAccountName : AccountName
+                   , bankAccountAccountName : AccountName
                    , receivedOn : String
                    , payee : String
                    , amount : String
                    , saving : Bool
                    , errors : List String
+                   , accounts : List Account
                  }
 
 type Msg  = ChangeRevenueName String
@@ -25,6 +27,8 @@ type Msg  = ChangeRevenueName String
           | Submit
           | SaveOk String
           | SaveFailed Http.Error
+          | AccountsOk (List Account)
+          | AccountsFailed Http.Error
 
 init : (Model, Cmd Msg)
 init = ({ revenueAccountName = ""
@@ -33,8 +37,9 @@ init = ({ revenueAccountName = ""
         , payee = ""
         , amount = ""
         , saving = False
-        , errors = ["Unknown revenue account name"]
-      }, Cmd.none)
+        , errors = []
+        , accounts = []
+      }, Task.perform AccountsFailed AccountsOk getAccounts)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
@@ -43,9 +48,13 @@ update msg model = case msg of
   ChangeReceivedOn newValue             -> ({model | receivedOn = newValue}, Cmd.none)
   ChangePayee newValue                  -> ({model | payee = newValue}, Cmd.none)
   ChangeAmount newValue                 -> ({model | amount = newValue}, Cmd.none)
-  Submit                                -> Debug.log "submit" ({model | saving = True}, Task.perform SaveFailed SaveOk (submit model))
+  Submit                                -> ({model | saving = True}, Task.perform SaveFailed SaveOk (submit model))
   SaveOk transaction                    -> ({model | saving = False}, Cmd.none)
   SaveFailed errors                     -> ({model | saving = False}, Cmd.none)
+  AccountsOk accounts                   -> ({model | accounts = accounts}, Cmd.none)
+  AccountsFailed errors                 ->
+    Debug.log (toString errors)
+    Debug.log "AccountsFailed" (model, Cmd.none)
 
 viewError : String -> Html Msg
 viewError msg = li [] [ text msg ]
@@ -59,6 +68,17 @@ viewErrors model =  if List.isEmpty model.errors then
                       , List.map viewError model.errors |> ul []
                       ]
 
+accountOption : AccountName -> AccountName -> Html Msg
+accountOption selectedAccount name = option [ selected (selectedAccount == name) ] [ text name ]
+
+accountOptions : AccountKind -> AccountName -> List Account -> List (Html Msg)
+accountOptions kind selectedName accounts =
+  let bankAccounts = List.filter (\x -> (x.virtual == False) && (x.kind == kind)) accounts
+      names       = List.map (\x -> x.name) bankAccounts
+      sortedNames = List.sortBy String.toLower names
+      options     = List.map (accountOption selectedName) sortedNames
+  in options
+
 view : Model -> Html Msg
 view model = div []
     [ h1 [] [ text "Record Revenue" ]
@@ -67,8 +87,8 @@ view model = div []
       , label [] [ text "Payee", input [ type' "text", name "revenue[payee]", placeholder "ACME Corp.", value model.payee, onInput ChangePayee ] [] ]
       , label [] [ text "Received on", input [ type' "text", name "revenue[received_on]", placeholder "2016-06-09", value model.receivedOn, onInput ChangeReceivedOn ] [] ]
       , label [] [ text "Amount", input [ type' "text", name "revenue[amount]", placeholder "1031.78", value model.amount, onInput ChangeAmount ] [] ]
-      , label [] [ text "Bank Account Account Name", input [ type' "text", name "revenue[bank_account_account_name]", placeholder "Checking", value model.bankAccountAccountName, onInput ChangeBankAccountAccountName ] [] ]
-      , label [] [ text "Revenue Account Name", input [ type' "text", name "revenue[revenue_account_name]", placeholder "Partner Salary", value model.revenueAccountName, onInput ChangeRevenueName ] [] ]
+      , label [] [ text "Bank Account Account Name", select [ name "revenue[bank_account_account_name]", onInput ChangeBankAccountAccountName ] (accountOptions "asset" model.bankAccountAccountName model.accounts) ]
+      , label [] [ text "Revenue Account Name", select [ name "revenue[revenue_account_name]", onInput ChangeRevenueName ] (accountOptions "revenue" model.revenueAccountName model.accounts) ]
       , button [ type' "submit", class "button primary", disabled model.saving ] [ i [class "icon"] [], text "Record" ]
     ]
   ]
@@ -95,3 +115,31 @@ submit model =
       settings = { defaultSettings | desiredResponseType = Just "application/json", withCredentials = True }
       request  = { verb = "POST", headers = [ ("Content-Type", "application/json;charset=utf-8") ], url = url, body = body }
   in Http.send settings request |> Http.fromJson decoder
+
+type alias AccountId   = Int
+type alias AccountCode = String
+type alias AccountName = String
+type alias AccountKind = String
+type alias Amount      = String
+
+type alias Account =  { id      : AccountId
+                      , code    : Maybe AccountCode
+                      , name    : AccountName
+                      , kind    : AccountKind
+                      , balance : Maybe Amount
+                      , virtual : Bool }
+
+decodeAccount : Decode.Decoder Account
+decodeAccount = Decode.object6 Account
+                  ("id"      := Decode.int)
+                  ("code"    := Decode.maybe Decode.string)
+                  ("name"    := Decode.string)
+                  ("kind"    := Decode.string)
+                  ("balance" := Decode.maybe Decode.string)
+                  ("virtual" := Decode.bool)
+
+decodeAccounts : Decode.Decoder (List Account)
+decodeAccounts = Decode.at ["data"] (Decode.list decodeAccount)
+
+getAccounts : Task Http.Error (List Account)
+getAccounts = Http.get decodeAccounts "/api/accounts"
