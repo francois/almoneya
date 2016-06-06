@@ -50,11 +50,9 @@ update msg model = case msg of
   ChangeAmount newValue                 -> ({model | amount = newValue}, Cmd.none)
   Submit                                -> ({model | saving = True}, Task.perform SaveFailed SaveOk (submit model))
   SaveOk transaction                    -> ({model | saving = False}, Cmd.none)
-  SaveFailed errors                     -> ({model | saving = False}, Cmd.none)
+  SaveFailed errors                     -> ({model | saving = False, errors = [toString errors]}, Cmd.none)
   AccountsOk accounts                   -> ({model | accounts = accounts}, Cmd.none)
-  AccountsFailed errors                 ->
-    Debug.log (toString errors)
-    Debug.log "AccountsFailed" (model, Cmd.none)
+  AccountsFailed errors                 -> ({model | errors = [toString errors]}, Cmd.none)
 
 viewError : String -> Html Msg
 viewError msg = li [] [ text msg ]
