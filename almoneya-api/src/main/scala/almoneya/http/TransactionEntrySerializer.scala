@@ -8,10 +8,9 @@ class TransactionEntrySerializer extends JsonSerializer[TransactionEntry] {
     override def serialize(entry: TransactionEntry, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
         gen.writeStartObject()
 
-        entry.transactionEntryId.foreach { id => gen.writeFieldName("transaction_entry_id"); gen.writeObject(id) }
+        gen.writeObjectField("id", entry.transactionEntryId)
         gen.writeObjectField("account", entry.account)
-        gen.writeFieldName("amount")
-        gen.writeObject(entry.amount)
+        gen.writeObjectField("amount", entry.amount)
 
         gen.writeEndObject()
     }

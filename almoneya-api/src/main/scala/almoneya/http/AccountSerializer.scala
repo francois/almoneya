@@ -8,11 +8,11 @@ class AccountSerializer extends JsonSerializer[Account] {
     override def serialize(account: Account, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
         gen.writeStartObject()
 
-        gen.writeObjectField("id", account.id.orNull)
-        gen.writeObjectField("code", account.code.orNull)
+        gen.writeObjectField("id", account.id)
+        gen.writeObjectField("code", account.code)
         gen.writeObjectField("name", account.name)
         gen.writeObjectField("kind", account.kind)
-        gen.writeObjectField("balance", account.balance.orNull)
+        gen.writeObjectField("balance", account.balance)
         gen.writeBooleanField("virtual", account.virtual)
 
         gen.writeEndObject()
