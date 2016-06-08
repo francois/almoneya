@@ -28,6 +28,7 @@ object ApiServer {
          * http://www.mchange.com/projects/c3p0/#configuration_properties for the configuration properties that can be set
          */
         val dataSource = new ComboPooledDataSource()
+        physicallyConnectToDatabase(dataSource)
 
         val executor: QueryExecutor = new SqlQueryExecutor()
 
@@ -92,6 +93,29 @@ object ApiServer {
 
         server.start()
         server.join()
+    }
+
+    /**
+      * Connects to the database and reports the version number we're working against.
+      *
+      * This method serves one purpose only: to make the c3p0 connection pool actually
+      * connect to the database, instead of waiting for the first connection. During load
+      * testing, waiting for the connection to the database server to be made will simply
+      * not work.
+      *
+      * @param dataSource The data source which should be physically connected.
+      */
+    def physicallyConnectToDatabase(dataSource: ComboPooledDataSource): Unit = {
+        val conn = dataSource.getConnection
+        val statement = conn.createStatement()
+        statement.execute("SELECT version()")
+        val rs = statement.getResultSet
+        while (rs.next()) {
+            log.info("PostgreSQL version: {}", rs.getString("version"))
+        }
+        rs.close()
+        statement.close()
+        conn.close()
     }
 
     val log = LoggerFactory.getLogger("almoneya.http.ApiServer")
