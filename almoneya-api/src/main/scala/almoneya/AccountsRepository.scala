@@ -9,7 +9,7 @@ class AccountsRepository(val executor: QueryExecutor) extends Repository {
     import AccountsRepository.{FIND_ALL_QUERY, FIND_ALL_WITH_BALANCE_QUERY, INSERT_ONE_QUERY}
 
     def findAllWithBalance(tenantId: TenantId, balanceOn: LocalDate)(implicit connection:Connection) :Set[Account] =
-        executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balanceOn)(resultSetRowToAccountWithBalance).toSet
+        executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balanceOn, tenantId)(resultSetRowToAccountWithBalance).toSet
 
     def findAll(tenantId: TenantId)(implicit connection:Connection): Set[Account] =
         executor.findAll(FIND_ALL_QUERY, tenantId)(resultSetRowToAccountWithoutBalance).toSet
@@ -43,9 +43,8 @@ object AccountsRepository {
             "SELECT account_code, account_name, account_kind, virtual, account_id, sum(amount) AS balance " +
             "FROM        public.accounts " +
             "  LEFT JOIN public.transaction_entries USING (tenant_id, account_name) " +
-            "  LEFT JOIN public.transactions USING (tenant_id, transaction_id) " +
+            "  LEFT JOIN (SELECT tenant_id, transaction_id FROM public.transactions WHERE tenant_id = ? AND posted_on <= ?) t0 USING (tenant_id, transaction_id) " +
             "WHERE tenant_id  = ? " +
-            "  AND (posted_on IS NULL OR posted_on <= ?) " +
             "GROUP BY account_code, account_name, account_kind, virtual, account_id")
 
     val FIND_ALL_QUERY = Query("SELECT account_code, account_name, account_kind, virtual, account_id FROM public.accounts WHERE tenant_id = ?")
