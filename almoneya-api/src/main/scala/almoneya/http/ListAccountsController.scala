@@ -3,12 +3,12 @@ package almoneya.http
 import java.sql.Connection
 import javax.servlet.http.HttpServletRequest
 
-import almoneya.{LocalDateEx, AccountsRepository, TenantId}
+import almoneya.{AccountsRepository, LocalDateEx, TenantId}
 import com.wix.accord.{Failure => AccordFailure, Success => AccordSuccess, Violation, validate}
 import org.eclipse.jetty.server.Request
 import org.joda.time.LocalDate
 
-import scala.util.{Success => ScalaSuccess, Try}
+import scala.util.{Success => ScalaSuccess}
 
 case class ListAccountsController(accountsRepository: AccountsRepository) extends Controller {
 
