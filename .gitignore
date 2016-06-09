@@ -6,6 +6,7 @@
 /almoneya-frontend/node_modules
 /almoneya-frontend/public/assets
 /almoneya-frontend/public/js/bundle.js
+/almoneya-frontend/public/js/bundle.js.gz
 
 /.byebug_history
 /.vagrant

@@ -5,7 +5,7 @@
   "main": "webpack.config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "node_modules/.bin/watchman src 'elm make --output public/js/bundle.js $( find src -type f )'"
+    "watch": "node_modules/.bin/watchman src 'elm make --output public/js/bundle.js $( find src -type f ) ; gzip < public/js/bundle.js > public/js/bundle.js.gz ; du -hs public/js/*.js*'"
   },
   "repository": {
     "type": "git",
