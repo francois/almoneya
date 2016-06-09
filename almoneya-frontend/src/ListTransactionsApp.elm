@@ -62,9 +62,9 @@ viewPayee txn =
 viewTransaction : Transaction -> Html Msg
 viewTransaction txn =
     tr []
-        [ td [] [ text txn.postedOn ]
+        [ td [ class "date" ] [ text txn.postedOn ]
         , td [] (viewPayee txn)
-        , td [] [ text txn.balance ]
+        , td [ class "amount" ] [ text txn.balance ]
         , td [] [ List.map (\x -> x.account.name) txn.entries |> List.sortBy String.toLower |> String.join ", " |> text ]
         ]
 

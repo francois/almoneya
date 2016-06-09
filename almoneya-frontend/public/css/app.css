@@ -12,3 +12,7 @@
 .menubar h2 {
   font-size: 1.5625rem;
 }
+
+.amount {
+  text-align: right;
+}
