@@ -35,6 +35,8 @@ type Msg
     | ChangeSearch String
     | ChangePostedOnOrAfter String
     | ChangePostedOnOrBefore String
+    | ChangeBalanceGtOrEq String
+    | ChangeBalanceLtOrEq String
 
 
 initFilters : ( Filters, Cmd Msg )
@@ -120,6 +122,50 @@ update ev model =
                     in
                         ( { model | filters = newFilters }, Cmd.none )
 
+        ChangeBalanceGtOrEq str ->
+            case str of
+                "" ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | balanceGtOrEq = Nothing }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
+                nonEmptyString ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | balanceGtOrEq = Just nonEmptyString }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
+        ChangeBalanceLtOrEq str ->
+            case str of
+                "" ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | balanceLtOrEq = Nothing }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
+                nonEmptyString ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | balanceLtOrEq = Just nonEmptyString }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
         LoadTransactionsFailed error ->
             case error of
                 Http.UnexpectedPayload str ->
@@ -174,7 +220,7 @@ viewFilterBar model =
             [ div [ class "row" ]
                 [ div [ class "large-3 small-12 columns" ] [ label [] [ text "Search:", input [ type' "text", placeholder "Type to search...", onInput ChangeSearch ] [] ] ]
                 , div [ class "large-3 small-12 columns" ] [ label [] [ text "Posted between:", input [ type' "date", placeholder "From YYYY-MM-DD", onInput ChangePostedOnOrAfter ] [], input [ type' "date", placeholder "To YYYY-MM-DD", onInput ChangePostedOnOrBefore ] [] ] ]
-                , div [ class "large-2 small-12 columns" ] [ label [] [ text "Amount between:", input [ class "amount", type' "text", placeholder "xx.xx" ] [], input [ class "amount", type' "text", placeholder "xx.xx" ] [] ] ]
+                , div [ class "large-2 small-12 columns" ] [ label [] [ text "Amount between:", input [ class "amount", type' "text", placeholder "xx.xx", onInput ChangeBalanceGtOrEq ] [], input [ class "amount", type' "text", placeholder "xx.xx", onInput ChangeBalanceLtOrEq ] [] ] ]
                 , div [ class "large-4 small-12 columns" ] [ label [] [ text "Account:", select [] [ option [] [ text "Choose an account" ] ] ] ]
                 ]
             ]
@@ -210,7 +256,7 @@ filterByDate : Maybe String -> Maybe String -> Transaction -> Bool
 filterByDate postedOnOrAfter postedOnOrBefore txn =
     case ( postedOnOrAfter, postedOnOrBefore ) of
         ( Nothing, Nothing ) ->
-            True
+            True && True
 
         ( Nothing, Just before ) ->
             True && txn.postedOn <= before
@@ -222,11 +268,38 @@ filterByDate postedOnOrAfter postedOnOrBefore txn =
             after <= txn.postedOn && txn.postedOn <= before
 
 
+filterByAmount : Maybe String -> Maybe String -> Transaction -> Bool
+filterByAmount balanceGtOrEq balanceLtOrEq txn =
+    case ( balanceGtOrEq, balanceLtOrEq ) of
+        ( Nothing, Nothing ) ->
+            True && True
+
+        ( Nothing, Just under ) ->
+            True && (Result.withDefault 0 (String.toFloat txn.balance)) <= (Result.withDefault maxFloat (String.toFloat under))
+
+        ( Just over, Nothing ) ->
+            (Result.withDefault minFloat (String.toFloat over)) <= (Result.withDefault 0 (String.toFloat txn.balance)) && True
+
+        ( Just over, Just under ) ->
+            (Result.withDefault minFloat (String.toFloat over)) <= (Result.withDefault 0 (String.toFloat txn.balance)) && (Result.withDefault 0 (String.toFloat txn.balance)) <= (Result.withDefault maxFloat (String.toFloat under))
+
+
+minFloat : Float
+minFloat =
+    -1.0e20
+
+
+maxFloat : Float
+maxFloat =
+    1.0e20
+
+
 filterTransactions : Filters -> List Transaction -> List Transaction
 filterTransactions filters txns =
     txns
         |> List.filter (filterByQuery filters.query)
         |> List.filter (filterByDate filters.postedOnOrAfter filters.postedOnOrBefore)
+        |> List.filter (filterByAmount filters.balanceGtOrEq filters.balanceLtOrEq)
 
 
 view : Model -> Html Msg
