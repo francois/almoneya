@@ -33,6 +33,8 @@ type Msg
     = LoadTransactionsFailed (Http.Error (List String))
     | LoadTransactionsOk (Http.Response (List Transaction))
     | ChangeSearch String
+    | ChangePostedOnOrAfter String
+    | ChangePostedOnOrBefore String
 
 
 initFilters : ( Filters, Cmd Msg )
@@ -71,6 +73,50 @@ update ev model =
 
                         newFilters =
                             { oldFilters | query = Just nonEmptyString }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
+        ChangePostedOnOrAfter str ->
+            case str of
+                "" ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | postedOnOrAfter = Nothing }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
+                nonEmptyString ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | postedOnOrAfter = Just nonEmptyString }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
+        ChangePostedOnOrBefore str ->
+            case str of
+                "" ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | postedOnOrBefore = Nothing }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
+                nonEmptyString ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | postedOnOrBefore = Just nonEmptyString }
                     in
                         ( { model | filters = newFilters }, Cmd.none )
 
@@ -127,7 +173,7 @@ viewFilterBar model =
         [ form []
             [ div [ class "row" ]
                 [ div [ class "large-3 small-12 columns" ] [ label [] [ text "Search:", input [ type' "text", placeholder "Type to search...", onInput ChangeSearch ] [] ] ]
-                , div [ class "large-3 small-12 columns" ] [ label [] [ text "Posted between:", input [ type' "date", placeholder "From YYYY-MM-DD" ] [], input [ type' "date", placeholder "To YYYY-MM-DD" ] [] ] ]
+                , div [ class "large-3 small-12 columns" ] [ label [] [ text "Posted between:", input [ type' "date", placeholder "From YYYY-MM-DD", onInput ChangePostedOnOrAfter ] [], input [ type' "date", placeholder "To YYYY-MM-DD", onInput ChangePostedOnOrBefore ] [] ] ]
                 , div [ class "large-2 small-12 columns" ] [ label [] [ text "Amount between:", input [ class "amount", type' "text", placeholder "xx.xx" ] [], input [ class "amount", type' "text", placeholder "xx.xx" ] [] ] ]
                 , div [ class "large-4 small-12 columns" ] [ label [] [ text "Account:", select [] [ option [] [ text "Choose an account" ] ] ] ]
                 ]
@@ -160,10 +206,27 @@ filterByQuery str txn =
         needle
 
 
+filterByDate : Maybe String -> Maybe String -> Transaction -> Bool
+filterByDate postedOnOrAfter postedOnOrBefore txn =
+    case ( postedOnOrAfter, postedOnOrBefore ) of
+        ( Nothing, Nothing ) ->
+            True
+
+        ( Nothing, Just before ) ->
+            True && txn.postedOn <= before
+
+        ( Just after, Nothing ) ->
+            after <= txn.postedOn && True
+
+        ( Just after, Just before ) ->
+            after <= txn.postedOn && txn.postedOn <= before
+
+
 filterTransactions : Filters -> List Transaction -> List Transaction
 filterTransactions filters txns =
     txns
         |> List.filter (filterByQuery filters.query)
+        |> List.filter (filterByDate filters.postedOnOrAfter filters.postedOnOrBefore)
 
 
 view : Model -> Html Msg
