@@ -77,6 +77,7 @@ object ApiServer {
             Route("""/accounts/search""".r, methods = Set(Route.GET), controller = new SearchAccountsController(accountsRepository), transactionalBehaviour = NoTransactionNeeded),
             Route("""/allocations/build""".r, methods = Set(Route.GET), controller = new BuildAllocationController(accountsRepository, goalsRepository, obligationsRepository, revenuesRepository), transactionalBehaviour = NoTransactionNeeded),
             Route("""/bank-account-transactions/import""".r, methods = Set(Route.POST), controller = new ImportBankAccountTransactionsController(bankAccountTransactionsRepository)),
+            Route("""/transactions""".r, methods = Set(Route.GET), controller = new ListTransactionsController(transactionsRepository)),
             Route("""/transactions""".r, methods = Set(Route.POST), controller = new CreateTransactionController(JSON.mapper, accountsRepository, transactionsRepository, bankAccountTransactionsRepository)),
             Route("""/reconciliations""".r, methods = Set(Route.POST), controller = new CreateReconciliationController(reconciliationsRepository)),
             Route("""/transactions/reconcile""".r, methods = Set(Route.POST), controller = new ReconcileTransactionController(reconciliationsRepository, accountsRepository, transactionsRepository)),

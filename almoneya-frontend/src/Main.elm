@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import RecordRevenueApp
+import ListTransactionsApp
 
 
 main =
@@ -14,6 +15,7 @@ main =
 type alias Model =
     { location : Location
     , recordRevenueApp : RecordRevenueApp.Model
+    , listTransactionsApp : ListTransactionsApp.Model
     }
 
 
@@ -36,6 +38,7 @@ type Location
 type Msg
     = NavigateTo Location
     | RecordRevenueEvent RecordRevenueApp.Msg
+    | ListTransactionsEvent ListTransactionsApp.Msg
 
 
 init : ( Model, Cmd Msg )
@@ -43,11 +46,15 @@ init =
     let
         ( recordRevenueAppModel, recordRevenueAppCmd ) =
             RecordRevenueApp.init
+
+        ( listTransactionsAppModel, listTransactionsAppCmd ) =
+            ListTransactionsApp.init
     in
         ( { location = RecordRevenue
           , recordRevenueApp = recordRevenueAppModel
+          , listTransactionsApp = listTransactionsAppModel
           }
-        , Cmd.batch [ Cmd.map RecordRevenueEvent recordRevenueAppCmd ]
+        , Cmd.batch [ Cmd.map RecordRevenueEvent recordRevenueAppCmd, Cmd.map ListTransactionsEvent listTransactionsAppCmd ]
         )
 
 
@@ -73,6 +80,13 @@ update msg model =
             in
                 ( { model | recordRevenueApp = rreModel }, Cmd.map RecordRevenueEvent rreCmd )
 
+        ListTransactionsEvent ltMsg ->
+            let
+                ( ltModel, ltCmd ) =
+                    ListTransactionsApp.update ltMsg model.listTransactionsApp
+            in
+                ( { model | listTransactionsApp = ltModel }, Cmd.map ListTransactionsEvent ltCmd )
+
         NavigateTo newLocation ->
             ( { model | location = newLocation }, Cmd.none )
 
@@ -87,6 +101,9 @@ drawView model =
     case model.location of
         RecordRevenue ->
             App.map RecordRevenueEvent (RecordRevenueApp.view model.recordRevenueApp)
+
+        Transactions ->
+            App.map ListTransactionsEvent (ListTransactionsApp.view model.listTransactionsApp)
 
         _ ->
             h1 [] [ text "Content" ]

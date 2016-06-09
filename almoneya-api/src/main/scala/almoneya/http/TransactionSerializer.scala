@@ -13,6 +13,7 @@ class TransactionSerializer extends JsonSerializer[Transaction] {
         gen.writeObjectField("description", transaction.description)
         gen.writeObjectField("posted_on", transaction.postedOn.toString("yyyy-MM-dd"))
         gen.writeObjectField("booked_at", transaction.bookedAt.toString("yyyy-MM-dd HH:MM:SS"))
+        gen.writeObjectField("balance", transaction.balance)
         gen.writeObjectField("entries", transaction.entries)
 
         gen.writeEndObject()

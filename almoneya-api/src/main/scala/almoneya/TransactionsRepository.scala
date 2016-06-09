@@ -8,6 +8,33 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
 
     import TransactionsRepository.{insertTransactionEntriesSql, insertTransactionSql}
 
+    def findAllWithBalance(tenantId: TenantId)(implicit connection: Connection): Set[Transaction] = {
+        val transactions = executor.findAll(Query("SELECT transaction_id, payee, description, posted_on, booked_at FROM public.transactions WHERE tenant_id = ?"), tenantId) { rs =>
+            Transaction(transactionId = Some(TransactionId(rs.getInt("transaction_id"))),
+                payee = Payee(rs.getString("payee")),
+                description = Option(rs.getString("description")).map(Description.apply),
+                postedOn = new LocalDate(rs.getDate("posted_on")),
+                bookedAt = new DateTime(rs.getTimestamp("booked_at")),
+                entries = Set.empty)
+        }
+
+        val entries = executor.findAll(Query("SELECT transaction_id, transaction_entry_id, amount, account_id, account_code, account_name, account_kind, virtual FROM public.transaction_entries JOIN accounts USING (tenant_id, account_name) WHERE tenant_id = ?"), tenantId) { rs =>
+            (TransactionId(rs.getInt("transaction_id")), TransactionEntry(transactionEntryId = Some(TransactionEntryId(rs.getInt("transaction_entry_id"))),
+                amount = Amount(rs.getBigDecimal("amount")),
+                account = Account(id = Some(AccountId(rs.getInt("account_id"))),
+                    code = Option(rs.getString("account_code")).map(AccountCode.apply),
+                    name = AccountName(rs.getString("account_name")),
+                    kind = AccountKind.fromString(rs.getString("account_kind")),
+                    virtual = rs.getBoolean("virtual"))))
+        }
+
+        transactions.map { txn =>
+            val entriesOfThisTransaction = entries.filter(_._1 == txn.transactionId.get)
+            val transactionEntries = entriesOfThisTransaction.map(_._2).toSet
+            txn.copy(entries = transactionEntries, balance = Some(transactionEntries.map(_.amount).filter(_.isPositive).reduce(_ + _)))
+        }.toSet
+    }
+
     def findAllIds(tenantId: TenantId)(implicit connection: Connection): Set[TransactionId] =
         executor.findAll(Query("SELECT transaction_id FROM public.transactions WHERE tenant_id = ?"), tenantId) { rs =>
             TransactionId(rs.getInt("transaction_id"))

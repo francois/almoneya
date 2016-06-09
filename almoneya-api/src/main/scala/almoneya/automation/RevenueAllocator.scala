@@ -32,7 +32,7 @@ case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue
         if (plan.isEmpty) {
             Seq.empty[Allocation]
         } else {
-            val runningBalances = amountReceived +: plan.indices.tail.map(idx => amountReceived - plan.slice(0, idx).map(_.planToTake).reduce(_ add _))
+            val runningBalances = amountReceived +: plan.indices.tail.map(idx => amountReceived - plan.slice(0, idx).map(_.planToTake).reduce(_ + _))
             plan.zip(runningBalances).map {
                 case (payment, balance) if balance >= payment.planToTake && payment.goal.amountMissing <= autoFulfillThreshold =>
                     payment.copy(planToTake = payment.goal.amountMissing, realTake = payment.goal.amountMissing)

@@ -1,10 +1,13 @@
 module RecordRevenueApp exposing (Model, Msg, init, update, view)
 
+import Domain exposing (..)
+import DomainRest exposing (..)
 import Html.Attributes exposing (type', name, placeholder, value, class, classList, disabled, selected)
 import Html.Events exposing (onSubmit, onInput)
 import Html exposing (..)
+import HtmlHelpers exposing (viewErrors)
 import HttpBuilder as Http
-import Json.Decode as Decode exposing ((:=))
+import Json.Decode as Decode
 import Json.Encode as Encode
 import String
 import Task exposing (..)
@@ -109,22 +112,6 @@ update msg model =
                     ( { model | saving = False, errors = errors.data }, Cmd.none )
 
 
-viewError : String -> Html Msg
-viewError msg =
-    li [] [ text msg ]
-
-
-viewErrors : Model -> Html Msg
-viewErrors model =
-    if List.isEmpty model.errors then
-        div [] []
-    else
-        div [ class "callout warning" ]
-            [ h5 [] [ text "Validation failures prevented this form from saving" ]
-            , List.map viewError model.errors |> ul []
-            ]
-
-
 accountOption : AccountName -> AccountName -> Html Msg
 accountOption selectedAccount name =
     option [ selected (selectedAccount == name) ] [ text name ]
@@ -178,7 +165,7 @@ view model =
     div []
         [ h1 [] [ text "Record Revenue" ]
         , form [ classList [ ( "saving", model.saving ) ], onSubmit Submit ]
-            [ viewErrors model
+            [ viewErrors model.errors
             , label [] [ text "Payee", input [ type' "text", name "revenue[payee]", placeholder "ACME Corp.", value model.payee, onInput ChangePayee ] [] ]
             , label [] [ text "Received on", input [ type' "text", name "revenue[received_on]", placeholder "2016-06-09", value model.receivedOn, onInput ChangeReceivedOn ] [] ]
             , label [] [ text "Amount", input [ type' "text", name "revenue[amount]", placeholder "1031.78", value model.amount, onInput ChangeAmount ] [] ]
@@ -200,32 +187,6 @@ modelToValue model =
         ]
 
 
-transactionDecoder : Decode.Decoder Transaction
-transactionDecoder =
-    Decode.at [ "data" ]
-        (Decode.object6 Transaction
-            ("id" := Decode.int)
-            ("payee" := Decode.string)
-            ("description" := Decode.maybe Decode.string)
-            ("posted_on" := Decode.string)
-            ("booked_at" := Decode.string)
-            ("entries" := Decode.list transactionEntryDecoder)
-        )
-
-
-transactionEntryDecoder : Decode.Decoder TransactionEntry
-transactionEntryDecoder =
-    Decode.object3 TransactionEntry
-        ("id" := Decode.int)
-        ("amount" := Decode.string)
-        ("account" := decodeAccount)
-
-
-errorsDecoder : Decode.Decoder (List String)
-errorsDecoder =
-    Decode.at [ "errors" ] (Decode.list Decode.string)
-
-
 submit : Model -> Task (Http.Error (List String)) (Http.Response Transaction)
 submit model =
     let
@@ -244,76 +205,4 @@ submit model =
             |> Http.withCredentials
             |> Http.withJsonBody body
             |> Http.withTimeout (5 * Time.second)
-            |> Http.send (Http.jsonReader transactionDecoder) (Http.jsonReader errorsDecoder)
-
-
-type alias AccountId =
-    Int
-
-
-type alias AccountCode =
-    String
-
-
-type alias AccountName =
-    String
-
-
-type alias AccountKind =
-    String
-
-
-type alias Amount =
-    String
-
-
-type alias Account =
-    { id : Maybe AccountId
-    , code : Maybe AccountCode
-    , name : AccountName
-    , kind : AccountKind
-    , balance : Maybe Amount
-    , virtual : Bool
-    }
-
-
-decodeAccount : Decode.Decoder Account
-decodeAccount =
-    Decode.object6 Account
-        ("id" := Decode.maybe Decode.int)
-        ("code" := Decode.maybe Decode.string)
-        ("name" := Decode.string)
-        ("kind" := Decode.string)
-        ("balance" := Decode.maybe Decode.string)
-        ("virtual" := Decode.bool)
-
-
-decodeAccounts : Decode.Decoder (List Account)
-decodeAccounts =
-    Decode.at [ "data" ] (Decode.list decodeAccount)
-
-
-getAccounts : Task (Http.Error (List String)) (Http.Response (List Account))
-getAccounts =
-    Http.get "/api/accounts"
-        |> Http.withCredentials
-        |> Http.withHeader "Accept" "application/json"
-        |> Http.withTimeout (2 * Time.second)
-        |> Http.send (Http.jsonReader decodeAccounts) (Http.jsonReader errorsDecoder)
-
-
-type alias Transaction =
-    { id : Int
-    , payee : String
-    , description : Maybe String
-    , postedOn : String
-    , bookedOn : String
-    , entries : List TransactionEntry
-    }
-
-
-type alias TransactionEntry =
-    { id : Int
-    , amount : String
-    , account : Account
-    }
+            |> Http.send (Http.jsonReader (Decode.at [ "data" ] transactionDecoder)) (Http.jsonReader errorsDecoder)
