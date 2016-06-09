@@ -31,7 +31,13 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
         transactions.map { txn =>
             val entriesOfThisTransaction = entries.filter(_._1 == txn.transactionId.get)
             val transactionEntries = entriesOfThisTransaction.map(_._2).toSet
-            txn.copy(entries = transactionEntries, balance = Some(transactionEntries.map(_.amount).filter(_.isPositive).reduce(_ + _)))
+            val balance = if (transactionEntries.isEmpty) {
+                Amount(0)
+            } else {
+                transactionEntries.map(_.amount).filter(_.isPositive).reduce(_ + _)
+            }
+
+            txn.copy(entries = transactionEntries, balance = Some(balance))
         }.toSet
     }
 
