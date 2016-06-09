@@ -8,6 +8,7 @@
     </appender>
 
     <logger name="almoneya.http" level="DEBUG"/>
+    <logger name="almoneya.http.FrontController" level="INFO"/>
 
     <root level="INFO">
         <appender-ref ref="STDERR"/>

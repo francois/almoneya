@@ -29,6 +29,7 @@ class FrontController(val router: Router,
 
             sendResponse(route, baseRequest, request, response)
         } finally {
+            log.info("{} \"{}\" {}", request.getMethod, request.getContextPath + request.getPathInfo, response.getStatus.asInstanceOf[AnyRef])
             // These are not the FrontController's concerns, but due to the API design of
             // the security subsystem in the HttpServlet spec, we have to do it here. The
             // security subsystem does not inform the LoginService that a request is
