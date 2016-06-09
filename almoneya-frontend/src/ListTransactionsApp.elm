@@ -69,6 +69,15 @@ viewTransaction txn =
         ]
 
 
+sortedTransactions : List Transaction -> List Transaction
+sortedTransactions txns =
+    let
+        compValue txn =
+            (txn.postedOn, txn.bookedAt)
+    in
+        List.sortBy compValue txns
+
+
 view : Model -> Html Msg
 view model =
     div []
@@ -83,6 +92,6 @@ view model =
                     , th [] [ text "Accounts" ]
                     ]
                 ]
-            , tbody [] (List.map viewTransaction model.transactions)
+            , tbody [] (sortedTransactions model.transactions |> List.map viewTransaction)
             ]
         ]
