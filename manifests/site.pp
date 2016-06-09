@@ -190,3 +190,11 @@ log_line_prefix = '%t [%p-%l] %q%u@%d '
 timezone = 'Etc/UTC'
 "
 }
+
+exec{'/usr/bin/wget --quiet https://github.com/avh4/elm-format/releases/download/0.3.1-alpha/elm-format-0.17-0.3.1-alpha-linux-x64.tgz':
+  cwd     => '/usr/local/src',
+  creates => '/usr/local/src/elm-format-0.17-0.3.1-alpha-linux-x64.tgz',
+} -> exec{'/bin/tar -xzf /usr/local/src/elm-format-0.17-0.3.1-alpha-linux-x64.tgz':
+  cwd     => '/usr/local/bin',
+  creates => '/usr/local/bin/elm-format',
+}
