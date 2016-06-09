@@ -2,7 +2,7 @@ module ListTransactionsApp exposing (Model, Msg, init, view, update)
 
 import Domain exposing (..)
 import DomainRest exposing (..)
-import Html.Attributes exposing (class, classList, disabled, placeholder, type')
+import Html.Attributes exposing (class, classList, disabled, placeholder, type', selected)
 import Html.Events exposing (onSubmit, onInput)
 import Html exposing (..)
 import HtmlHelpers exposing (viewErrors)
@@ -18,6 +18,7 @@ type alias Filters =
     , balanceGtOrEq : Maybe String
     , balanceLtOrEq : Maybe String
     , account : Maybe AccountName
+    , accounts : List Account
     }
 
 
@@ -37,11 +38,14 @@ type Msg
     | ChangePostedOnOrBefore String
     | ChangeBalanceGtOrEq String
     | ChangeBalanceLtOrEq String
+    | AccountsOk (Http.Response (List Account))
+    | AccountsFailed (Http.Error (List String))
+    | ChangeAccount String
 
 
 initFilters : ( Filters, Cmd Msg )
 initFilters =
-    ( { query = Nothing, postedOnOrAfter = Nothing, postedOnOrBefore = Nothing, balanceGtOrEq = Nothing, balanceLtOrEq = Nothing, account = Nothing }, Cmd.none )
+    ( { query = Nothing, postedOnOrAfter = Nothing, postedOnOrBefore = Nothing, balanceGtOrEq = Nothing, balanceLtOrEq = Nothing, account = Nothing, accounts = [] }, Task.perform AccountsFailed AccountsOk getAccounts )
 
 
 init : ( Model, Cmd Msg )
@@ -166,6 +170,28 @@ update ev model =
                     in
                         ( { model | filters = newFilters }, Cmd.none )
 
+        ChangeAccount str ->
+            case str of
+                "" ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | account = Nothing }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
+                nonEmptyString ->
+                    let
+                        oldFilters =
+                            model.filters
+
+                        newFilters =
+                            { oldFilters | account = Just nonEmptyString }
+                    in
+                        ( { model | filters = newFilters }, Cmd.none )
+
         LoadTransactionsFailed error ->
             case error of
                 Http.UnexpectedPayload str ->
@@ -182,6 +208,30 @@ update ev model =
 
         LoadTransactionsOk response ->
             ( { model | loading = False, transactions = response.data }, Cmd.none )
+
+        AccountsOk response ->
+            let
+                oldFilters =
+                    model.filters
+
+                newFilters =
+                    { oldFilters | accounts = response.data }
+            in
+                ( { model | filters = newFilters }, Cmd.none )
+
+        AccountsFailed error ->
+            case error of
+                Http.UnexpectedPayload str ->
+                    ( { model | errors = [ "Unexpected response from server: " ++ str ] }, Cmd.none )
+
+                Http.NetworkError ->
+                    ( { model | errors = [ "Network error while loading accounts" ] }, Cmd.none )
+
+                Http.Timeout ->
+                    ( { model | errors = [ "Timeout loading accounts... please try again" ] }, Cmd.none )
+
+                Http.BadResponse errors ->
+                    ( { model | errors = errors.data }, Cmd.none )
 
 
 viewPayee : Transaction -> List (Html Msg)
@@ -213,6 +263,38 @@ sortedTransactions txns =
         List.sortBy compValue txns
 
 
+viewEmptyOption : Html Msg
+viewEmptyOption =
+    option [] [ text "Please choose an entry" ]
+
+
+viewAccountOption : Maybe AccountName -> AccountName -> Html Msg
+viewAccountOption selectedAccount name =
+    let
+        sel1 =
+            Maybe.map (\x -> x == name) selectedAccount
+
+        sel2 =
+            Maybe.withDefault False sel1
+    in
+        option [ selected sel2 ] [ text name ]
+
+
+viewAccountsOptions : Maybe AccountName -> List Account -> List (Html Msg)
+viewAccountsOptions selectedName accounts =
+    let
+        names =
+            List.map (\x -> x.name) accounts
+
+        sortedNames =
+            List.sortBy String.toLower names
+
+        options =
+            List.map (viewAccountOption selectedName) sortedNames
+    in
+        [ viewEmptyOption ] ++ options
+
+
 viewFilterBar : Model -> Html Msg
 viewFilterBar model =
     div [ class "callout" ]
@@ -221,7 +303,7 @@ viewFilterBar model =
                 [ div [ class "large-3 small-12 columns" ] [ label [] [ text "Search:", input [ type' "text", placeholder "Type to search...", onInput ChangeSearch ] [] ] ]
                 , div [ class "large-3 small-12 columns" ] [ label [] [ text "Posted between:", input [ type' "date", placeholder "From YYYY-MM-DD", onInput ChangePostedOnOrAfter ] [], input [ type' "date", placeholder "To YYYY-MM-DD", onInput ChangePostedOnOrBefore ] [] ] ]
                 , div [ class "large-2 small-12 columns" ] [ label [] [ text "Amount between:", input [ class "amount", type' "text", placeholder "xx.xx", onInput ChangeBalanceGtOrEq ] [], input [ class "amount", type' "text", placeholder "xx.xx", onInput ChangeBalanceLtOrEq ] [] ] ]
-                , div [ class "large-4 small-12 columns" ] [ label [] [ text "Account:", select [] [ option [] [ text "Choose an account" ] ] ] ]
+                , div [ class "large-4 small-12 columns" ] [ label [] [ text "Account:", select [ onInput ChangeAccount ] (viewAccountsOptions model.filters.account model.filters.accounts) ] ]
                 ]
             ]
         ]
@@ -294,12 +376,23 @@ maxFloat =
     1.0e20
 
 
+filterByAccount : Maybe String -> Transaction -> Bool
+filterByAccount str txn =
+    case str of
+        Nothing ->
+            True
+
+        Just name ->
+            List.any (\x -> x.account.name == name) txn.entries
+
+
 filterTransactions : Filters -> List Transaction -> List Transaction
 filterTransactions filters txns =
     txns
         |> List.filter (filterByQuery filters.query)
         |> List.filter (filterByDate filters.postedOnOrAfter filters.postedOnOrBefore)
         |> List.filter (filterByAmount filters.balanceGtOrEq filters.balanceLtOrEq)
+        |> List.filter (filterByAccount filters.account)
 
 
 view : Model -> Html Msg
