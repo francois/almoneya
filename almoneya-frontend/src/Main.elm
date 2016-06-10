@@ -73,6 +73,13 @@ update msg model =
                 , Cmd.batch [ Cmd.map RecordRevenueEvent recordRevenueAppCmd ]
                 )
 
+        NavigateTo Transactions ->
+            let
+                ( transactionsModel, transactionsCmd ) =
+                    ListTransactionsApp.init
+            in
+                ( { model | location = Transactions, listTransactionsApp = transactionsModel }, Cmd.map ListTransactionsEvent transactionsCmd )
+
         RecordRevenueEvent rreMsg ->
             let
                 ( rreModel, rreCmd ) =
