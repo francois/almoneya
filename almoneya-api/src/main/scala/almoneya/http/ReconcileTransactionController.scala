@@ -16,7 +16,7 @@ class ReconcileTransactionController(reconciliationsRepository: ReconciliationsR
                                         transactionId: Option[String],
                                         postedOn: Option[String],
                                         accountName: Option[String],
-                                        validAccounts: Set[Account] = Set.empty,
+                                        validAccounts: Iterable[Account] = Set.empty,
                                         validTransactionIds: Set[TransactionId] = Set.empty) {
         def toReconciliationEntry =
             ReconciliationEntry(

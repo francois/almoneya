@@ -3,7 +3,7 @@ module RecordRevenueApp exposing (Model, Msg, init, update, view)
 import Domain exposing (..)
 import DomainRest exposing (..)
 import Html.Attributes exposing (type', name, placeholder, value, class, classList, disabled, selected)
-import Html.Events exposing (onSubmit, onInput)
+import Html.Events exposing (onSubmit, onInput, onClick)
 import Html exposing (..)
 import HtmlHelpers exposing (viewErrors)
 import HttpBuilder as Http
@@ -131,11 +131,8 @@ accountOptions kind selectedName accounts =
         names =
             List.map (\x -> x.name) candidateAccounts
 
-        sortedNames =
-            List.sortBy String.toLower names
-
         options =
-            List.map (accountOption selectedName) sortedNames
+            List.map (accountOption selectedName) names
     in
         [ emptyOption ] ++ options
 

@@ -3,7 +3,7 @@ package almoneya.http
 import almoneya.Account
 import com.wix.accord._
 
-case class AccountNameValidator(validAccounts: Set[Account]) {
+case class AccountNameValidator(validAccounts: Iterable[Account]) {
     def build: Validator[String] = new Validator[String] {
         override def apply(name: String): Result = {
             validAccounts.find(_.name.isEqualTo(name)) match {

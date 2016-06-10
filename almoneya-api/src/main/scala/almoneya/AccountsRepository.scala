@@ -8,18 +8,18 @@ class AccountsRepository(val executor: QueryExecutor) extends Repository {
 
     import AccountsRepository.{FIND_ALL_QUERY, FIND_ALL_WITH_BALANCE_QUERY, INSERT_ONE_QUERY}
 
-    def findAllWithBalance(tenantId: TenantId, balanceOn: LocalDate)(implicit connection: Connection): Set[Account] =
-        executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balanceOn, tenantId)(resultSetRowToAccountWithBalance).toSet
+    def findAllWithBalance(tenantId: TenantId, balanceOn: LocalDate)(implicit connection: Connection): Iterable[Account] =
+        executor.findAll(FIND_ALL_WITH_BALANCE_QUERY, tenantId, balanceOn, tenantId)(resultSetRowToAccountWithBalance)
 
-    def findAll(tenantId: TenantId)(implicit connection: Connection): Set[Account] =
-        executor.findAll(FIND_ALL_QUERY, tenantId)(resultSetRowToAccountWithoutBalance).toSet
+    def findAll(tenantId: TenantId)(implicit connection: Connection): Iterable[Account] =
+        executor.findAll(FIND_ALL_QUERY, tenantId)(resultSetRowToAccountWithoutBalance)
 
     def create(tenantId: TenantId, account: Account)(implicit connection: Connection): Account =
         executor.findOne(INSERT_ONE_QUERY, tenantId, account.code, account.name, account.kind, account.virtual)(resultSetRowToAccountWithoutBalance).get
 
 
-    def search(tenantId: TenantId, query: String)(implicit connection: Connection): Set[Account] =
-        executor.findAll(FIND_ALL_QUERY.append("AND account_name ilike ?"), tenantId, "%" + query + "%")(resultSetRowToAccountWithoutBalance).toSet
+    def search(tenantId: TenantId, query: String)(implicit connection: Connection): Iterable[Account] =
+        executor.findAll(FIND_ALL_QUERY.append("AND account_name ilike ?"), tenantId, "%" + query + "%")(resultSetRowToAccountWithoutBalance)
 
     private[this] def resultSetRowToAccountWithBalance(rs: ResultSet): Account =
         Account(id = Some(AccountId(rs.getInt("account_id"))),
@@ -45,9 +45,10 @@ object AccountsRepository {
             "  LEFT JOIN public.transaction_entries USING (tenant_id, account_name) " +
             "  LEFT JOIN (SELECT tenant_id, transaction_id FROM public.transactions WHERE tenant_id = ? AND posted_on <= ?) t0 USING (tenant_id, transaction_id) " +
             "WHERE tenant_id  = ? " +
-            "GROUP BY account_code, account_name, account_kind, virtual, account_id")
+            "GROUP BY account_code, account_name, account_kind, virtual, account_id " +
+            "ORDER BY lower(account_name)")
 
-    val FIND_ALL_QUERY = Query("SELECT account_code, account_name, account_kind, virtual, account_id FROM public.accounts WHERE tenant_id = ?")
+    val FIND_ALL_QUERY = Query("SELECT account_code, account_name, account_kind, virtual, account_id FROM public.accounts WHERE tenant_id = ? ORDER BY lower(account_name)")
 
     val INSERT_ONE_QUERY = Query("INSERT INTO public.accounts(tenant_id, account_code, account_name, account_kind, virtual) VALUES (?, ?, ?, ?, ?)",
         Seq(Column("account_id"), Column("account_code"), Column("account_name"), Column("account_kind"), Column("virtual")))

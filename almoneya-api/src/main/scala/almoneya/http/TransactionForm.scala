@@ -8,14 +8,14 @@ case class TransactionForm(payee: Option[String],
                            postedOn: Option[String],
                            entries: Set[TransactionEntryForm],
                            bankAccountTransactionId: Option[String]) {
-    def toTransaction(accounts: Set[Account]): Transaction = {
+    def toTransaction(accounts: Iterable[Account]): Transaction = {
         Transaction(payee = Payee(payee.get),
             description = description.map(Description.apply),
             postedOn = new LocalDate(postedOn.get),
             entries = buildEntries(accounts))
     }
 
-    def buildEntries(accounts: Set[Account]): Set[TransactionEntry] = entries.map { entry =>
+    def buildEntries(accounts: Iterable[Account]): Set[TransactionEntry] = entries.map { entry =>
         TransactionEntry(account = accounts.find(_.name.value == entry.accountName.get).get,
             amount = Amount(BigDecimal(entry.amount.get)))
     }

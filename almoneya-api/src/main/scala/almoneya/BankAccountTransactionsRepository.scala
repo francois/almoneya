@@ -37,7 +37,7 @@ class BankAccountTransactionsRepository(val executor: QueryExecutor) extends Rep
         val existingAccountNums = executor.findAll(Query("SELECT bank_account_hash FROM bank_accounts")) { rs =>
             AccountHash(rs.getString("bank_account_hash"))
         }
-        val missingAccountNums = transactions.filterNot(txn => existingAccountNums.contains(txn.bankAccount.accountHash)).map(_.bankAccount.accountHash)
+        val missingAccountNums = transactions.filterNot(txn => existingAccountNums.contains(txn.bankAccount.accountHash)).map(_.bankAccount.accountHash).toSet
         val missingAccounts = bankAccounts.filter(account => missingAccountNums.contains(account.accountHash))
         val newAccounts = executor.insertMany(Query("INSERT INTO bank_accounts(tenant_id, bank_account_hash, bank_account_last4) VALUES"), missingAccounts.map(account => Seq(tenantId, account.accountHash, account.last4)).toSeq) { rs =>
             BankAccount(id = Some(BankAccountId(rs.getInt("bank_account_id"))),

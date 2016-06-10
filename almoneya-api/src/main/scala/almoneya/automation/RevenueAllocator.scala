@@ -3,7 +3,7 @@ package almoneya.automation
 import almoneya.{Amount, _}
 import org.joda.time.LocalDate
 
-case class RevenueAllocator(obligations: Set[FundingGoal], revenues: Set[Revenue], autoFulfillThreshold: Amount = Amount(BigDecimal(100))) {
+case class RevenueAllocator(obligations: Iterable[FundingGoal], revenues: Iterable[Revenue], autoFulfillThreshold: Amount = Amount(BigDecimal(100))) {
     if (obligations.isEmpty) throw new IllegalArgumentException("Expected to have at least one obligation, else the calculations are meaningless")
     if (revenues.isEmpty) throw new IllegalArgumentException("Expected to have at least one revenue source, else the calculations are incorrect")
 

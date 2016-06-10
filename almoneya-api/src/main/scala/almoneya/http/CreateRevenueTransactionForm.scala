@@ -15,7 +15,7 @@ case class CreateRevenueTransactionForm(revenueAccountName: Option[String],
                                         payee: Option[String],
                                         receivedOn: Option[String],
                                         amount: Option[String],
-                                        validAccounts: Set[Account] = Set.empty) {
+                                        validAccounts: Iterable[Account] = Set.empty) {
     def toTransaction(implicit connection: Connection): Transaction = {
         val revenueAccount = validAccounts.find(_.name.isEqualTo(revenueAccountName.get))
         assert(revenueAccount.isDefined)

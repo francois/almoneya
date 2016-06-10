@@ -30,7 +30,7 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
 
         transactions.map { txn =>
             val entriesOfThisTransaction = entries.filter(_._1 == txn.transactionId.get)
-            val transactionEntries = entriesOfThisTransaction.map(_._2).toSet
+            val transactionEntries = entriesOfThisTransaction.map(_._2)
             val balance = if (transactionEntries.isEmpty) {
                 Amount(0)
             } else {
@@ -88,5 +88,10 @@ object TransactionsRepository {
             "JOIN accounts USING (account_name)")
 
     val FIND_ALL_QUERY = Query("SELECT transaction_id, payee, description, posted_on, booked_at FROM public.transactions WHERE tenant_id = ?")
-    val FIND_ENTRIES_WITH_ROUND_AMOUNTS_QUERY = Query("SELECT transaction_id, transaction_entry_id, round(amount, 2) AS amount, account_id, account_code, account_name, account_kind, virtual FROM public.transaction_entries JOIN accounts USING (tenant_id, account_name) WHERE tenant_id = ?")
+    val FIND_ENTRIES_WITH_ROUND_AMOUNTS_QUERY = Query("" +
+            "SELECT transaction_id, transaction_entry_id, round(amount, 2) AS amount, account_id, account_code, account_name, account_kind, virtual " +
+            "FROM public.transaction_entries " +
+            "  JOIN accounts USING (tenant_id, account_name) " +
+            "WHERE tenant_id = ? " +
+            "ORDER BY transaction_id, LOWER(account_name)")
 }

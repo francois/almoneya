@@ -286,11 +286,8 @@ viewAccountsOptions selectedName accounts =
         names =
             List.map (\x -> x.name) accounts
 
-        sortedNames =
-            List.sortBy String.toLower names
-
         options =
-            List.map (viewAccountOption selectedName) sortedNames
+            List.map (viewAccountOption selectedName) names
     in
         [ viewEmptyOption ] ++ options
 
