@@ -1,5 +1,7 @@
 package almoneya.http
 
+import java.io.{BufferedReader, InputStreamReader}
+import java.net.URI
 import java.sql.Connection
 import javax.servlet.MultipartConfigElement
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
@@ -103,12 +105,51 @@ class FrontController(val router: Router,
     }
 
     private[this] def writeResponse(response: HttpServletResponse, status: Int, results: Product with Serializable, baseRequest: Request): Unit = {
-        response.setStatus(status)
-        response.setContentType("application/json")
+        if (HttpServletResponse.SC_OK <= status && status < 300) {
+            if (isPostWithRedirectToParameter(baseRequest)) {
+                redirectToLocation(Option(baseRequest.getParameter("redirect_to")).map(new URI(_)).get, baseRequest, response)
+            } else if (isPostWithMultipartAndRedirectToPart(baseRequest)) {
+                val value = Option(baseRequest.getPart("redirect_to")).map(part => new BufferedReader(new InputStreamReader(part.getInputStream)).readLine())
+                redirectToLocation(value.map(new URI(_)).get, baseRequest, response)
+            } // else, proceed with regular response handling
+        }
+
+        if (!baseRequest.isHandled) {
+            response.setStatus(status)
+            response.setContentType("application/json")
+            response.setCharacterEncoding("UTF-8")
+
+            mapper.writeValue(response.getWriter, results)
+
+            baseRequest.setHandled(true)
+        }
+    }
+
+    private[this] def isPostWithRedirectToParameter(baseRequest: Request): Boolean = {
+        Option(baseRequest.getMethod).exists(_.toLowerCase() == "post") && Option(baseRequest.getParameter("redirect_to")).isDefined
+    }
+
+    private[this] def isPostWithMultipartAndRedirectToPart(baseRequest: Request): Boolean = {
+        Option(baseRequest.getMethod).exists(_.toLowerCase() == "post") && Option(baseRequest.getContentType).exists(_.startsWith("multipart/form-data")) && Option(baseRequest.getPart("redirect_to")).isDefined
+    }
+
+    private[this] def redirectToLocation(redirectTo: URI, baseRequest: Request, response: HttpServletResponse): Unit = {
+        response.setStatus(HttpServletResponse.SC_FOUND)
+        response.setContentType("text/html")
         response.setCharacterEncoding("UTF-8")
 
-        mapper.writeValue(response.getWriter, results)
+        val scheme = baseRequest.getScheme
+        val host = baseRequest.getServerName
+        val port = baseRequest.getServerPort
+        val path = redirectTo.getPath // path includes the initial slash; hence we don't need it below
+        val location = if (port < 0) {
+                "%s://%s%s".format(scheme, host, path)
+            } else {
+                "%s://%s:%d%s".format(scheme, host, port, path)
+            }
 
+        response.setHeader("Location", location)
+        response.getWriter.printf("You are being <a href=\"%s\">redirected</a>.\n", location)
         baseRequest.setHandled(true)
     }
 

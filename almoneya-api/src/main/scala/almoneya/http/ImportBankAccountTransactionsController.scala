@@ -19,7 +19,10 @@ class ImportBankAccountTransactionsController(bankAccountTransactionsRepo: BankA
             Option(request.getPart("file")) match {
                 case Some(filePart) if TEXT_CSV_RE.findFirstIn(filePart.getContentType).isDefined =>
                     val reader = new InputStreamReader(filePart.getInputStream, Charset.forName("ISO-8859-1"))
-                        Right(importTransactions(tenantId, reader))
+                    Right(importTransactions(tenantId, reader))
+
+                case Some(filePart) =>
+                    Left(Set(RuleViolation(null, "The file part did not have the text/csv Content-Type, instead we found [" + filePart.getContentType + "]", None)))
 
                 case _ =>
                     Left(Set(RuleViolation(null, "When uploading files using multipart/form-data, we expect to find a file part, but we did not find it. Instead, we found the following part names: " + request.getParts.map(_.getName).mkString(", "), None)))
