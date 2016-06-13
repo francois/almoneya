@@ -249,7 +249,7 @@ viewTransaction txn =
     tr []
         [ td [ class "date" ] [ text txn.postedOn ]
         , td [] (viewPayee txn)
-        , td [ class "amount" ] [ text txn.balance ]
+        , td [ class "amount" ] [ text <| Maybe.withDefault "" txn.balance ]
         , td [] [ List.map (\x -> x.account.name) txn.entries |> List.sortBy String.toLower |> String.join ", " |> text ]
         ]
 
@@ -354,13 +354,13 @@ filterByAmount balanceGtOrEq balanceLtOrEq txn =
             True && True
 
         ( Nothing, Just under ) ->
-            True && (Result.withDefault 0 (String.toFloat txn.balance)) <= (Result.withDefault maxFloat (String.toFloat under))
+            True && (Result.withDefault 0 (String.toFloat (Maybe.withDefault "0" txn.balance))) <= (Result.withDefault maxFloat (String.toFloat under))
 
         ( Just over, Nothing ) ->
-            (Result.withDefault minFloat (String.toFloat over)) <= (Result.withDefault 0 (String.toFloat txn.balance)) && True
+            (Result.withDefault minFloat (String.toFloat over)) <= (Result.withDefault 0 (String.toFloat (Maybe.withDefault "0" txn.balance))) && True
 
         ( Just over, Just under ) ->
-            (Result.withDefault minFloat (String.toFloat over)) <= (Result.withDefault 0 (String.toFloat txn.balance)) && (Result.withDefault 0 (String.toFloat txn.balance)) <= (Result.withDefault maxFloat (String.toFloat under))
+            (Result.withDefault minFloat (String.toFloat over)) <= (Result.withDefault 0 (String.toFloat (Maybe.withDefault "0" txn.balance))) && (Result.withDefault 0 (String.toFloat (Maybe.withDefault "0" txn.balance))) <= (Result.withDefault maxFloat (String.toFloat under))
 
 
 minFloat : Float

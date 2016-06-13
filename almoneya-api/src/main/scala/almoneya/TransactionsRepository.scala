@@ -70,7 +70,7 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
 
         val newTransaction = createTransactionRow()
         val newEntries = createTransactionEntriesRows(newTransaction.transactionId.get)
-        newTransaction.copy(entries = newEntries.toSet)
+        newTransaction.copy(entries = newEntries.toSet, balance = Some(newEntries.filterNot(_.account.virtual).map(_.amount).reduce(_ + _)))
     }
 }
 

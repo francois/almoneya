@@ -20,7 +20,7 @@ transactionDecoder =
         ("description" := Decode.maybe Decode.string)
         ("posted_on" := Decode.string)
         ("booked_at" := Decode.string)
-        ("balance" := Decode.string)
+        ("balance" := Decode.maybe Decode.string)
         ("entries" := Decode.list transactionEntryDecoder)
     )
 

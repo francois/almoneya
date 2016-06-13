@@ -7,6 +7,7 @@ import Html.Events exposing (onClick)
 import RecordRevenueApp
 import ListTransactionsApp
 import ImportBankAccountTransactionsApp
+import RecordTransactionApp
 
 
 main =
@@ -18,7 +19,16 @@ type alias Model =
     , recordRevenueApp : RecordRevenueApp.Model
     , listTransactionsApp : ListTransactionsApp.Model
     , importBankAccountTransactionsApp : ImportBankAccountTransactionsApp.Model
+    , recordTransactionApp : RecordTransactionApp.Model
     }
+
+
+type Msg
+    = NavigateTo Location
+    | RecordRevenueEvent RecordRevenueApp.Msg
+    | ListTransactionsEvent ListTransactionsApp.Msg
+    | ImportBankAccountTransactionsEvent ImportBankAccountTransactionsApp.Msg
+    | RecordTransactionEvent RecordTransactionApp.Msg
 
 
 type Location
@@ -27,6 +37,7 @@ type Location
     | RecordCheck
     | RecordExpense
     | RecordRevenue
+    | RecordTransaction
     | NextObligations
     | Obligations
     | Goals
@@ -35,13 +46,6 @@ type Location
     | BankTransactions
     | NeedHelp
     | Settings
-
-
-type Msg
-    = NavigateTo Location
-    | RecordRevenueEvent RecordRevenueApp.Msg
-    | ListTransactionsEvent ListTransactionsApp.Msg
-    | ImportBankAccountTransactionsEvent ImportBankAccountTransactionsApp.Msg
 
 
 init : ( Model, Cmd Msg )
@@ -55,13 +59,22 @@ init =
 
         ( importBankAccountTransactionsAppModel, importBankAccountTransactionsAppCmd ) =
             ImportBankAccountTransactionsApp.init
+
+        ( recordTransactionAppModel, recordTransactionAppCmd ) =
+            RecordTransactionApp.init
     in
         ( { location = RecordRevenue
           , recordRevenueApp = recordRevenueAppModel
           , listTransactionsApp = listTransactionsAppModel
           , importBankAccountTransactionsApp = importBankAccountTransactionsAppModel
+          , recordTransactionApp = recordTransactionAppModel
           }
-        , Cmd.batch [ Cmd.map RecordRevenueEvent recordRevenueAppCmd, Cmd.map ListTransactionsEvent listTransactionsAppCmd, Cmd.map ImportBankAccountTransactionsEvent importBankAccountTransactionsAppCmd ]
+        , Cmd.batch
+            [ Cmd.map RecordRevenueEvent recordRevenueAppCmd
+            , Cmd.map ListTransactionsEvent listTransactionsAppCmd
+            , Cmd.map ImportBankAccountTransactionsEvent importBankAccountTransactionsAppCmd
+            , Cmd.map RecordTransactionEvent recordTransactionAppCmd
+            ]
         )
 
 
@@ -86,6 +99,13 @@ update msg model =
                     ListTransactionsApp.init
             in
                 ( { model | location = Transactions, listTransactionsApp = transactionsModel }, Cmd.map ListTransactionsEvent transactionsCmd )
+
+        NavigateTo RecordTransaction ->
+            let
+                ( recordTransactionModel, recordTransactionCmd ) =
+                    RecordTransactionApp.init
+            in
+                ( { model | location = RecordTransaction, recordTransactionApp = recordTransactionModel }, Cmd.map RecordTransactionEvent recordTransactionCmd )
 
         NavigateTo ImportBankTransactions ->
             let
@@ -115,6 +135,13 @@ update msg model =
             in
                 ( { model | importBankAccountTransactionsApp = ibatModel }, Cmd.map ImportBankAccountTransactionsEvent ibatCmd )
 
+        RecordTransactionEvent rtMsg ->
+            let
+                ( rtModel, rtCmd ) =
+                    RecordTransactionApp.update rtMsg model.recordTransactionApp
+            in
+                ( { model | recordTransactionApp = rtModel }, Cmd.map RecordTransactionEvent rtCmd )
+
         NavigateTo newLocation ->
             ( { model | location = newLocation }, Cmd.none )
 
@@ -136,6 +163,9 @@ drawView model =
         ImportBankTransactions ->
             App.map ImportBankAccountTransactionsEvent (ImportBankAccountTransactionsApp.view model.importBankAccountTransactionsApp)
 
+        RecordTransaction ->
+            App.map RecordTransactionEvent (RecordTransactionApp.view model.recordTransactionApp)
+
         _ ->
             h1 [] [ text "Content" ]
 
@@ -152,6 +182,7 @@ view model =
                 , menuItem model "fi-ticket" "Record Check" "Record a new check" RecordCheck
                 , menuItem model "fi-clipboard-pencil" "Record Expense" "Record a new expense" RecordExpense
                 , menuItem model "fi-clipboard-notes" "Record Revenue" "Record a new revenue event" RecordRevenue
+                , menuItem model "fi-pencil" "Record Transaction" "Manually record a transaction" RecordTransaction
                 ]
             , h2 [] [ text "Reports" ]
             , ul [ class "menu vertical" ]

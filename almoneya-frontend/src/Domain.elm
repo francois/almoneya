@@ -37,7 +37,7 @@ type alias Transaction =
     , description : Maybe String
     , postedOn : String
     , bookedAt : String
-    , balance : String
+    , balance : Maybe String
     , entries : List TransactionEntry
     }
 

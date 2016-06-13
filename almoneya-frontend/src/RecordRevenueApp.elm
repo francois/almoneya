@@ -164,7 +164,7 @@ view model =
         , form [ classList [ ( "saving", model.saving ) ], onSubmit Submit ]
             [ viewErrors model.errors
             , label [] [ text "Payee", input [ type' "text", name "revenue[payee]", placeholder "ACME Corp.", value model.payee, onInput ChangePayee ] [] ]
-            , label [] [ text "Received on", input [ type' "text", name "revenue[received_on]", placeholder "2016-06-09", value model.receivedOn, onInput ChangeReceivedOn ] [] ]
+            , label [] [ text "Received on", input [ type' "date", name "revenue[received_on]", placeholder "2016-06-09", value model.receivedOn, onInput ChangeReceivedOn ] [] ]
             , label [] [ text "Amount", input [ type' "text", name "revenue[amount]", placeholder "1031.78", value model.amount, onInput ChangeAmount ] [] ]
             , label [] [ text "Bank Account Account Name", select [ name "revenue[bank_account_account_name]", onInput ChangeBankAccountAccountName ] (revenueAccountOptions model.bankAccountAccountName model.accounts) ]
             , label [] [ text "Revenue Account Name", select [ name "revenue[revenue_account_name]", onInput ChangeRevenueName ] (bankAccountOptions model.revenueAccountName model.accounts) ]
@@ -192,9 +192,6 @@ submit model =
 
         url =
             "/api/revenues/create"
-
-        decoder =
-            Decode.string
     in
         Http.post url
             |> Http.withHeader "Content-Type" "application/json"
