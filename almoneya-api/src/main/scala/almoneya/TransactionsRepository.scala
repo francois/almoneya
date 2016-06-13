@@ -34,7 +34,7 @@ class TransactionsRepository(val executor: QueryExecutor) extends Repository {
             val balance = if (transactionEntries.isEmpty) {
                 Amount(0)
             } else {
-                transactionEntries.map(_.amount).filter(_.isPositive).reduce(_ + _)
+                transactionEntries.filterNot(_.account.virtual).map(_.amount).filter(_.isPositive).reduce(_ + _)
             }
 
             txn.copy(entries = transactionEntries, balance = Some(balance))

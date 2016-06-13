@@ -46,7 +46,6 @@ class TransactionFormDeserializer extends StdDeserializer[TransactionForm](class
                         case "bank_account_transaction_id" => BankAccountTransactionIdField
                         case other =>
                             throw new JsonParseException(p, "Found unknown FIELD named [" + other + "]: cannot continue", p.getCurrentLocation)
-
                     })
 
                 case JsonToken.VALUE_STRING =>
