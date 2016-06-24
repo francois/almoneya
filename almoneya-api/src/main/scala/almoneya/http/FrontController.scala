@@ -3,11 +3,13 @@ package almoneya.http
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.URI
 import java.sql.Connection
+import java.util.concurrent.TimeUnit
 import javax.servlet.MultipartConfigElement
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import javax.sql.DataSource
 
 import almoneya.TenantId
+import almoneya.utils.Instrumented
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.wix.accord.{GroupViolation, RuleViolation, Violation}
 import org.eclipse.jetty.server.Request
@@ -18,20 +20,28 @@ import scala.util.{Failure, Success, Try}
 
 class FrontController(val router: Router,
                       val dataSource: DataSource,
-                      val mapper: ObjectMapper) extends AbstractHandler {
+                      val mapper: ObjectMapper) extends AbstractHandler with Instrumented {
 
     import FrontController.{Errors, Results, multiPartConfig}
 
     override def handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+        val startRouting = System.nanoTime
         try {
             activeMultipartHandlingIfRequestIsMultipart(baseRequest)
 
-            val route = for (method <- Route.methodToHttpMethod(request.getMethod);
-                             route <- router.route(request.getPathInfo, method)) yield route
+            val route = time("routing") {
+                for (method <- Route.methodToHttpMethod(request.getMethod);
+                     route <- router.route(request.getPathInfo, method)) yield route
+            }
 
             sendResponse(route, baseRequest, request, response)
         } finally {
-            log.info("{} \"{}\" {}", request.getMethod, request.getContextPath + request.getPathInfo, response.getStatus.asInstanceOf[AnyRef])
+            val endWriteResponse = System.nanoTime
+            log.info("{} \"{}\" {} ({} ms)",
+                request.getMethod,
+                request.getContextPath + request.getPathInfo,
+                response.getStatus.asInstanceOf[AnyRef],
+                TimeUnit.NANOSECONDS.toMillis(endWriteResponse - startRouting).asInstanceOf[AnyRef])
             // These are not the FrontController's concerns, but due to the API design of
             // the security subsystem in the HttpServlet spec, we have to do it here. The
             // security subsystem does not inform the LoginService that a request is
@@ -75,7 +85,7 @@ class FrontController(val router: Router,
                     (HttpServletResponse.SC_INTERNAL_SERVER_ERROR, Errors(Set(ex.getMessage)))
             }
 
-            writeResponse(response, status, results, baseRequest)
+            time("writeResponse")(writeResponse(response, status, results, baseRequest))
         } finally {
             returnConnection(connection)
         }
@@ -85,7 +95,7 @@ class FrontController(val router: Router,
         implicit val connection = acquireConnection
 
         try {
-            val (status, results) = Try(route.execute(tenantId.get, baseRequest, request)) match {
+            val (status, results) = Try(time("execute")(route.execute(tenantId.get, baseRequest, request))) match {
                 case Success(Right(theResults)) =>
                     (HttpServletResponse.SC_OK, Results(theResults))
 
@@ -98,13 +108,13 @@ class FrontController(val router: Router,
                     (HttpServletResponse.SC_INTERNAL_SERVER_ERROR, Errors(Set(ex.getMessage)))
             }
 
-            writeResponse(response, status, results, baseRequest)
+            time("writeResponse")(writeResponse(response, status, results, baseRequest))
         } finally {
             returnConnection(connection)
         }
     }
 
-    private[this] def writeResponse(response: HttpServletResponse, status: Int, results: Product with Serializable, baseRequest: Request): Unit = {
+    private[this] def writeResponse(response: HttpServletResponse, status: Int, results: AnyRef, baseRequest: Request): Unit = {
         if (HttpServletResponse.SC_OK <= status && status < 300) {
             if (isPostWithRedirectToParameter(baseRequest)) {
                 redirectToLocation(Option(baseRequest.getParameter("redirect_to")).map(new URI(_)).get, baseRequest, response)
@@ -155,13 +165,13 @@ class FrontController(val router: Router,
 
     //////////////////// Database Connection Handling
 
-    private[this] def acquireConnection: Connection = {
+    private[this] def acquireConnection: Connection = time("acquireConnection") {
         val connection = dataSource.getConnection
         log.debug("Acquired database connection {}", connection.hashCode())
         connection
     }
 
-    private[this] def returnConnection(connection: Connection): Unit = {
+    private[this] def returnConnection(connection: Connection): Unit = time("returnConnection") {
         log.debug("Closing database connection {}", connection.hashCode())
         connection.close()
     }
@@ -195,6 +205,7 @@ class FrontController(val router: Router,
     }
 
     private[this] val log = LoggerFactory.getLogger(this.getClass)
+    val timingLog = LoggerFactory.getLogger(this.getClass.getName + ".timing")
 
     log.info("Front Controller Ready: {} routes defined", router.numberOfRoutes)
     router.routes.foreach { route =>
