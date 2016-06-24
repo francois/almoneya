@@ -52,6 +52,7 @@ object JSON {
         serializerModule.addSerializer(classOf[Account], new AccountSerializer())
         serializerModule.addSerializer(classOf[Allocation], new AllocationSerializer())
         serializerModule.addSerializer(classOf[Amount], new AmountSerializer())
+        serializerModule.addSerializer(classOf[CheckNum], new CheckNumSerializer())
         serializerModule.addSerializer(classOf[BankAccountId], new BankAccountIdSerializer())
         serializerModule.addSerializer(classOf[BankAccountTransactionId], new BankAccountTransactionIdSerializer())
         serializerModule.addSerializer(classOf[BankAccountTransaction], new BankAccountTransactionSerializer())

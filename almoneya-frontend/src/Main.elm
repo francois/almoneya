@@ -8,6 +8,7 @@ import RecordRevenueApp
 import ListTransactionsApp
 import ImportBankAccountTransactionsApp
 import RecordTransactionApp
+import BankAccountTransactionsApp
 
 
 main =
@@ -20,6 +21,7 @@ type alias Model =
     , listTransactionsApp : ListTransactionsApp.Model
     , importBankAccountTransactionsApp : ImportBankAccountTransactionsApp.Model
     , recordTransactionApp : RecordTransactionApp.Model
+    , bankAccountTransactionsApp : BankAccountTransactionsApp.Model
     }
 
 
@@ -29,6 +31,7 @@ type Msg
     | ListTransactionsEvent ListTransactionsApp.Msg
     | ImportBankAccountTransactionsEvent ImportBankAccountTransactionsApp.Msg
     | RecordTransactionEvent RecordTransactionApp.Msg
+    | BankAccountTransactionsEvent BankAccountTransactionsApp.Msg
 
 
 type Location
@@ -62,18 +65,23 @@ init =
 
         ( recordTransactionAppModel, recordTransactionAppCmd ) =
             RecordTransactionApp.init
+
+        ( bankAccountTransactionsAppModel, bankAccountTransactionsAppCmd ) =
+            BankAccountTransactionsApp.init
     in
         ( { location = RecordRevenue
           , recordRevenueApp = recordRevenueAppModel
           , listTransactionsApp = listTransactionsAppModel
           , importBankAccountTransactionsApp = importBankAccountTransactionsAppModel
           , recordTransactionApp = recordTransactionAppModel
+          , bankAccountTransactionsApp = bankAccountTransactionsAppModel
           }
         , Cmd.batch
             [ Cmd.map RecordRevenueEvent recordRevenueAppCmd
             , Cmd.map ListTransactionsEvent listTransactionsAppCmd
             , Cmd.map ImportBankAccountTransactionsEvent importBankAccountTransactionsAppCmd
             , Cmd.map RecordTransactionEvent recordTransactionAppCmd
+            , Cmd.map BankAccountTransactionsEvent bankAccountTransactionsAppCmd
             ]
         )
 
@@ -114,6 +122,13 @@ update msg model =
             in
                 ( { model | location = ImportBankTransactions, importBankAccountTransactionsApp = bankTransactionsModel }, Cmd.map ImportBankAccountTransactionsEvent bankTransactionsCmd )
 
+        NavigateTo BankTransactions ->
+            let
+                ( bankAccountTransactionsAppModel, bankAccountTransactionsAppCmd ) =
+                    BankAccountTransactionsApp.init
+            in
+                ( { model | location = BankTransactions, bankAccountTransactionsApp = bankAccountTransactionsAppModel }, Cmd.map BankAccountTransactionsEvent bankAccountTransactionsAppCmd )
+
         RecordRevenueEvent rreMsg ->
             let
                 ( rreModel, rreCmd ) =
@@ -142,6 +157,13 @@ update msg model =
             in
                 ( { model | recordTransactionApp = rtModel }, Cmd.map RecordTransactionEvent rtCmd )
 
+        BankAccountTransactionsEvent batMsg ->
+            let
+                ( batModel, batCmd ) =
+                    BankAccountTransactionsApp.update batMsg model.bankAccountTransactionsApp
+            in
+                ( { model | bankAccountTransactionsApp = batModel }, Cmd.map BankAccountTransactionsEvent batCmd )
+
         NavigateTo newLocation ->
             ( { model | location = newLocation }, Cmd.none )
 
@@ -165,6 +187,9 @@ drawView model =
 
         RecordTransaction ->
             App.map RecordTransactionEvent (RecordTransactionApp.view model.recordTransactionApp)
+
+        BankTransactions ->
+            App.map BankAccountTransactionsEvent (BankAccountTransactionsApp.view model.bankAccountTransactionsApp)
 
         _ ->
             h1 [] [ text "Content" ]

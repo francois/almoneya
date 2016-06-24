@@ -6,12 +6,29 @@ import org.joda.time.LocalDate
 
 class BankAccountTransactionsRepository(val executor: QueryExecutor) extends Repository {
 
-    import BankAccountTransactionsRepository.{IMPORT_BANK_ACCOUNT_TRANSACTIONS_QUERY, LINK_BANK_ACCOUNT_TRANSACTION_TO_TRANSACTION_ENTRY_QUERY}
+    import BankAccountTransactionsRepository.{IMPORT_BANK_ACCOUNT_TRANSACTIONS_QUERY, LINK_BANK_ACCOUNT_TRANSACTION_TO_TRANSACTION_ENTRY_QUERY, LIST_BANK_ACCOUNT_TRANSACTIONS_QUERY}
+
+    def listBankAccountTransactions(tenantId: TenantId)(implicit connection: Connection): Seq[BankAccountTransaction] = {
+        executor.findAll(LIST_BANK_ACCOUNT_TRANSACTIONS_QUERY, tenantId) { rs =>
+            BankAccountTransaction(
+                id = Option(rs.getInt("bank_account_transaction_id")).map(BankAccountTransactionId.apply),
+                bankAccount = BankAccount(id = Option(rs.getInt("bank_account_id")).map(BankAccountId.apply),
+                    accountHash = AccountHash(rs.getString("bank_account_hash")),
+                    last4 = AccountLast4(rs.getString("bank_account_last4"))),
+                checkNum = Option(rs.getString("check_number")).map(CheckNum.apply),
+                postedOn = new LocalDate(rs.getDate("posted_on")),
+                description1 = Option(rs.getString("description1")).map(Description.apply),
+                description2 = Option(rs.getString("description2")).map(Description.apply),
+                amount = Amount(rs.getBigDecimal("amount")),
+                reconciled = Some(rs.getBoolean("reconciled"))
+            )
+        }
+    }
 
     def linkBankAccountTransactionToTransactionEntry(tenantId: TenantId,
                                                      bankAccountTransactionId: BankAccountTransactionId,
                                                      transactionId: TransactionId)
-                                                    (implicit connection:Connection): Option[BankAccountTransaction] = {
+                                                    (implicit connection: Connection): Option[BankAccountTransaction] = {
         executor.findOne(LINK_BANK_ACCOUNT_TRANSACTION_TO_TRANSACTION_ENTRY_QUERY, transactionId, tenantId, tenantId, bankAccountTransactionId) { rs =>
             BankAccountTransaction(id = Some(BankAccountTransactionId(rs.getInt("bank_account_transaction_id"))),
                 bankAccount = BankAccount(id = Option(rs.getInt("bank_account_id")).map(BankAccountId.apply),
@@ -32,7 +49,7 @@ class BankAccountTransactionsRepository(val executor: QueryExecutor) extends Rep
         }
     }
 
-    def importBankTransactionsTransactions(tenantId: TenantId, transactions: Seq[BankAccountTransaction])(implicit connection:Connection): Seq[BankAccountTransaction] = {
+    def importBankTransactionsTransactions(tenantId: TenantId, transactions: Seq[BankAccountTransaction])(implicit connection: Connection): Seq[BankAccountTransaction] = {
         val bankAccounts = transactions.map(_.bankAccount).toSet
         val existingAccountNums = executor.findAll(Query("SELECT bank_account_hash FROM bank_accounts")) { rs =>
             AccountHash(rs.getString("bank_account_hash"))
@@ -78,4 +95,10 @@ object BankAccountTransactionsRepository {
             "FROM new_values " +
             "JOIN public.bank_accounts USING (tenant_id, bank_account_hash, account_name) " +
             "JOIN public.accounts USING (tenant_id, account_name)")
+
+    val LIST_BANK_ACCOUNT_TRANSACTIONS_QUERY = Query("" +
+            "SELECT bank_account_transaction_id, posted_on, description1, description2, check_number, amount, bank_account_hash, bank_account_last4, bank_account_id, bank_accounts.account_name, bank_account_transactions.transaction_id IS NOT NULL AS reconciled " +
+            "FROM public.bank_account_transactions " +
+            "JOIN public.bank_accounts USING (tenant_id, bank_account_hash) " +
+            "WHERE tenant_id = ? ORDER BY bank_account_hash, posted_on, bank_account_transaction_id")
 }

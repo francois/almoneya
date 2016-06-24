@@ -8,4 +8,5 @@ case class BankAccountTransaction(id: Option[BankAccountTransactionId] = None,
                                   postedOn: LocalDate,
                                   description1: Option[Description] = None,
                                   description2: Option[Description] = None,
-                                  amount: Amount)
+                                  amount: Amount,
+                                  reconciled: Option[Boolean] = None)

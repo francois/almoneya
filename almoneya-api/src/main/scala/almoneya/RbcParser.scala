@@ -17,12 +17,13 @@ class RbcParser {
             val last4 = accountNum.substring(row(1).length - 4, row(1).length)
             val bankAccount = BankAccount(accountHash = AccountHash(accountHash), last4 = AccountLast4(last4))
             val postedOnComponents = row(2).split("\\D").map(_.toInt)
+            val desc2 = row(5)
             BankAccountTransaction(
                 bankAccount = bankAccount,
                 checkNum = if (row(3).isEmpty) None else Some(CheckNum(row(6))),
                 postedOn = new LocalDate(postedOnComponents(2), postedOnComponents(0), postedOnComponents(1)),
                 description1 = Some(Description(row(4))),
-                description2 = Some(Description(row(5))),
+                description2 = if (desc2.trim.isEmpty) None else Some(Description(desc2)),
                 amount = Amount(BigDecimal(row(6)))
             )
         }
