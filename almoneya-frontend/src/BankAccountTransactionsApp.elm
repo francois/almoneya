@@ -1,6 +1,6 @@
 module BankAccountTransactionsApp exposing (Model, Msg, init, update, view)
 
-import Domain exposing (BankAccountTransaction)
+import Domain exposing (BankAccountTransaction, CheckNum)
 import DomainRest exposing (getBankAccountTransactions)
 import Html.Attributes exposing (class)
 import Html exposing (..)
@@ -64,12 +64,26 @@ viewFilters model =
     div [] []
 
 
+viewCheckNum : Maybe CheckNum -> List (Html Msg)
+viewCheckNum checkNum =
+    case checkNum of
+        Just num ->
+            [ text "#", text num, text " " ]
+
+        Nothing ->
+            [ text "" ]
+
+
 viewTransaction : BankAccountTransaction -> Html Msg
 viewTransaction txn =
     tr []
         [ td [] [ text txn.postedOn ]
-        , td [] [ text (Maybe.withDefault "" (Debug.log "checknum" txn.checkNum)) ]
-        , td [] [ text txn.desc1, text (Maybe.withDefault "" txn.desc2) ]
+        , td []
+            (List.concat
+                [ viewCheckNum txn.checkNum
+                , [ text txn.desc1, text (Maybe.withDefault "" txn.desc2) ]
+                ]
+            )
         , td [ class "amount" ] [ text txn.amount ]
         , td [] [ text txn.bankAccount.last4 ]
         ]
@@ -86,7 +100,6 @@ viewTransactionsTable txns =
         [ thead []
             [ tr []
                 [ th [] [ text "Posted On" ]
-                , th [] [ text "Check Num" ]
                 , th [] [ text "Description" ]
                 , th [] [ text "Amount" ]
                 , th [] [ text "Account" ]
